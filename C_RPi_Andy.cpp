@@ -636,7 +636,7 @@ public:             // Access specifier
 
   // INITIALIZING UART1
   printf("Initializing UART0...\n\n");
-  if ((IMU = serialOpen("/dev/ttyS0", 115200)) < 0)
+  if (0 < 0)
   // if ((IMU = serialOpen ("/dev/ttyS0", 460800)) < 0)
   // if ((IMU = serialOpen ("/dev/ttyS0", 921600)) < 0)
   // if ((IMU = serialOpen ("/dev/ttyS1", 230400)) < 0)
