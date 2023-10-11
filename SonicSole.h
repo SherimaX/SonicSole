@@ -1,3 +1,6 @@
+#ifndef SONICSOLE_H
+#define SONICSOLE_H
+
 // NPi Sensor Read and Data Logging
 
 #include <iostream>
@@ -44,7 +47,6 @@
 #include <netinet/in.h>
 
 #define MAX_RUN_TIME 600000000
-#pragma once  
 
 using namespace std;
 
@@ -105,3 +107,5 @@ private:
     void playSound();
     uint64_t getCurrentTime();
 };
+
+#endif
