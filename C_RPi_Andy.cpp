@@ -623,7 +623,6 @@ public:             // Access specifier
   if (fd == -1)
   {
     std::cout << "Failed to init SPI communication.\n";
-    return -1;
   }
   std::cout << "SPI communication successfully setup.\n";
 
@@ -643,7 +642,6 @@ public:             // Access specifier
   // if ((IMU = serialOpen ("/dev/ttyS1", 230400)) < 0)
   {
     fprintf(stderr, "Unable to open serial device: %s\n", strerror(errno));
-    return 1;
   }
   printf("UART1 initialized successfully!\n\n");
 
@@ -652,7 +650,6 @@ public:             // Access specifier
   if (wiringPiSetupGpio() == -1)
   {
     fprintf(stdout, "Unable to start wiringPi: %s\n", strerror(errno));
-    return 1;
   }
   printf("GPIO initialized successfully!\n\n");
 
