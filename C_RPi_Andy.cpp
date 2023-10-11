@@ -617,6 +617,62 @@ public:             // Access specifier
             fprintf (stdout, "Unable to start wiringPi: %s\n", strerror (errno)) ;
         }
         printf("GPIO initialized successfully!\n\n");
+
+
+          int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
+  if (fd == -1)
+  {
+    std::cout << "Failed to init SPI communication.\n";
+    return -1;
+  }
+  std::cout << "SPI communication successfully setup.\n";
+
+  this_thread::sleep_for(chrono::milliseconds(500));
+
+  char strSession[N_STR];
+
+  printf("\nRaspberry Pi for SonicSole: \n\n");
+  printf("UART0 IMU and Multi-thread Data Logging\n\n");
+
+  // INPUT ARGUMENTS
+  if (argc > 2)
+  {
+    printf("Error on input argument!\n");
+    return -1;
+  }
+  else if (argc == 1)
+  {
+    // No session name, simple functioning
+    sprintf(strSession, "%s", "");
+  }
+  else if (argc == 2)
+  {
+    // Simple functioning
+    sprintf(strSession, "%s", argv[1]);
+    printf("Session Name: %s\n", strSession);
+  }
+
+  // INITIALIZING UART1
+  printf("Initializing UART0...\n\n");
+  if ((IMU = serialOpen("/dev/ttyS0", 115200)) < 0)
+  // if ((IMU = serialOpen ("/dev/ttyS0", 460800)) < 0)
+  // if ((IMU = serialOpen ("/dev/ttyS0", 921600)) < 0)
+  // if ((IMU = serialOpen ("/dev/ttyS1", 230400)) < 0)
+  {
+    fprintf(stderr, "Unable to open serial device: %s\n", strerror(errno));
+    return 1;
+  }
+  printf("UART1 initialized successfully!\n\n");
+
+  // INITIALIZING GPIO (Use wPi pins, not BCM)
+  printf("Initializing GPIO...\n\n");
+  if (wiringPiSetupGpio() == -1)
+  {
+    fprintf(stdout, "Unable to start wiringPi: %s\n", strerror(errno));
+    return 1;
+  }
+  printf("GPIO initialized successfully!\n\n");
+
     }
 
     bool mode = true;
