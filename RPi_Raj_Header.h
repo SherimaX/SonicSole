@@ -15,7 +15,7 @@
 ////////////////////////////////////////////////////
 // DATA STRUCTURES
 
-struct structStreamingTimingInformation
+inline struct structStreamingTimingInformation
 {
     unsigned int interval;
     unsigned int duration;
@@ -96,7 +96,7 @@ struct structStreamingData
     structComponentQuaternion q;
 };
 
-union unionStreamingData
+inline union unionStreamingData
 {
     structStreamingData sData;
     uint8_t vData[sizeof(structStreamingData)];
@@ -314,7 +314,7 @@ inline void reconstructBinaryPacketBinary_test(uint8_t *recvbuffer, float &ax, f
   pointer[0] = recvbuffer[11];
 }
 
-uint8_t calcCRC256(uint8_t *dataPacket, uint8_t nByte)
+inline uint8_t calcCRC256(uint8_t *dataPacket, uint8_t nByte)
 {
   uint16_t checksum = 0;
   for (uint8_t i = 1; i < nByte; i++)
@@ -324,7 +324,7 @@ uint8_t calcCRC256(uint8_t *dataPacket, uint8_t nByte)
   return (checksum % 256);
 }
 
-void createLogPacket_v01(uint8_t *dataPacket, uint64_t currentTime)
+inline void createLogPacket_v01(uint8_t *dataPacket, uint64_t currentTime)
 {
     uint8_t *pointer;
 
