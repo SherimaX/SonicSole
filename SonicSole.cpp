@@ -146,6 +146,10 @@ bool SonicSole::detectCombinedThreshold() {
     return detectThreshold(prevCombinedPressure, currCombinedPressure, minCombinedPressure, maxCombinedPressure);
 }
 
+void SonicSole::runSoundMode() {
+    return;
+}
+
 void SonicSole::playSound() {
     cout << "Played Sound" << endl;
 }
