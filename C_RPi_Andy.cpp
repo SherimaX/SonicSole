@@ -45,6 +45,8 @@
 
 // #define MAX_RUN_TIME 600000000
 
+#include "SonicSole.h"
+
 
 using namespace std;
 
