@@ -98,18 +98,18 @@ union unionStreamingData
     uint8_t vData[sizeof(structStreamingData)];
 } uStreamingDataIMU;
 
-inline void fillIMUData(uint8_t* pointer, uint8_t *dataIMUPacket, int start) {
-    pointer[3] = dataIMUPacket[start];
-    pointer[2] = dataIMUPacket[start + 1];
-    pointer[1] = dataIMUPacket[start + 2];
-    pointer[0] = dataIMUPacket[start + 3];
+inline void fillIMUData(uint8_t* pointer, uint8_t *dataIMUPacket, int x) {
+    pointer[3] = dataIMUPacket[x];
+    pointer[2] = dataIMUPacket[x + 1];
+    pointer[1] = dataIMUPacket[x + 2];
+    pointer[0] = dataIMUPacket[x + 3];
 }
 
 
 inline void reconstructIMUPacket(uint8_t *dataIMUPacket, structComponentQuaternion &structQuat, structComponentLinearAcceleration &structAcce, structComponentRawGyro &structGyro, structComponentRawAcceleration &structRAcc)
 {
     uint8_t *pointer;
-
+    
     fillIMUData((uint8_t *)&structQuat.qx, dataIMUPacket, 0);
     fillIMUData((uint8_t *)&structQuat.qy, dataIMUPacket, 4);
     fillIMUData((uint8_t *)&structQuat.qz, dataIMUPacket, 8);
