@@ -113,7 +113,6 @@ int main(int argc, char *argv[])
   int threshold_pressure_sum;
   double threshold_time_array[20] = {};
   double start_time = getMicrosTimeStamp();
-  cout << "start_time:" << start_time << endl;
   double current_threshold_time = 0;
 
   int max_pressure = 1000;
@@ -146,6 +145,7 @@ int main(int argc, char *argv[])
     return -1;
   }
   std::cout << "SPI communication successfully setup.\n";
+  std::cout << "start_time:" << start_time << endl;
 
   this_thread::sleep_for(chrono::milliseconds(500));
 
