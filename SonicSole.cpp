@@ -1,4 +1,4 @@
-#include "C_RPi_Andy_Class.h"
+#include "SonicSole.h"
 
 uint64_t getMicrosTimeStamp() {
     struct timeval tv;
@@ -12,7 +12,7 @@ void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in s
            sizeof(servaddr));
 }
 
-C_RPi_Andy_Class::SonicSole() {
+SonicSole::SonicSole() {
     startTime = getMicrosTimeStamp();
     wiringPiSetupGpio() ;
     pinMode(CS, OUTPUT) ;
@@ -42,7 +42,7 @@ C_RPi_Andy_Class::SonicSole() {
 }
 
 
-void C_RPi_Andy_Class::motorVibrate() {
+void SonicSole::motorVibrate() {
     digitalWrite(23, HIGH); //Turn motors on and off to show device is on
     digitalWrite(20, HIGH);
     delay(1000);
@@ -50,31 +50,31 @@ void C_RPi_Andy_Class::motorVibrate() {
     digitalWrite(20, LOW);
 }
 
-void C_RPi_Andy_Class::detectModeChange() {
+void SonicSole::detectModeChange() {
     if (detectHeelThreshold() && heelThresholdInterval < 1)
         mode = !mode;
         string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
 }
 
-void C_RPi_Andy_Class::runVibrateMode() {
+void SonicSole::runVibrateMode() {
     if (detectCombinedThreshold()) {
         playSound();
     }
 }
 
-void C_RPi_Andy_Class::toCSV() {
+void SonicSole::toCSV() {
     return;
 }
 
-uint64_t C_RPi_Andy_Class::getRunningTime() {
+uint64_t SonicSole::getRunningTime() {
     return currentTime - startTime;
 }
 
-void C_RPi_Andy_Class::updateCurrentTime() {
+void SonicSole::updateCurrentTime() {
     currentTime = getCurrentTime();
 }
 
-void C_RPi_Andy_Class::updatePressure() {
+void SonicSole::updatePressure() {
     prevHeelPressure = currHeelPressure;
     prevForePressure =  currForePressure;
     prevCombinedPressure = currCombinedPressure;
@@ -100,7 +100,7 @@ void C_RPi_Andy_Class::updatePressure() {
 
 }
 
-int C_RPi_Andy_Class::getSensorReadings(unsigned char signal) {
+int SonicSole::getSensorReadings(unsigned char signal) {
     // ADC channels
     digitalWrite(CS,LOW);
     SPIbuff[0] = 1;
@@ -112,21 +112,21 @@ int C_RPi_Andy_Class::getSensorReadings(unsigned char signal) {
     return sensorReading;
 }
 
-bool C_RPi_Andy_Class::getMode() {
+bool SonicSole::getMode() {
     return mode;
 }
 
-uint64_t C_RPi_Andy_Class::getCurrentTime() {
+uint64_t SonicSole::getCurrentTime() {
     return getMicrosTimeStamp();
 }
 
-void C_RPi_Andy_Class::updateHeelThresholdInterval() {
+void SonicSole::updateHeelThresholdInterval() {
     previousHeelThresholdTime = currentHeelThresholdTime;
     currentHeelThresholdTime = getCurrentTime();
     heelThresholdInterval = currentHeelThresholdTime - previousHeelThresholdTime;    
 }
 
-bool C_RPi_Andy_Class::detectThreshold(int prevReading, int currReading, int minReading, int maxReading) {
+bool SonicSole::detectThreshold(int prevReading, int currReading, int minReading, int maxReading) {
     double threshold = 0.1 * (maxReading - minReading) + minReading;
     if (prevReading < threshold && currReading > threshold) {
         return true;
@@ -135,18 +135,18 @@ bool C_RPi_Andy_Class::detectThreshold(int prevReading, int currReading, int min
     }
 }
 
-bool C_RPi_Andy_Class::detectHeelThreshold() {
+bool SonicSole::detectHeelThreshold() {
     bool thresholdDetected = detectThreshold(prevHeelPressure, currHeelPressure, minHeelPressure, maxHeelPressure);
     if (thresholdDetected)
         updateHeelThresholdInterval();
     return thresholdDetected;
 }
 
-bool C_RPi_Andy_Class::detectCombinedThreshold() {
+bool SonicSole::detectCombinedThreshold() {
     return detectThreshold(prevCombinedPressure, currCombinedPressure, minCombinedPressure, maxCombinedPressure);
 }
 
-void C_RPi_Andy_Class::playSound() {
+void SonicSole::playSound() {
     cout << "Played Sound" << endl;
 }
 

@@ -45,7 +45,7 @@
 
 // #define MAX_RUN_TIME 600000000
 
-#include "C_RPi_Andy_Class.h"
+#include "SonicSole.h"
 
 
 // using namespace std;
