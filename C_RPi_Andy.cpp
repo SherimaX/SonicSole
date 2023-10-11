@@ -695,8 +695,8 @@ public:             // Access specifier
         if (currHeelPressure > maxHeelPressure)
             maxHeelPressure = currHeelPressure;
 
-//        cout << "currHeelPressure: " << currHeelPressure << endl;
-//        cout << "currForePressure: " << currForePressure << endl;
+        cout << "currHeelPressure: " << currHeelPressure << endl;
+        cout << "currForePressure: " << currForePressure << endl;
 
     }
 
@@ -775,7 +775,7 @@ int main(int argc, char* argv[])
 
     while (true) {
 
-      if ((cycle % 100) == 0) {
+      if ((cycle % 1000) == 0) {
         cout << "cycle: " << cycle;
 
         sole->updateCurrentTime();
@@ -797,7 +797,6 @@ int main(int argc, char* argv[])
         sole->toCSV();
 
         cout << "\n";
-        cycle++;
       }
       // if (sole->getRunningTime() > MAX_RUN_TIME) {
       //    cout << sole->getRunningTime() << endl;
