@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
     std::cout << "Failed to init SPI communication.\n";
     return -1;
   }
-  std::cout << "SPI communication successfully setup.\n";
+  std::cout << "SPI communication successfully setup.\n" << start_time;
 
   this_thread::sleep_for(chrono::milliseconds(500));
 
