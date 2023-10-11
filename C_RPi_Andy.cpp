@@ -1,47 +1,47 @@
 // NPi Sensor Read and Data Logging
 
 #include <iostream>
-#include <fstream>
-#include <mutex>
-#include <thread>
-#include <condition_variable>
-#include <chrono>
-#include <iomanip>
+// #include <fstream>
+// #include <mutex>
+// #include <thread>
+// #include <condition_variable>
+// #include <chrono>
+// #include <iomanip>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <errno.h>
-#include <inttypes.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
-#include <time.h>
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <stdint.h>
+// #include <string.h>
+// #include <fcntl.h>
+// #include <unistd.h>
+// #include <errno.h>
+// #include <inttypes.h>
+// #include <sys/time.h>
+// #include <sys/ioctl.h>
+// #include <linux/i2c-dev.h>
+// #include <time.h>
 
-// WiringPi libraries
-#include <wiringPi.h>
-#include <wiringSerial.h>
-#include <wiringPiI2C.h>
-#include <termios.h>
+// // WiringPi libraries
+// #include <wiringPi.h>
+// #include <wiringSerial.h>
+// #include <wiringPiI2C.h>
+// #include <termios.h>
 // #include "wiringSerial.h"
 
 // User-defined libraries
 #include "RPi_combined_Header.h"
 #include "RPi_Raj_Header.hpp"
 
-// libraries from ADC code
-#include <wiringPiSPI.h>
+// // libraries from ADC code
+// #include <wiringPiSPI.h>
 
-// libraries for UDP
-#include <bits/stdc++.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+// // libraries for UDP
+// #include <bits/stdc++.h>
+// #include <string.h>
+// #include <sys/types.h>
+// #include <sys/socket.h>
+// #include <arpa/inet.h>
+// #include <netinet/in.h>
 
 #define MAX_RUN_TIME 600000000
 
