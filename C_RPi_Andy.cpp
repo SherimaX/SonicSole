@@ -688,22 +688,6 @@ public:             // Access specifier
         prevHeelPressure = currHeelPressure;
         prevForePressure =  currForePressure;
         prevCombinedPressure = currCombinedPressure;
-
-        // digitalWrite(CS, LOW);
-        // SPIbuff[0] = 1;
-        // SPIbuff[1] = 160;
-        // SPIbuff[2] = 0;
-        // wiringPiSPIDataRW(SPI_CHANNEL, SPIbuff, 3);
-        // currHeelPressure = SPIbuff[1] << 8 | SPIbuff[2];
-        // digitalWrite(CS, HIGH);
-        // // Channel 1
-        // digitalWrite(CS, LOW);
-        // SPIbuff[0] = 1;
-        // SPIbuff[1] = 224;
-        // SPIbuff[2] = 0;
-        // wiringPiSPIDataRW(SPI_CHANNEL, SPIbuff, 3);
-        // currForePressure = SPIbuff[1] << 8 | SPIbuff[2];
-        // digitalWrite(CS, HIGH);
         
         currHeelPressure = getSensorReadings(160);
         currForePressure = getSensorReadings(224);
@@ -779,7 +763,7 @@ private:
     }
 
     void playSound() {
-//        UDPSend();
+        // UDPSend();
         cout << "Played Sound" << endl;
     }
 
