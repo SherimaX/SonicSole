@@ -602,8 +602,6 @@ public:             // Access specifier
 
     SonicSole() {
         startTime = getMicrosTimeStamp();
-
-        cout << "starttime: " << startTime << endl;
         wiringPiSetupGpio() ;
         pinMode(CS, OUTPUT) ;
         digitalWrite(CS,HIGH);
@@ -775,9 +773,9 @@ int main(int argc, char* argv[])
 
 
     while (true) {
-      int cycle;
+      int cycle = 0;
 
-      if (cycle % 100 == 0) {
+      if ((cycle % 100) == 0) {
         cout << "cycle: " << cycle;
 
         sole->updateCurrentTime();
