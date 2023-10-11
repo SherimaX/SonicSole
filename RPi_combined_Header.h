@@ -106,13 +106,6 @@
 
 #define debug_LED 11 // BCM pins
 
-// PRESSURE SENSORS
-// Curve Fitting Coefficient
-const float coef1[] = {4.9623, 4.9715, 4.5513, 4.9613, 5.0471, 4.8370, 4.7539, 4.8434}; // Multiply by 10000
-const float coef2[] = {22.869, 28.117, 22.400, 21.504, 26.127, 22.159, 25.630, 22.922}; // Multiply by 1000
-const uint16_t segmentpoint = 2324; //581; // FACTOR OF 4 (10-BIT TO 12-BIT RES)
-uint16_t p[] = {0, 0, 0, 0, 0, 0, 0, 0};
-uint16_t offset_p[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 // MULTIPLEXER (BCM pin label)
 #define PIN_ENABLE 13
@@ -122,16 +115,24 @@ uint16_t offset_p[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 // ADC - MCP3221
 #define ADCAddress 0x4D
-static int ADCModule;
+// static int ADCModule;
 
-static uint8_t YEIdataPacket[MAX_YEI_DATA_PACKET];
-static int UART1;
-static int IMU;
-static bool led_state = 0;
+// static uint8_t YEIdataPacket[MAX_YEI_DATA_PACKET];
+// static int UART1;
+// static int IMU;
+// static bool led_state = 0;
 
-uint8_t currBuff;
-uint8_t prevBuff;
-bool readyToWrite;
-bool IMUDataReady;
+// // PRESSURE SENSORS
+// // Curve Fitting Coefficient
+// const float coef1[] = {4.9623, 4.9715, 4.5513, 4.9613, 5.0471, 4.8370, 4.7539, 4.8434}; // Multiply by 10000
+// const float coef2[] = {22.869, 28.117, 22.400, 21.504, 26.127, 22.159, 25.630, 22.922}; // Multiply by 1000
+// const uint16_t segmentpoint = 2324; //581; // FACTOR OF 4 (10-BIT TO 12-BIT RES)
+// uint16_t p[] = {0, 0, 0, 0, 0, 0, 0, 0};
+// uint16_t offset_p[] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+// uint8_t currBuff;
+// uint8_t prevBuff;
+// bool readyToWrite;
+// bool IMUDataReady;
 
 #endif
