@@ -626,33 +626,7 @@ public:             // Access specifier
         }
         std::cout << "SPI communication successfully setup.\n";
 
-  // this_thread::sleep_for(chrono::milliseconds(500));
-
-  // char strSession[N_STR];
-
-  // printf("\nRaspberry Pi for SonicSole: \n\n");
-  // printf("UART0 IMU and Multi-thread Data Logging\n\n");
-
-
-  // // INITIALIZING UART1
-  // printf("Initializing UART0...\n\n");
-  // if ((IMU = serialOpen("/dev/ttyS0", 115200)) < 0)
-  // // if ((IMU = serialOpen ("/dev/ttyS0", 460800)) < 0)
-  // // if ((IMU = serialOpen ("/dev/ttyS0", 921600)) < 0)
-  // // if ((IMU = serialOpen ("/dev/ttyS1", 230400)) < 0)
-  // {
-  //   fprintf(stderr, "Unable to open serial device: %s\n", strerror(errno));
-  // }
-  // printf("UART1 initialized successfully!\n\n");
-
-  // // INITIALIZING GPIO (Use wPi pins, not BCM)
-  // printf("Initializing GPIO...\n\n");
-  // if (wiringPiSetupGpio() == -1)
-  // {
-  //   fprintf(stdout, "Unable to start wiringPi: %s\n", strerror(errno));
-  // }
-  // printf("GPIO initialized successfully!\n\n");
-
+        this_thread::sleep_for(chrono::milliseconds(500));
     }
 
     bool mode = true;
@@ -842,7 +816,7 @@ int main(int argc, char* argv[])
       sole->toCSV();
 
       cout << "\n";
-      delay(1000);
+      delay(500);
       // if (sole->getRunningTime() > MAX_RUN_TIME) {
       //    cout << sole->getRunningTime() << endl;
       //    cout << MAX_RUN_TIME << endl;
