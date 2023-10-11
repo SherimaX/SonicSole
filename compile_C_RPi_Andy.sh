@@ -1,1 +1,1 @@
-g++ -o C_RPi_Andy C_RPi_Andy.cpp SonicSole.cpp -lwiringPi -lpthread -std=c++11
+g++ -o C_RPi_Andy C_RPi_Andy.cpp SonicSole.cpp -lwiringPi -lpthread -std=c++17
