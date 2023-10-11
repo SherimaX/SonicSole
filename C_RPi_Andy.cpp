@@ -679,8 +679,24 @@ public:             // Access specifier
         prevForePressure =  currForePressure;
         prevCombinedPressure = currCombinedPressure;
 
-        currHeelPressure = getSensorReadings(160);
-        currForePressure = getSensorReadings(224);
+        digitalWrite(CS, LOW);
+        SPIbuff[0] = 1;
+        SPIbuff[1] = 160;
+        SPIbuff[2] = 0;
+        wiringPiSPIDataRW(SPI_CHANNEL, SPIbuff, 3);
+        currHeelPressure = SPIbuff[1] << 8 | SPIbuff[2];
+        digitalWrite(CS, HIGH);
+        // Channel 1
+        digitalWrite(CS, LOW);
+        SPIbuff[0] = 1;
+        SPIbuff[1] = 224;
+        SPIbuff[2] = 0;
+        wiringPiSPIDataRW(SPI_CHANNEL, SPIbuff, 3);
+        currForePressure = SPIbuff[1] << 8 | SPIbuff[2];
+        digitalWrite(CS, HIGH);
+        
+        // currHeelPressure = getSensorReadings(160);
+        // currForePressure = getSensorReadings(224);
         currCombinedPressure = currHeelPressure + currForePressure;
 
         if (currCombinedPressure < minCombinedPressure)
@@ -708,7 +724,6 @@ public:             // Access specifier
         SPIbuff[2] = 0;
         wiringPiSPIDataRW(SPI_CHANNEL,SPIbuff,3);
         int sensorReading = SPIbuff[1] << 8 | SPIbuff[2];
-        cout << sensorReading << endl;
         digitalWrite(CS, HIGH);
         return sensorReading;
     }
@@ -765,7 +780,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-    int cycle = 0;
     SonicSole* sole = new SonicSole();
     cout << "SonicSole Class Initialized" << endl;
 
@@ -774,37 +788,30 @@ int main(int argc, char* argv[])
 
 
     while (true) {
+      sole->updateCurrentTime();
+      cout << "\nUpdate Pressure:" << endl;
+      sole->updatePressure();
 
-      if ((cycle % 100) == 0) {
-        cout << "cycle: " << cycle;
+      // for now not worrying about cycle change
+      /* 
+      sole->detectModeChange();
 
-        sole->updateCurrentTime();
-
-        cout << "\nUpdate Pressure:" << endl;
-        sole->updatePressure();
-
-        // for now not worrying about cycle change
-        /* 
-        sole->detectModeChange();
-
-        if (sole->getMode()) {
-            sole->runSoundMode();
-        } else {
-            sole->runVibrateMode();
-        }
-        */
-
-        sole->toCSV();
-
-        cout << "\n";
+      if (sole->getMode()) {
+          sole->runSoundMode();
+      } else {
+          sole->runVibrateMode();
       }
+      */
+
+      sole->toCSV();
+
+      cout << "\n";
+      delay(1000);
       // if (sole->getRunningTime() > MAX_RUN_TIME) {
       //    cout << sole->getRunningTime() << endl;
       //    cout << MAX_RUN_TIME << endl;
       //    return 0;
       // }
-      cycle++;
-      delay(1000);
     }
     return 0;
 }
