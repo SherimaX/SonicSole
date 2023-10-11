@@ -777,8 +777,10 @@ int main(int argc, char* argv[])
 
 
     while (true) {
+        cout << "Update Current Time:" << endl;
         sole->updateCurrentTime();
 
+        cout << "\nUpdate Pressure + Mode Change:" << endl;
         sole->updatePressure();
         sole->detectModeChange();
 
@@ -788,9 +790,10 @@ int main(int argc, char* argv[])
             sole->runVibrateMode();
         }
 
+        cout << "\ntoCSV:" << endl;
         sole->toCSV();
 
-        cout << "test" << endl; // debugging
+        cout << "\ntest" << endl; // debugging
         delay(5000); 
 
 //        if (sole->getRunningTime() > MAX_RUN_TIME) {
