@@ -98,97 +98,34 @@ union unionStreamingData
     uint8_t vData[sizeof(structStreamingData)];
 } uStreamingDataIMU;
 
+inline void fillIMUData(uint8_t* pointer, uint8_t *dataIMUPacket, int start) {
+    pointer[3] = dataIMUPacket[start];
+    pointer[2] = dataIMUPacket[start + 1];
+    pointer[1] = dataIMUPacket[start + 2];
+    pointer[0] = dataIMUPacket[start + 3];
+}
 
 
 inline void reconstructIMUPacket(uint8_t *dataIMUPacket, structComponentQuaternion &structQuat, structComponentLinearAcceleration &structAcce, structComponentRawGyro &structGyro, structComponentRawAcceleration &structRAcc)
 {
     uint8_t *pointer;
 
-    ////////////////////////////////////////
+    fillIMUData((uint8_t *)&structQuat.qx, dataIMUPacket, 0);
+    fillIMUData((uint8_t *)&structQuat.qy, dataIMUPacket, 4);
+    fillIMUData((uint8_t *)&structQuat.qz, dataIMUPacket, 8);
+    fillIMUData((uint8_t *)&structQuat.qw, dataIMUPacket, 12);
 
-    pointer = (uint8_t *)&structQuat.qx;
-    pointer[3] = dataIMUPacket[0];
-    pointer[2] = dataIMUPacket[1];
-    pointer[1] = dataIMUPacket[2];
-    pointer[0] = dataIMUPacket[3];
+    fillIMUData((uint8_t *)&structAcce.ax, dataIMUPacket, 16);
+    fillIMUData((uint8_t *)&structAcce.ay, dataIMUPacket, 20);
+    fillIMUData((uint8_t *)&structAcce.az, dataIMUPacket, 24);
 
-    pointer = (uint8_t *)&structQuat.qy;
-    pointer[3] = dataIMUPacket[4];
-    pointer[2] = dataIMUPacket[5];
-    pointer[1] = dataIMUPacket[6];
-    pointer[0] = dataIMUPacket[7];
+    fillIMUData((uint8_t *)&structGyro.gx, dataIMUPacket, 28);
+    fillIMUData((uint8_t *)&structGyro.gy, dataIMUPacket, 32);
+    fillIMUData((uint8_t *)&structGyro.gz, dataIMUPacket, 36);
 
-    pointer = (uint8_t *)&structQuat.qz;
-    pointer[3] = dataIMUPacket[8];
-    pointer[2] = dataIMUPacket[9];
-    pointer[1] = dataIMUPacket[10];
-    pointer[0] = dataIMUPacket[11];
-
-    pointer = (uint8_t *)&structQuat.qw;
-    pointer[3] = dataIMUPacket[12];
-    pointer[2] = dataIMUPacket[13];
-    pointer[1] = dataIMUPacket[14];
-    pointer[0] = dataIMUPacket[15];
-
-    ////////////
-
-    pointer = (uint8_t *)&structAcce.ax;
-    pointer[3] = dataIMUPacket[16];
-    pointer[2] = dataIMUPacket[17];
-    pointer[1] = dataIMUPacket[18];
-    pointer[0] = dataIMUPacket[19];
-
-    pointer = (uint8_t *)&structAcce.ay;
-    pointer[3] = dataIMUPacket[20];
-    pointer[2] = dataIMUPacket[21];
-    pointer[1] = dataIMUPacket[22];
-    pointer[0] = dataIMUPacket[23];
-
-    pointer = (uint8_t *)&structAcce.az;
-    pointer[3] = dataIMUPacket[24];
-    pointer[2] = dataIMUPacket[25];
-    pointer[1] = dataIMUPacket[26];
-    pointer[0] = dataIMUPacket[27];
-
-    ////////////
-
-    pointer = (uint8_t *)&structGyro.gx;
-    pointer[3] = dataIMUPacket[28];
-    pointer[2] = dataIMUPacket[29];
-    pointer[1] = dataIMUPacket[30];
-    pointer[0] = dataIMUPacket[31];
-
-    pointer = (uint8_t *)&structGyro.gy;
-    pointer[3] = dataIMUPacket[32];
-    pointer[2] = dataIMUPacket[33];
-    pointer[1] = dataIMUPacket[34];
-    pointer[0] = dataIMUPacket[35];
-
-    pointer = (uint8_t *)&structGyro.gz;
-    pointer[3] = dataIMUPacket[36];
-    pointer[2] = dataIMUPacket[37];
-    pointer[1] = dataIMUPacket[38];
-    pointer[0] = dataIMUPacket[39];
-
-    ////////////
-
-    pointer = (uint8_t *)&structRAcc.r_ax;
-    pointer[3] = dataIMUPacket[40];
-    pointer[2] = dataIMUPacket[41];
-    pointer[1] = dataIMUPacket[42];
-    pointer[0] = dataIMUPacket[43];
-
-    pointer = (uint8_t *)&structRAcc.r_ay;
-    pointer[3] = dataIMUPacket[44];
-    pointer[2] = dataIMUPacket[45];
-    pointer[1] = dataIMUPacket[46];
-    pointer[0] = dataIMUPacket[47];
-
-    pointer = (uint8_t *)&structRAcc.r_az;
-    pointer[3] = dataIMUPacket[48];
-    pointer[2] = dataIMUPacket[49];
-    pointer[1] = dataIMUPacket[50];
-    pointer[0] = dataIMUPacket[51];
+    fillIMUData((uint8_t *)&structRAcc.r_ax, dataIMUPacket, 40);
+    fillIMUData((uint8_t *)&structRAcc.r_ay, dataIMUPacket, 44);
+    fillIMUData((uint8_t *)&structRAcc.r_az, dataIMUPacket, 48);
 }
 
 inline void constructLogPacket(uint8_t *dataPacket, uint32_t currentTime,
@@ -300,7 +237,7 @@ inline void constructLogPacket(uint8_t *dataPacket, uint32_t currentTime,
     ////////////////////////////////////////
 
     pointer = (uint8_t *)&p0;
-    dataPacket[3] = pointer[1];
+    dataPacket[33] = pointer[1];
     dataPacket[34] = pointer[0];
 
     pointer = (uint8_t *)&p1;
