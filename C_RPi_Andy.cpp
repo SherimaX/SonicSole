@@ -619,7 +619,7 @@ public:             // Access specifier
         printf("GPIO initialized successfully!\n\n");
 
 
-          int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
+          int fd = 0;
   if (fd == -1)
   {
     std::cout << "Failed to init SPI communication.\n";
@@ -636,7 +636,7 @@ public:             // Access specifier
 
   // INITIALIZING UART1
   printf("Initializing UART0...\n\n");
-  if (0 < 0)
+  if ((IMU = serialOpen("/dev/ttyS0", 115200)) < 0)
   // if ((IMU = serialOpen ("/dev/ttyS0", 460800)) < 0)
   // if ((IMU = serialOpen ("/dev/ttyS0", 921600)) < 0)
   // if ((IMU = serialOpen ("/dev/ttyS1", 230400)) < 0)
