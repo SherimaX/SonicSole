@@ -775,11 +775,18 @@ int main(int argc, char* argv[])
 
 
     while (true) {
-        cout << "Update Current Time:" << endl;
+      int cycle;
+
+      if (cycle % 100 == 0) {
+        cout << "cycle: " << cycle;
+
         sole->updateCurrentTime();
 
-        cout << "\nUpdate Pressure + Mode Change:" << endl;
+        cout << "\nUpdate Pressure:" << endl;
         sole->updatePressure();
+
+        // for now not worrying about cycle change
+        /* 
         sole->detectModeChange();
 
         if (sole->getMode()) {
@@ -787,12 +794,12 @@ int main(int argc, char* argv[])
         } else {
             sole->runVibrateMode();
         }
+        */
 
-        cout << "\ntoCSV:" << endl;
         sole->toCSV();
 
-        cout << "\ntest" << endl; // debugging
-        delay(5000); 
+        cycle++;
+      }
 
 //        if (sole->getRunningTime() > MAX_RUN_TIME) {
 //            cout << sole->getRunningTime() << endl;
@@ -800,4 +807,5 @@ int main(int argc, char* argv[])
 //            return 0;
 //        }
     }
+    return 0;
 }
