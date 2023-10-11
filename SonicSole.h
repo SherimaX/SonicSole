@@ -33,7 +33,7 @@
 
 // User-defined libraries
 #include "RPi_combined_Header.h"
-#include "RPi_Raj_Header.h"
+// #include "RPi_Raj_Header.h"
 
 // libraries from ADC code
 #include <wiringPiSPI.h>
