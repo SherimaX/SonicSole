@@ -689,24 +689,24 @@ public:             // Access specifier
         prevForePressure =  currForePressure;
         prevCombinedPressure = currCombinedPressure;
 
-        digitalWrite(CS, LOW);
-        SPIbuff[0] = 1;
-        SPIbuff[1] = 160;
-        SPIbuff[2] = 0;
-        wiringPiSPIDataRW(SPI_CHANNEL, SPIbuff, 3);
-        currHeelPressure = SPIbuff[1] << 8 | SPIbuff[2];
-        digitalWrite(CS, HIGH);
-        // Channel 1
-        digitalWrite(CS, LOW);
-        SPIbuff[0] = 1;
-        SPIbuff[1] = 224;
-        SPIbuff[2] = 0;
-        wiringPiSPIDataRW(SPI_CHANNEL, SPIbuff, 3);
-        currForePressure = SPIbuff[1] << 8 | SPIbuff[2];
-        digitalWrite(CS, HIGH);
+        // digitalWrite(CS, LOW);
+        // SPIbuff[0] = 1;
+        // SPIbuff[1] = 160;
+        // SPIbuff[2] = 0;
+        // wiringPiSPIDataRW(SPI_CHANNEL, SPIbuff, 3);
+        // currHeelPressure = SPIbuff[1] << 8 | SPIbuff[2];
+        // digitalWrite(CS, HIGH);
+        // // Channel 1
+        // digitalWrite(CS, LOW);
+        // SPIbuff[0] = 1;
+        // SPIbuff[1] = 224;
+        // SPIbuff[2] = 0;
+        // wiringPiSPIDataRW(SPI_CHANNEL, SPIbuff, 3);
+        // currForePressure = SPIbuff[1] << 8 | SPIbuff[2];
+        // digitalWrite(CS, HIGH);
         
-        // currHeelPressure = getSensorReadings(160);
-        // currForePressure = getSensorReadings(224);
+        currHeelPressure = getSensorReadings(160);
+        currForePressure = getSensorReadings(224);
         currCombinedPressure = currHeelPressure + currForePressure;
 
         if (currCombinedPressure < minCombinedPressure)
@@ -802,8 +802,6 @@ int main(int argc, char* argv[])
       cout << "\nUpdate Pressure:" << endl;
       sole->updatePressure();
 
-      // for now not worrying about cycle change
-      /* 
       sole->detectModeChange();
 
       if (sole->getMode()) {
@@ -811,7 +809,7 @@ int main(int argc, char* argv[])
       } else {
           sole->runVibrateMode();
       }
-      */
+      
 
       sole->toCSV();
 
