@@ -97,9 +97,9 @@ int main(int argc, char *argv[])
   socklen_t len = 3;
   //
 
-  wiringPiSetupGpio();
-  pinMode(CS, OUTPUT);
-  digitalWrite(CS, HIGH);
+  // wiringPiSetupGpio();
+  // pinMode(CS, OUTPUT);
+  // digitalWrite(CS, HIGH);
 
   cout << "Initializing SPI" << endl;
   unsigned char SPIbuff[3];
