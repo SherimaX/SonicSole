@@ -765,6 +765,7 @@ private:
 
 int main(int argc, char* argv[])
 {
+    int cycle = 0;
     SonicSole* sole = new SonicSole();
     cout << "SonicSole Class Initialized" << endl;
 
@@ -773,7 +774,6 @@ int main(int argc, char* argv[])
 
 
     while (true) {
-      int cycle = 0;
 
       if ((cycle % 100) == 0) {
         cout << "cycle: " << cycle;
@@ -797,6 +797,7 @@ int main(int argc, char* argv[])
         sole->toCSV();
 
         cycle++;
+        cout << "\n\n\n";
       }
 
 //        if (sole->getRunningTime() > MAX_RUN_TIME) {
