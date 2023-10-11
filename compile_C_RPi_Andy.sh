@@ -1,0 +1,1 @@
+g++ -o C_RPi_Andy C_RPi_Andy.cpp -lwiringPi -lpthread -std=c++11

@@ -1,0 +1,1 @@
+g++ -o C_RPi_combined C_RPi_combined.cpp -lwiringPi -lpthread -std=c++11
