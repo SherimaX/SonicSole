@@ -600,7 +600,7 @@ void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in s
 class SonicSole {       // The class
 public:             // Access specifier
 
-    SonicSole() {
+    SonicSole() : spiChannel(0), spiSpeed(1000000), threshold(100)  {
         startTime = getMicrosTimeStamp();
         wiringPiSetupGpio() ;
         pinMode(CS, OUTPUT) ;
@@ -642,7 +642,7 @@ public:             // Access specifier
     void motorVibrate() {
         digitalWrite(23, HIGH); //Turn motors on and off to show device is on
         digitalWrite(20, HIGH);
-        delay(500);
+        delay(1000);
         digitalWrite(23, LOW);
         digitalWrite(20, LOW);
     }
@@ -718,6 +718,10 @@ public:             // Access specifier
     }
 
 private:
+
+    int spiChannel;
+    int spiSpeed;
+    int threshold;
 
     double heelThresholdInterval = 0;
     double previousHeelThresholdTime = 0;

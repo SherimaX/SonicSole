@@ -58,7 +58,7 @@ uint64_t getMicrosTimeStamp()
   return tv.tv_sec * (uint64_t)1000000 + tv.tv_usec;
 }
 
-// UDP Send
+// UDP Send 
 
 void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr)
 {
@@ -202,6 +202,7 @@ int main(int argc, char *argv[])
   uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
 
   // CONFIGURING IMU
+  /*
   printf("Configuring IMU...\n\n");
   YEIsettingsHeader(IMU);
   YEIwriteCommandNoDelay(IMU, CMD_STOP_STREAMING);
@@ -222,6 +223,7 @@ int main(int argc, char *argv[])
 
   YEIwriteCommandNoDelay(IMU, CMD_TARE_WITH_CURRENT_ORIENTATION);
   printf("IMU configured successfully!\n\n");
+  */
 
   bool recordState = TRUE;
 
