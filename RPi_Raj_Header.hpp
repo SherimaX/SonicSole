@@ -8,6 +8,9 @@
 #define PORT 25000
 #define MAXLINE 1024
 
+////////////////////////////////////////////////////
+// DATA STRUCTURES
+
 struct structStreamingTimingInformation
 {
     unsigned int interval;
