@@ -1,6 +1,6 @@
 // NPi Sensor Read and Data Logging
 
-#include <iostream>
+// #include <iostream>
 // #include <fstream>
 // #include <mutex>
 // #include <thread>
@@ -29,8 +29,8 @@
 // #include "wiringSerial.h"
 
 // User-defined libraries
-#include "RPi_combined_Header.h"
-#include "RPi_Raj_Header.h"
+// #include "RPi_combined_Header.h"
+// #include "RPi_Raj_Header.h"
 
 // // libraries from ADC code
 // #include <wiringPiSPI.h>
@@ -43,7 +43,7 @@
 // #include <arpa/inet.h>
 // #include <netinet/in.h>
 
-#define MAX_RUN_TIME 600000000
+// #define MAX_RUN_TIME 600000000
 
 #include "SonicSole.h"
 
