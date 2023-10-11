@@ -1,3 +1,6 @@
+#ifndef RPI_HEADER_H
+#define RPI_HEADER_H
+
 // GLOBAL VARIABLES
 #define N_STR 512
 #define LENGTH_SINGLE_PACKET 57
@@ -448,3 +451,4 @@ inline void YEIgetStreamingBatch(unionStreamingData &uStreamingDataIMU)
     }
 }
 
+#endif

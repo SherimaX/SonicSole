@@ -2,6 +2,8 @@
 extern "C" {
 #endif
 
+#ifndef COMBINED_HEADER_H
+#define COMBINED_HEADER_H
 ////////////////////////////////////////////////////
 // GLOBAL VARS DEFINITION
 
@@ -135,6 +137,8 @@ uint8_t currBuff;
 uint8_t prevBuff;
 bool readyToWrite;
 bool IMUDataReady;
+
+#endif
 
 #ifdef __cplusplus
 }
