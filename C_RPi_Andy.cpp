@@ -634,23 +634,6 @@ public:             // Access specifier
   printf("\nRaspberry Pi for SonicSole: \n\n");
   printf("UART0 IMU and Multi-thread Data Logging\n\n");
 
-  // INPUT ARGUMENTS
-  if (argc > 2)
-  {
-    printf("Error on input argument!\n");
-    return -1;
-  }
-  else if (argc == 1)
-  {
-    // No session name, simple functioning
-    sprintf(strSession, "%s", "");
-  }
-  else if (argc == 2)
-  {
-    // Simple functioning
-    sprintf(strSession, "%s", argv[1]);
-    printf("Session Name: %s\n", strSession);
-  }
 
   // INITIALIZING UART1
   printf("Initializing UART0...\n\n");
