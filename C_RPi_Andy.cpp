@@ -600,8 +600,10 @@ void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in s
 class SonicSole {       // The class
 public:             // Access specifier
 
-    SonicSole() : spiChannel(0), spiSpeed(1000000), threshold(100)  {
+    SonicSole() {
         startTime = getMicrosTimeStamp();
+
+        cout << "starttime: " << startTime << endl;
         wiringPiSetupGpio() ;
         pinMode(CS, OUTPUT) ;
         digitalWrite(CS,HIGH);
@@ -717,11 +719,7 @@ public:             // Access specifier
         return mode;
     }
 
-private:
-
-    int spiChannel;
-    int spiSpeed;
-    int threshold;
+private: 
 
     double heelThresholdInterval = 0;
     double previousHeelThresholdTime = 0;
