@@ -775,7 +775,7 @@ int main(int argc, char* argv[])
 
     while (true) {
 
-      if ((cycle % 1000) == 0) {
+      if ((cycle % 100) == 0) {
         cout << "cycle: " << cycle;
 
         sole->updateCurrentTime();
@@ -804,6 +804,7 @@ int main(int argc, char* argv[])
       //    return 0;
       // }
       cycle++;
+      delay(1000);
     }
     return 0;
 }
