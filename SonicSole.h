@@ -95,7 +95,6 @@ public:
     void updatePressure();
     int getSensorReadings(unsigned char signal);
     bool getMode();
-    void printVar();
 
 private: 
     double heelThresholdInterval = 0;
