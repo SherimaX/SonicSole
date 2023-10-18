@@ -9,8 +9,7 @@ uint64_t getMicrosTimeStamp() {
 uint64_t getSecondsTimeStamp() {
     struct timeval tv;
 	gettimeofday(&tv,NULL);
-    const uint64_t initialTime = tv.tv_sec;
-	return tv.tv_sec - (initialTime);
+	return tv.tv_usec;
 }
 
 void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
