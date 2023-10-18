@@ -42,7 +42,7 @@ SonicSole::SonicSole() {
 }
 
 void SonicSole::detectModeChange() {
-    if (thresholdCross == 3 && detectHeelThreshold() && heelThresholdInterval < 5)
+    if (thresholdCross == 3 && detectHeelThreshold() && heelThresholdInterval < 50000)
         mode = !mode;
         thresholdCross = 0;
         string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
