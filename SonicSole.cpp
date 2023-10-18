@@ -42,6 +42,7 @@ SonicSole::SonicSole() {
 }
 
 void SonicSole::detectModeChange() {
+    detectHeelThreshold();
     if (thresholdCross == 3) {//&& detectHeelThreshold() && heelThresholdInterval < 1)
         mode = !mode;
         thresholdCross = 0;
@@ -126,15 +127,14 @@ bool SonicSole::detectHeelThreshold() {
     bool thresholdDetected = detectThreshold(prevHeelPressure, currHeelPressure, minHeelPressure, maxHeelPressure);
     if (thresholdDetected) {
         updateHeelThresholdInterval();
-        updateThresholdCounter();
     }
+    updateThresholdCounter();
     return thresholdDetected;
 } 
 
 void SonicSole::updateThresholdCounter() {
   thresholdCross++;
 }
-
 
 bool SonicSole::detectCombinedThreshold() {
     return detectThreshold(prevCombinedPressure, currCombinedPressure, minCombinedPressure, maxCombinedPressure);
