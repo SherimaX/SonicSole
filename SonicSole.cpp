@@ -82,9 +82,7 @@ void SonicSole::updatePressure() {
         maxHeelPressure = currHeelPressure;
 
     cout << "currHeelPressure: " << currHeelPressure << endl;
-    cout << "currForePressure: " << currForePressure << endl;
-    cout << "prevHeelPressure: " << prevHeelPressure << endl;
-    cout << "prevForePressure: " << prevForePressure << endl;
+    cout << "currForePressure: " << currForePressure << endl; 
 
 }
 
@@ -125,9 +123,11 @@ bool SonicSole::detectThreshold(int prevReading, int currReading, int minReading
 
 bool SonicSole::detectHeelThreshold() {
     bool thresholdDetected = detectThreshold(prevHeelPressure, currHeelPressure, minHeelPressure, maxHeelPressure);
-    if (thresholdDetected)
-        updateHeelThresholdInterval();
-        thresholdCross++;
+    //if (thresholdDetected)
+    //    updateHeelThresholdInterval();
+    //    thresholdCross++;
+    updateHeelThresholdInterval();
+    thresholdCross++;
     return thresholdDetected;
 } 
 
