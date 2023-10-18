@@ -123,11 +123,9 @@ bool SonicSole::detectThreshold(int prevReading, int currReading, int minReading
 
 bool SonicSole::detectHeelThreshold() {
     bool thresholdDetected = detectThreshold(prevHeelPressure, currHeelPressure, minHeelPressure, maxHeelPressure);
-    //if (thresholdDetected)
-    //    updateHeelThresholdInterval();
-    //    thresholdCross++;
-    updateHeelThresholdInterval();
-    updateThresholdCounter();
+    if (thresholdDetected)
+        updateHeelThresholdInterval();
+        updateThresholdCounter();
     return thresholdDetected;
 } 
 
