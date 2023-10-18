@@ -115,7 +115,7 @@ void SonicSole::updateHeelThresholdInterval() {
 }
 
 bool SonicSole::detectThreshold(int prevReading, int currReading, int minReading, int maxReading) {
-    double threshold = 0.1 * (maxReading - minReading) + minReading;
+    double threshold = 0.5 * (maxReading - minReading) + minReading;
     if (prevReading < threshold && currReading > threshold) {
         return true;
     } else {
