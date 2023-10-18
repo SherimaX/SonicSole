@@ -24,8 +24,6 @@ int main(int argc, char* argv[])
 
       sole->detectModeChange();
 
-      sole->printVar();
-
       if (sole->getMode()) {
           sole->runSoundMode();
       } else {
