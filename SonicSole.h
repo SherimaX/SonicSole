@@ -96,6 +96,7 @@ public:
     void updatePressure();
     int getSensorReadings(unsigned char signal);
     bool getMode();
+    uint64_t getCurrentTime();
 
 private: 
     double heelThresholdInterval = 0;
@@ -110,7 +111,6 @@ private:
     bool detectHeelThreshold();
     bool detectCombinedThreshold();
     void playSound();
-    uint64_t getCurrentTime();
 };
 
 #endif //SONICSOLE_H
