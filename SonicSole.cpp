@@ -50,7 +50,7 @@ SonicSole::SonicSole() {
 
 void SonicSole::detectModeChange() {
     detectHeelThreshold();
-    if (thresholdCross == 3){ //&& heelThresholdInterval < 3){ //&& heelThresholdInterval < 1) {//&& detectHeelThreshold() && heelThresholdInterval < 1)
+    if (thresholdCross == 3 && heelThresholdInterval < 3) {  //&& detectHeelThreshold() && heelThresholdInterval < 1)
         mode = !mode;
         thresholdCross = 0;
         string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
@@ -117,7 +117,7 @@ uint64_t SonicSole::getCurrentTime() {
 
 void SonicSole::updateHeelThresholdInterval() {
     previousHeelThresholdTime = currentHeelThresholdTime;
-    currentHeelThresholdTime = getCurrentTime();
+    currentHeelThresholdTime = getRunningTime();
     heelThresholdInterval = currentHeelThresholdTime - previousHeelThresholdTime;    
 }
 
