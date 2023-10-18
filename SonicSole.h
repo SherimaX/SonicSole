@@ -100,6 +100,7 @@ private:
     double heelThresholdInterval = 0;
     double previousHeelThresholdTime = 0;
     double currentHeelThresholdTime = 0;
+    int thresholdCross = 0;
     unsigned char SPIbuff[3];
 
     void updateHeelThresholdInterval();
