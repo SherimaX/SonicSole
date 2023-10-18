@@ -58,6 +58,7 @@ static int CS = 17;
 // condition_variable condWrite;
 
 uint64_t getMicrosTimeStamp();
+uint64_t getSecondsTimeStamp();
 
 void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr);
 

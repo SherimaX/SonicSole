@@ -6,6 +6,12 @@ uint64_t getMicrosTimeStamp() {
 	return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
 }
 
+uint64_t getSecondsTimeStamp() {
+    struct timeval tv;
+	gettimeofday(&tv,NULL);
+	return tv.tv_sec*(uint64_t)+tv.tv_usec;
+}
+
 void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
     sendto(sockfd, (const int *)reading, len,
            MSG_CONFIRM, (const struct sockaddr *) &servaddr,
@@ -13,7 +19,7 @@ void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in s
 }
 
 SonicSole::SonicSole() {
-    startTime = getMicrosTimeStamp();
+    startTime = getSecondsTimeStamp();
     wiringPiSetupGpio() ;
     pinMode(CS, OUTPUT) ;
     digitalWrite(CS,HIGH);
@@ -105,7 +111,7 @@ bool SonicSole::getMode() {
 }
 
 uint64_t SonicSole::getCurrentTime() {
-    return getMicrosTimeStamp();
+    return getSecondsTimeStamp();
 }
 
 void SonicSole::updateHeelThresholdInterval() {
