@@ -42,7 +42,7 @@ SonicSole::SonicSole() {
 }
 
 void SonicSole::detectModeChange() {
-    if (thresholdCross == 3 && detectHeelThreshold() && heelThresholdInterval < 50000)
+    if (thresholdCross == 3 && detectHeelThreshold() && heelThresholdInterval < 1)
         mode = !mode;
         thresholdCross = 0;
         string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
@@ -83,6 +83,8 @@ void SonicSole::updatePressure() {
 
     cout << "currHeelPressure: " << currHeelPressure << endl;
     cout << "currForePressure: " << currForePressure << endl;
+    cout << "prevHeelPressure: " << prevHeelPressure << endl;
+    cout << "prevForePressure: " << prevForePressure << endl;
 
 }
 
