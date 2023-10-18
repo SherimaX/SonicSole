@@ -54,13 +54,13 @@ void SonicSole::detectModeChange() {
     if (detectHeelThreshold() && heelThresholdInterval < 1)
         mode = !mode;
         string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
-        cout << text << endl;
 }
 
 void SonicSole::runVibrateMode() {
-    if (detectCombinedThreshold()) {
-        playSound();
-    }
+    // if (detectCombinedThreshold()) {
+    //     playSound();
+    // }
+    cout << "Vibrate Mode on" << endl;
 }
 
 void SonicSole::toCSV() {
@@ -148,7 +148,7 @@ bool SonicSole::detectCombinedThreshold() {
 }
 
 void SonicSole::runSoundMode() {
-    return;
+    cout << "Sound Mode on" << endl;
 }
 
 void SonicSole::playSound() {
