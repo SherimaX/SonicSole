@@ -41,26 +41,10 @@ SonicSole::SonicSole() {
     this_thread::sleep_for(chrono::milliseconds(500));
 }
 
-
-void SonicSole::motorVibrate() {
-    digitalWrite(23, HIGH); //Turn motors on and off to show device is on
-    digitalWrite(20, HIGH);
-    delay(1000);
-    digitalWrite(23, LOW);
-    digitalWrite(20, LOW);
-}
-
 void SonicSole::detectModeChange() {
     if (detectHeelThreshold() && heelThresholdInterval < 1)
         mode = !mode;
         string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
-}
-
-void SonicSole::runVibrateMode() {
-    // if (detectCombinedThreshold()) {
-    //     playSound();
-    // }
-    cout << "Vibrate Mode on" << endl;
 }
 
 void SonicSole::toCSV() {
@@ -141,7 +125,7 @@ bool SonicSole::detectHeelThreshold() {
     if (thresholdDetected)
         updateHeelThresholdInterval();
     return thresholdDetected;
-}
+} 
 
 bool SonicSole::detectCombinedThreshold() {
     return detectThreshold(prevCombinedPressure, currCombinedPressure, minCombinedPressure, maxCombinedPressure);
@@ -155,5 +139,17 @@ void SonicSole::playSound() {
     cout << "Played Sound" << endl;
 }
 
+void SonicSole::runVibrateMode() {
+    // if (detectCombinedThreshold()) {
+    //     playSound();
+    // }
+    cout << "Vibrate Mode on" << endl;
+}
 
- 
+void SonicSole::motorVibrate() {
+    digitalWrite(23, HIGH); //Turn motors on and off to show device is on
+    digitalWrite(20, HIGH);
+    delay(1000);
+    digitalWrite(23, LOW);
+    digitalWrite(20, LOW);
+}

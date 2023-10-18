@@ -64,6 +64,8 @@ void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in s
 class SonicSole {
 public:
     bool mode = true;
+    int thresholdCounter = 0;
+
     double maxHeelPressure = 0;
     double minHeelPressure = 1000;
 
@@ -102,6 +104,7 @@ private:
 
     void updateHeelThresholdInterval();
     bool detectThreshold(int prevReading, int currReading, int minReading, int maxReading);
+    void updateThresholdCounter();
     bool detectHeelThreshold();
     bool detectCombinedThreshold();
     void playSound();
