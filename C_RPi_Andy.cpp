@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
     int cycle = 0;
 
     while (true) {
-      uint64_t time = sole->getCurrentTime();
+      uint64_t time = sole->getRunningTime();
       cout << "time: " << time << endl;
       cout << "Cycle: " << cycle << endl;
       cycle++;
