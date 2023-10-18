@@ -104,6 +104,7 @@ private:
     unsigned char SPIbuff[3];
 
     void updateHeelThresholdInterval();
+    void updateThresholdCounter();
     bool detectThreshold(int prevReading, int currReading, int minReading, int maxReading);
     void updateThresholdCounter();
     bool detectHeelThreshold();
