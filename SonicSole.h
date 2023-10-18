@@ -111,6 +111,7 @@ private:
     bool detectHeelThreshold();
     bool detectCombinedThreshold();
     void playSound();
+    // uint64_t getCurrentTime();
 };
 
 #endif //SONICSOLE_H
