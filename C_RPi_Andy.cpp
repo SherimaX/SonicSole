@@ -12,10 +12,14 @@ int main(int argc, char* argv[])
     sole->motorVibrate();
     cout << "Motor Vibrated" << endl;
 
+    int cycle = 0;
 
     while (true) {
+      cout << "Cycle: " << cycle << endl;
+      cycle++;
+
       sole->updateCurrentTime();
-      cout << "\nUpdate Pressure:" << endl;
+
       sole->updatePressure();
 
       sole->detectModeChange();
@@ -28,7 +32,6 @@ int main(int argc, char* argv[])
       
 
       sole->toCSV();
-
       cout << "\n";
       delay(100);
       // if (sole->getRunningTime() > MAX_RUN_TIME) {
