@@ -74,8 +74,8 @@ void SonicSole::updatePressure() {
     prevForePressure =  currForePressure;
     prevCombinedPressure = currCombinedPressure;
     
-    currHeelPressure = getSensorReadings(160);
-    currForePressure = getSensorReadings(224);
+    currHeelPressure = getSensorReadings(224);
+    currForePressure = getSensorReadings(160);
     currCombinedPressure = currHeelPressure + currForePressure;
 
     if (currCombinedPressure < minCombinedPressure)
@@ -122,7 +122,7 @@ void SonicSole::updateHeelThresholdInterval() {
 }
 
 bool SonicSole::detectThreshold(int prevReading, int currReading, int minReading, int maxReading) {
-    double threshold = 0.5 * (maxReading - minReading) + minReading;
+    double threshold = 0.3 * (maxReading - minReading) + minReading;
     if (prevReading < threshold && currReading > threshold) {
         return true;
     } else {
