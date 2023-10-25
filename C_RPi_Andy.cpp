@@ -1,13 +1,17 @@
 #include <iostream>
 #include "SonicSole.h"
-using namespace std;
-////////////////////////////////////////////////////
-// MAIN CODE
+
+using namespace std; 
 
 int main(int argc, char* argv[])
 {
     SonicSole* sole = new SonicSole();
     cout << "SonicSole Class Initialized" << endl;
+
+    structComponentQuaternion dataQuat;
+    structComponentLinearAcceleration dataAcce;
+    structComponentRawGyro dataGyro;
+    structComponentRawAcceleration dataRAcc;
 
     sole->motorVibrate();
     cout << "Motor Vibrated" << endl;
