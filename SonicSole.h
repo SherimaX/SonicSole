@@ -53,6 +53,11 @@ using namespace std;
 static int SPI_CHANNEL = 0;
 static int CS = 17;
 
+extern uint8_t YEIdataPacket[MAX_YEI_DATA_PACKET];
+extern int ADCModule;
+extern int IMU;
+extern bool led_state;
+
 // mutex dataMutex[3];
 // mutex writeMutex;
 // condition_variable condWrite;
