@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
           sole->runVibrateMode();
       }
 
-      sole->IMU();
+      sole->readIMU();
       
 
       sole->toCSV();

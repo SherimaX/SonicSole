@@ -93,7 +93,7 @@ public:
     void runSoundMode();
     void runVibrateMode();
     void toCSV();
-    void IMU();
+    void readIMU();
     uint64_t getRunningTime();
     void updateCurrentTime();
     void updatePressure();
