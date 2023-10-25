@@ -730,6 +730,7 @@ int main(int argc, char* argv[])
 	// INIFINITE LOOP
 	while(recordState)
 	{
+    cout << "checkpoint 1" << endl;
     
     currentTime = (getMicrosTimeStamp() - timestampStart);
     
@@ -763,6 +764,8 @@ int main(int argc, char* argv[])
     
     // IMU data
 		for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00;
+
+    cout << "checkpoint 2" << endl;
 
       // FILL UP BUFFER BLOCK
       //for (int i = 0; i < NUMBER_BUFFER_PACKET; i++)
@@ -819,6 +822,8 @@ int main(int argc, char* argv[])
 		digitalWrite(3, LOW);
 		digitalWrite(20, LOW);
 	}
+
+  cout << "checkpoint 3" << endl;
 		
 	/*
 	if (adc_channel1 > 200) {
