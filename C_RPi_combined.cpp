@@ -823,11 +823,11 @@ int main(int argc, char* argv[])
         // GET IMU DATA
         YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
 		
-        while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
-        {
-			    printf("while loop \n");
-			// If no IMU data received, do nothing
-        }
+      //   while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
+      //   {
+			//     printf("while loop \n");
+			// // If no IMU data received, do nothing
+      //   }
 		
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
 		
