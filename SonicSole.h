@@ -58,9 +58,7 @@ static int CS = 17;
 // condition_variable condWrite;
 
 uint64_t getMicrosTimeStamp();
-uint64_t getSecondsTimeStamp();
-uint8_t IMU_PACKET_LENGTH = 52;
-uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
+uint64_t getSecondsTimeStamp(); 
 
 void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr);
 
