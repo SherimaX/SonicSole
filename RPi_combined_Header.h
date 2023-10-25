@@ -115,12 +115,12 @@
 
 // ADC - MCP3221
 #define ADCAddress 0x4D
-static int ADCModule;
+/*static*/ int ADCModule;
 
-static uint8_t YEIdataPacket[MAX_YEI_DATA_PACKET];
-static int UART1;
-static int IMU;
-static bool led_state = 0;
+/*static*/ uint8_t YEIdataPacket[MAX_YEI_DATA_PACKET];
+/*static*/ int UART1;
+/*static*/ int IMU;
+/*static*/ bool led_state = 0;
 
 // PRESSURE SENSORS
 // Curve Fitting Coefficient
