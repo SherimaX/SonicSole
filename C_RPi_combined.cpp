@@ -773,7 +773,7 @@ int main(int argc, char* argv[])
 	while(TRUE)
 	{
     
-
+    cout << "loop checkpoint 1";
     currentTime = (getMicrosTimeStamp() - timestampStart);
 
 	    
@@ -810,9 +810,9 @@ int main(int argc, char* argv[])
       
     
     // IMU data
-    
+    cout << "loop checkpoint 2";
 		for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00;
-	
+    cout << "loop checkpoint 3";
 
       // FILL UP BUFFER BLOCK
         //for (int i = 0; i < NUMBER_BUFFER_PACKET; i++)
