@@ -1003,28 +1003,28 @@ cout << max_pressure << endl;
 }
 
 
-  YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
-	if(serialDataAvail(IMU))
-	{
-		uint64_t timeRead = getMicrosTimeStamp() - timestamp_start;
+//   YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
+// 	if(serialDataAvail(IMU))
+// 	{
+// 		uint64_t timeRead = getMicrosTimeStamp() - timestamp_start;
 
-		read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
+// 		read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
 
-    reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
-  }
-
-
-reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce);
-reconstructBinaryPacketBinary_test(dataIMUPacket, ax, ay, az);
-printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
+//     reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
+//   }
 
 
-printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
+// reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce);
+// reconstructBinaryPacketBinary_test(dataIMUPacket, ax, ay, az);
+// printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
 
-float deltaTime = (float)(getMicrosTimeStamp() - timeRead) / 1000000.0f;
-float freq = 1/deltaTime;
-float currenttime_micros = (float)(getMicrosTimeStamp() - timestamp_start);
 
-printf("Time obtained!\n");
-printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
-printf("Time: %0.3f secs \n", deltaTime);
+// printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
+
+// float deltaTime = (float)(getMicrosTimeStamp() - timeRead) / 1000000.0f;
+// float freq = 1/deltaTime;
+// float currenttime_micros = (float)(getMicrosTimeStamp() - timestamp_start);
+
+// printf("Time obtained!\n");
+// printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
+// printf("Time: %0.3f secs \n", deltaTime);
