@@ -84,6 +84,8 @@ public:
 
     uint64_t startTime = 0;
     uint64_t currentTime = 0;
+    uint64_t startInterval = 0;
+    uint64_t endInterval = 0;
 
     SonicSole();
     void motorVibrate();
