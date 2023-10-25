@@ -39,7 +39,7 @@ SonicSole::SonicSole() {
     printf("Initializing UART0...\n\n");
     if ((IMU = serialOpen ("/dev/ttyS0", 115200)) < 0) {
   		fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
-  		return 1 ;
+  		break;
   	}
   	printf("UART1 initialized successfully!\n\n");
 
@@ -201,7 +201,7 @@ void SonicSole::motorVibrate() {
     digitalWrite(20, LOW);
 }
 
-void SonicSole::IMU() {
+void SonicSole::readIMU() {
     //   printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
     //   printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
     //   printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
