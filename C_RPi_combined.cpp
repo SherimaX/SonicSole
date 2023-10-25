@@ -812,10 +812,10 @@ int main(int argc, char* argv[])
     
     // IMU data
     cout << "loop checkpoint 2" << endl;
-		// for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) {
-    //   dataIMUPacket[i] = 0x00;
-    // }
-    cout << "loop checkpoint 3";
+		for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) {
+      dataIMUPacket[i] = 0x00;
+    }
+    cout << "loop checkpoint 3" << endl;
 
       // FILL UP BUFFER BLOCK
         //for (int i = 0; i < NUMBER_BUFFER_PACKET; i++)
@@ -825,7 +825,7 @@ int main(int argc, char* argv[])
 		
         while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
         {
-			// printf("while loop \n");
+			    printf("while loop \n");
 			// If no IMU data received, do nothing
         }
 		
@@ -894,7 +894,7 @@ int main(int argc, char* argv[])
     */
     
     //IMU data print
-    
+    cout << "loop checkpoint 4" << endl;
     if ((cycle % 200) == 0) {
 			//cout << cycle + ", " + currentTimeSecs + "seconds" + "/n";
     printf("cycle: %i , time: %0.3f seconds \n", cycle, currentTimeSecs);
