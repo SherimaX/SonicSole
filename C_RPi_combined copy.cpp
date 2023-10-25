@@ -348,7 +348,8 @@ inline void constructLogPacket(uint8_t* dataPacket, uint32_t currentTime,
   ////////////////////////////////////////
 
   pointer = (uint8_t*)&p0;
-  dataPacket[33] = pointer[1];
+  dataPacket[
+  	3] = pointer[1];
   dataPacket[34] = pointer[0];
 
   pointer = (uint8_t*)&p1;
@@ -561,7 +562,10 @@ inline void YEIgetStreamingBatch(unionStreamingData& uStreamingDataIMU)
 
   if(serialDataAvail(IMU))
   {
-  		read(IMU, &uStreamingDataIMU.vData, 26);
+    cout << "IMU AVAILABLE\n\n\n\n\n\n\n\n\n\n" << endl;
+  	read(IMU, &uStreamingDataIMU.vData, 26);
+  } else {
+    cout << "IMU NOT AVAILABLE!!!\n\n\n\n\n\n\n\n\n" << endl;
   }
   
 }
@@ -583,18 +587,42 @@ int main(int argc, char* argv[])
 	pinMode (CS, OUTPUT) ;
 	digitalWrite(CS,HIGH);
 
-   	cout << "Initializing SPI" << endl ;
+  cout << "Initializing SPI" << endl ;
 	unsigned char SPIbuff[3];
 
 	int adc_channel0;
 	int adc_channel1;
+  
+  int num_threshold_reached = 0;
+  int previous_pressure_sum;
+  int current_pressure_sum = 0;
+  int threshold_pressure_sum;
+  double threshold_time_array[20] = {};
+  double start_time = getMicrosTimeStamp();
+  double current_threshold_time = 0;
+  
+  int max_pressure = 1000;
+  int min_pressure = 800;
+
+  int previous_heel_pressure;
+  int current_heel_pressure = 0;
+  int max_heel_pressure = 1000;
+  int min_heel_pressure = 800;
+  int threshold_heel_pressure;
+
+  bool mode = true;
 
 	// Configure the interface.
 	// CHANNEL insicates chip select,
 	// 500000 indicates bus speed, change depending on bus speed
 
-	// int fd = wiringPiSPISetup(SPI_CHANNEL, 500000);
+	// 4int fd = wiringPiSPISetup(SPI_CHANNEL, 500000);
 
+	digitalWrite(23, HIGH); //Turn motors on and off to show device is on
+	digitalWrite(20, HIGH);
+	delay(1000);
+	digitalWrite(23, LOW);
+	digitalWrite(20, LOW);
 
     int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
     if (fd == -1) {
@@ -685,19 +713,25 @@ int main(int argc, char* argv[])
 	bool recordState = TRUE;
 
 
-	printf("Here\n\n");
+	//printf("Here\n\n"); // Troubleshooting 
+
+	digitalWrite(23, HIGH); //Turn motors on and off to show device is calibrated
+	digitalWrite(20, HIGH);
+	delay(1000);
+	digitalWrite(23, LOW);
+	digitalWrite(20, LOW);
 
 
-	// INITIALIZE OFSTREAM FILE
-	ofstream dataFile;
-	string fileName = "log_RPi.csv";
-
+	
 
 	// TIME VARIABLES
 	struct timeval tv;
 	uint64_t timestampStart= getMicrosTimeStamp();
 	uint64_t currentTime;
   	uint64_t currentTimeSecs;
+
+    uint64_t previousHeelStrikeTime = getMicrosTimeStamp();
+    uint64_t timeBetwwenHeelStrikeSecs;
 	
   	uint8_t syncTrigger = 0;
 	uint32_t syncTime = 0;
@@ -706,14 +740,24 @@ int main(int argc, char* argv[])
 	uint32_t headTime;
 	uint32_t deltaTime;
   	uint32_t cycle = 0;
-  
+
+ // INITIALIZE OFSTREAM FILE
+	ofstream dataFile;
+	//string fileName = "log_RPi_" + to_string(timestampStart) + ".csv"; //NEW FILE EACH RUN
+	string fileName = "log_RPi.csv";
+
+  bool inGaitCycle = false;
+	
+
   // pinMode
-	pinMode(3, OUTPUT);
+	pinMode(23, OUTPUT);
 	pinMode(20, OUTPUT);
 
   //OPEN FILE
   dataFile.open(fileName);
 
+
+  // Original File Open
   if(dataFile.is_open()) {
 
     printf("File opened\n\n");
@@ -723,27 +767,33 @@ int main(int argc, char* argv[])
     printf("File not opened \n");
     return 0;
 
-  }
+  } 
+
 
 	cout << "Start infinite loop...\n\n\n" ;
 
 	// INIFINITE LOOP
-	while(recordState)
+  cout << "loop checkpoint 0" << endl;
+	while(true)
 	{
     
+    cout << "loop checkpoint 1" << endl;
     currentTime = (getMicrosTimeStamp() - timestampStart);
-    
+
+	    
     // ADC channels
     // Channel 0
-		digitalWrite(CS,LOW);
+    
+    digitalWrite(CS,LOW);
 		SPIbuff[0] = 1;
 		SPIbuff[1] = 160;
 		SPIbuff[2] = 0;
 		wiringPiSPIDataRW(SPI_CHANNEL,SPIbuff,3);
 		adc_channel0 = SPIbuff[1] << 8 | SPIbuff[2];
 		digitalWrite(CS, HIGH);
-
-		// Channel 1
+    // adc_channel0 = 4096 - adc_channel0;
+    
+    // Channel 1
 		digitalWrite(CS,LOW);
 		SPIbuff[0] = 1;
 		SPIbuff[1] = 224;
@@ -751,32 +801,44 @@ int main(int argc, char* argv[])
 		wiringPiSPIDataRW(SPI_CHANNEL,SPIbuff,3);
 		adc_channel1 = SPIbuff[1] << 8 | SPIbuff[2];
 		digitalWrite(CS, HIGH);
+    
+    // adc_channel1 = 4096 - adc_channel1;
 
 		/*printf("Forefoot sensor : %d \n", adc_channel0);
 		printf("Hindfoot sensor : %d \n", adc_channel1);
 		printf("  \n");
 		*/
     //this_thread::sleep_for(chrono::milliseconds(400));
+		//printf("ADC Configured \n");
 		
-		
-    
+      
     
     // IMU data
-		for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00;
+    cout << "loop checkpoint 2" << endl;
+		for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) {
+      dataIMUPacket[i] = 0x00;
+    }
+    cout << "loop checkpoint 3" << endl;
 
       // FILL UP BUFFER BLOCK
-      //for (int i = 0; i < NUMBER_BUFFER_PACKET; i++)
-      //{
+        //for (int i = 0; i < NUMBER_BUFFER_PACKET; i++)
+        //{
         // GET IMU DATA
         YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
+		
+        // always gets stuck on this loop
         while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
         {
-          // If no IMU data received, do nothing
+			    printf("while loop \n");
+          delay(1000);
+			// If no IMU data received, do nothing
         }
+		
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
+		
         reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
 
-                
+		//printf("IMU Data \n");
 
         // DEBUG ONLY
         // printf("Pressure values: %i , %i , %i , %i , %i , %i , %i , %i \n", p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
@@ -807,43 +869,120 @@ int main(int argc, char* argv[])
         // this_thread::sleep_for(chrono::milliseconds(4));
       //}
     // }
-
+  
     // PRINT OUT SOME DEBUG DATA
     float currentTimeSecs = currentTime / 1000000.0;
     
-    //on off switch
-    if (adc_channel0 > 200 or adc_channel1 > 200) {
-		digitalWrite(3, HIGH);
-		digitalWrite(20, HIGH);
-	} else {
-		digitalWrite(3, LOW);
-		digitalWrite(20, LOW);
-	}
-		
-	/*
-	if (adc_channel1 > 200) {
-			digitalWrite(20, HIGH);
-		} else {
-			digitalWrite(20, LOW);
-		}
-	*/
+	  int collectmotor;
+
+      //on off switch
+    /*
+      if (adc_channel0 > 400) {
+      digitalWrite(23, HIGH);
+      digitalWrite(20, HIGH);
+      collectmotor = 1;
+
+    } else {
+      digitalWrite(23, LOW);
+      digitalWrite(20, LOW);
+      collectmotor = 0;
+    }
+    
+    */
+      
+    /*
+    if (adc_channel1 > 200) {
+        digitalWrite(20, HIGH);
+      } else {
+        digitalWrite(20, LOW);
+      }
+    */
     
     //IMU data print
-    
-    if ((cycle % 20) == 0) {
+    cout << "loop checkpoint 4" << endl;
+    if ((cycle % 200) == 0) {
 			//cout << cycle + ", " + currentTimeSecs + "seconds" + "/n";
     printf("cycle: %i , time: %0.3f seconds \n", cycle, currentTimeSecs);
     printf("IMU Raw Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
-    //printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
+    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
     //printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
     //printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
-    printf("Forefoot sensor : %d \n", adc_channel0);
-    printf("Hindfoot sensor : %d \n", adc_channel1);
+    printf("Forefoot sensor : %d \n", adc_channel1);
+    printf("Hindfoot sensor : %d \n", adc_channel0);
     printf("\n");
-    //dataFile.close();
+    
+    ofstream writer("PressureSensorReadings", ios_base::app);
+    writer << "ForeFoot Sensor: " << adc_channel1 << "   " << "HindFoot Sensor: " << adc_channel0 << endl;
+    writer.close();
+      //dataFile.close();
+    }
 
-	}
+  // Record Max/Min Pressure Sum
+  previous_pressure_sum = current_pressure_sum;
+  current_pressure_sum = adc_channel0 + adc_channel1;
 
+  if (current_pressure_sum < min_pressure){
+    min_pressure = current_pressure_sum;
+  }
+
+  else if (current_pressure_sum > max_pressure){
+    max_pressure = current_pressure_sum;
+  }
+
+  // Record Max/Min Heel Pressure
+  previous_heel_pressure = current_heel_pressure;
+  current_heel_pressure = adc_channel0;
+
+  if (current_pressure_sum < min_heel_pressure){
+    min_heel_pressure = current_heel_pressure;
+  }
+
+  else if (current_pressure_sum > max_heel_pressure){
+    max_heel_pressure = current_heel_pressure;
+  }
+
+
+  threshold_pressure_sum = (max_pressure - min_pressure)*0.1 + min_pressure;
+  threshold_heel_pressure = (max_heel_pressure - min_heel_pressure)*0.5 + min_heel_pressure;
+
+  inGaitCycle = false;
+
+  if (false && current_heel_pressure > threshold_heel_pressure && previous_heel_pressure < threshold_heel_pressure){
+    //switch mode
+
+    current_threshold_time = (getMicrosTimeStamp() - start_time) / 1000000;
+    system("scripts/UDP.sh");
+    
+    if (current_threshold_time <= 1){
+      //switch mode
+      mode = !mode;
+      digitalWrite(23, HIGH); //Turn motors on and off to show device is on
+      digitalWrite(20, HIGH);
+      delay(500);
+      digitalWrite(23, LOW);
+      digitalWrite(20, LOW);
+      cout << "Mode Switched" << endl;
+    }
+    
+    start_time = getMicrosTimeStamp();
+    // save current threshold time to an array
+    threshold_time_array[num_threshold_reached % 20] = current_threshold_time;
+    // take the average of the array
+    double mean_time = 0;
+    for (double t:threshold_time_array)
+      mean_time += t;
+    mean_time /= 20;
+    cout << "mean time: " << mean_time << endl;
+    
+    cout << min_pressure << endl;
+  cout << max_pressure << endl;
+  }
+
+
+  
+  
+
+  
 	if (currentTime > 600000000) {
 
 	cout << "ten minute stop\n";
@@ -862,7 +1001,7 @@ int main(int argc, char* argv[])
 
 	dataFile << cycle << "," << currentTime << "," << dataRAcc.r_ax << "," << dataRAcc.r_ay << "," << dataRAcc.r_az
 	<< "," << dataAcce.ax << "," << dataAcce.ay << "," << dataAcce.az << "," << dataGyro.gx << "," << dataGyro.gy << "," << dataGyro.gz
-    << "," << dataQuat.qw << "," << dataQuat.qx << "," << dataQuat.qy << "," << dataQuat.qz << "," << adc_channel0 << "," << adc_channel1 << "\n";
+    << "," << dataQuat.qw << "," << dataQuat.qx << "," << dataQuat.qy << "," << dataQuat.qz << "," << adc_channel0 << "," << adc_channel1 << "," << collectmotor << "\n";
 
       //this_thread::sleep_for(chrono::milliseconds(2));
     cycle++;
@@ -873,14 +1012,14 @@ int main(int argc, char* argv[])
 
 
 //   YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
-	// if(serialDataAvail(IMU))
-	// {
-	// 	uint64_t timeRead = getMicrosTimeStamp() - timestamp_start;
+// 	if(serialDataAvail(IMU))
+// 	{
+// 		uint64_t timeRead = getMicrosTimeStamp() - timestamp_start;
 
-	// 	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
+// 		read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
 
 //     reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
-
+//   }
 
 
 // reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce);
@@ -897,26 +1036,3 @@ int main(int argc, char* argv[])
 // printf("Time obtained!\n");
 // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
 // printf("Time: %0.3f secs \n", deltaTime);
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
