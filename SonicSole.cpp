@@ -34,7 +34,7 @@ SonicSole::SonicSole() {
     }
     else {
         //std::cout << "SPI communication successfully setup.\n";
-        printf("SPI communication successfully setup.\n");
+        printf("SPI communication successfully setup.\n\n");
     }
 
     this_thread::sleep_for(chrono::milliseconds(500));
