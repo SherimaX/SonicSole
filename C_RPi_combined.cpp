@@ -561,7 +561,11 @@ inline void YEIgetStreamingBatch(unionStreamingData& uStreamingDataIMU)
 
   if(serialDataAvail(IMU))
   {
-  		read(IMU, &uStreamingDataIMU.vData, 26);
+    cout << "IMU AVAILABLE" << endl;
+  	read(IMU, &uStreamingDataIMU.vData, 26);
+  }
+  else {
+    cout << "IMU NOT AVAILABLE" << endl;
   }
   
 }
