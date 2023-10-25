@@ -29,9 +29,13 @@ SonicSole::SonicSole() {
     printf("Initializing SPI...\n\n");
     int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
     if (fd == -1) {
-        std::cout << "Failed to init SPI communication.\n";
+        fprintf ("Failed to init SPI communication.\n") ;
+        //std::cout << ("Failed to init SPI communication.\n");
     }
-    std::cout << "SPI communication successfully setup.\n";
+    else {
+        //std::cout << "SPI communication successfully setup.\n";
+        printf("SPI communication successfully setup.\n");
+    }
 
     this_thread::sleep_for(chrono::milliseconds(500));
 
@@ -39,18 +43,21 @@ SonicSole::SonicSole() {
     printf("Initializing UART0...\n\n");
     if ((IMU = serialOpen ("/dev/ttyS0", 115200)) < 0) {
   		fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
-  		break;
   	}
-  	printf("UART1 initialized successfully!\n\n");
+    else {
+        printf("UART1 initialized successfully!\n\n");
+    }
 
 
     // INITIALIZING GPIO (Use wPi pins, not BCM)
     printf("Initializing GPIO...\n\n");
     if (wiringPiSetupGpio () == -1)
     {
-        fprintf (stdout, "Unable to start wiringPi: %s\n", strerror (errno)) ;
+        fprintf (stderr, "Unable to start wiringPi: %s\n", strerror (errno)) ;
     }
-    printf("GPIO initialized successfully!\n\n"); 
+    else {
+        printf("GPIO initialized successfully!\n\n"); 
+    }
  
 	// CONFIGURING IMU
 	// printf("Configuring IMU...\n\n");
