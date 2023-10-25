@@ -584,7 +584,7 @@ int main(int argc, char* argv[])
 	pinMode (CS, OUTPUT) ;
 	digitalWrite(CS,HIGH);
 
-   	cout << "Initializing SPI" << endl ;
+  cout << "Initializing SPI" << endl ;
 	unsigned char SPIbuff[3];
 
 	int adc_channel0;

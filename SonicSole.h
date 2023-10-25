@@ -87,6 +87,9 @@ public:
     uint64_t startInterval = 0;
     uint64_t endInterval = 0;
 
+    uint8_t IMU_PACKET_LENGTH = 52;
+    uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
+
     SonicSole();
     void motorVibrate();
     void detectModeChange();

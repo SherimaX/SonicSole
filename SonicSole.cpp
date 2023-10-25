@@ -24,10 +24,25 @@ SonicSole::SonicSole() {
     wiringPiSetupGpio() ;
     pinMode(CS, OUTPUT) ;
     digitalWrite(CS,HIGH);
-    cout << "Initializing SPI" << endl ;
+
+    // INITIALIZING SPI
+    printf("Initializing SPI...\n\n");
+    int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
+    if (fd == -1) {
+        std::cout << "Failed to init SPI communication.\n";
+    }
+    std::cout << "SPI communication successfully setup.\n";
+
+    this_thread::sleep_for(chrono::milliseconds(500));
 
     // INITIALIZING UART1
     printf("Initializing UART0...\n\n");
+    if ((IMU = serialOpen ("/dev/ttyS0", 115200)) < 0) {
+  		fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
+  		return 1 ;
+  	}
+  	printf("UART1 initialized successfully!\n\n");
+
 
     // INITIALIZING GPIO (Use wPi pins, not BCM)
     printf("Initializing GPIO...\n\n");
@@ -35,17 +50,31 @@ SonicSole::SonicSole() {
     {
         fprintf (stdout, "Unable to start wiringPi: %s\n", strerror (errno)) ;
     }
-    printf("GPIO initialized successfully!\n\n");
+    printf("GPIO initialized successfully!\n\n"); 
+ 
+	// CONFIGURING IMU
+	printf("Configuring IMU...\n\n");
+	YEIsettingsHeader(IMU);
+	YEIwriteCommandNoDelay(IMU, CMD_STOP_STREAMING);
+  	this_thread::sleep_for(chrono::milliseconds(1000));
+	YEIwriteCommandValue(IMU, CMD_SET_ACCELEROMETER_RANGE, ACCELEROMETER_RANGE_8G);
+	YEIwriteCommandValue(IMU, CMD_SET_GYROSCOPE_RANGE, GYROSCOPE_RANGE_2000);
+	YEIwriteCommandValue(IMU, CMD_SET_COMPASS_RANGE, COMPASS_RANGE_1_3);
+	YEIwriteCommandValue(IMU, CMD_SET_CALIBRATION_MODE, CALIBRATION_MODE_BIAS_SCALE);
+	YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XR_YF_ZU);
+	YEIwriteCommandValue(IMU, CMD_SET_REFERENCE_VECTOR_MODE, REFERENCE_VECTOR_MULTI_REFERENCE_MODE);
+	YEIwriteCommandValue(IMU, CMD_SET_COMPASS_ENABLE, FALSE);
+	YEIwriteCommandValue(IMU, CMD_SET_FILTER_MODE, FILTER_KALMAN);
+	YEIwriteCommandNoDelay(IMU, CMD_BEGIN_GYROSCOPE_AUTOCALIBRATION);
+  	this_thread::sleep_for(chrono::milliseconds(500));
+	YEIwriteCommandNoDelay(IMU, CMD_RESET_FILTER);
+  	this_thread::sleep_for(chrono::milliseconds(500));
+  	YEIsetStreamingMode(IMU, READ_TARED_ORIENTATION_AS_QUATERNION, READ_CORRECTED_LINEAR_ACCELERATION, READ_CORRECTED_GYROSCOPE_VECTOR, READ_CORRECTED_ACCELEROMETER_VECTOR, NO_SLOT, NO_SLOT, NO_SLOT, NO_SLOT);
 
+	YEIwriteCommandNoDelay(IMU, CMD_TARE_WITH_CURRENT_ORIENTATION);
+	printf("IMU configured successfully!\n\n");
 
-    int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
-    if (fd == -1)
-    {
-        std::cout << "Failed to init SPI communication.\n";
-    }
-    std::cout << "SPI communication successfully setup.\n";
-
-    this_thread::sleep_for(chrono::milliseconds(500));
+	bool recordState = true;
 }
 
 void SonicSole::detectModeChange() {
