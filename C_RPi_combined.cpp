@@ -770,7 +770,7 @@ int main(int argc, char* argv[])
 	cout << "Start infinite loop...\n\n\n" ;
 
 	// INIFINITE LOOP
-	while(TRUE)
+	while(true)
 	{
     
     cout << "loop checkpoint 1";
