@@ -58,11 +58,7 @@ SonicSole::SonicSole() {
     else {
         printf("GPIO initialized successfully!\n\n"); 
     }
-    
-    structComponentQuaternion dataQuat;
-    structComponentLinearAcceleration dataAcce;
-    structComponentRawGyro dataGyro;
-    structComponentRawAcceleration dataRAcc;
+
 	// CONFIGURING IMU
 	printf("Configuring IMU...\n\n");
 	YEIsettingsHeader(IMU);
@@ -213,8 +209,13 @@ void SonicSole::motorVibrate() {
 }
 
 void SonicSole::readIMU() {
-      printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
-      printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
-      printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
+    structComponentQuaternion dataQuat;
+    structComponentLinearAcceleration dataAcce;
+    structComponentRawGyro dataGyro;
+    structComponentRawAcceleration dataRAcc;
+
+    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
+    printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
+    printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
     return;
 }
