@@ -770,6 +770,7 @@ int main(int argc, char* argv[])
 	cout << "Start infinite loop...\n\n\n" ;
 
 	// INIFINITE LOOP
+  cout << "loop checkpoint 0";
 	while(true)
 	{
     
@@ -865,30 +866,30 @@ int main(int argc, char* argv[])
     // PRINT OUT SOME DEBUG DATA
     float currentTimeSecs = currentTime / 1000000.0;
     
-	int collectmotor;
+	  int collectmotor;
 
-    //on off switch
-  /*
-    if (adc_channel0 > 400) {
-		digitalWrite(23, HIGH);
-		digitalWrite(20, HIGH);
-		collectmotor = 1;
+      //on off switch
+    /*
+      if (adc_channel0 > 400) {
+      digitalWrite(23, HIGH);
+      digitalWrite(20, HIGH);
+      collectmotor = 1;
 
-	} else {
-		digitalWrite(23, LOW);
-		digitalWrite(20, LOW);
-		collectmotor = 0;
-	}
-  
-  */
-		
-	/*
-	if (adc_channel1 > 200) {
-			digitalWrite(20, HIGH);
-		} else {
-			digitalWrite(20, LOW);
-		}
-	*/
+    } else {
+      digitalWrite(23, LOW);
+      digitalWrite(20, LOW);
+      collectmotor = 0;
+    }
+    
+    */
+      
+    /*
+    if (adc_channel1 > 200) {
+        digitalWrite(20, HIGH);
+      } else {
+        digitalWrite(20, LOW);
+      }
+    */
     
     //IMU data print
     
@@ -899,76 +900,76 @@ int main(int argc, char* argv[])
     printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
     //printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
     //printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
-	printf("Forefoot sensor : %d \n", adc_channel1);
-	printf("Hindfoot sensor : %d \n", adc_channel0);
-	printf("\n");
-  
-  ofstream writer("PressureSensorReadings", ios_base::app);
-  writer << "ForeFoot Sensor: " << adc_channel1 << "   " << "HindFoot Sensor: " << adc_channel0 << endl;
-  writer.close();
-    //dataFile.close();
-	}
+    printf("Forefoot sensor : %d \n", adc_channel1);
+    printf("Hindfoot sensor : %d \n", adc_channel0);
+    printf("\n");
+    
+    ofstream writer("PressureSensorReadings", ios_base::app);
+    writer << "ForeFoot Sensor: " << adc_channel1 << "   " << "HindFoot Sensor: " << adc_channel0 << endl;
+    writer.close();
+      //dataFile.close();
+    }
 
-// Record Max/Min Pressure Sum
-previous_pressure_sum = current_pressure_sum;
-current_pressure_sum = adc_channel0 + adc_channel1;
+  // Record Max/Min Pressure Sum
+  previous_pressure_sum = current_pressure_sum;
+  current_pressure_sum = adc_channel0 + adc_channel1;
 
-if (current_pressure_sum < min_pressure){
-  min_pressure = current_pressure_sum;
-}
-
-else if (current_pressure_sum > max_pressure){
-  max_pressure = current_pressure_sum;
-}
-
-// Record Max/Min Heel Pressure
-previous_heel_pressure = current_heel_pressure;
-current_heel_pressure = adc_channel0;
-
-if (current_pressure_sum < min_heel_pressure){
-  min_heel_pressure = current_heel_pressure;
-}
-
-else if (current_pressure_sum > max_heel_pressure){
-  max_heel_pressure = current_heel_pressure;
-}
-
-
-threshold_pressure_sum = (max_pressure - min_pressure)*0.1 + min_pressure;
-threshold_heel_pressure = (max_heel_pressure - min_heel_pressure)*0.5 + min_heel_pressure;
-
-inGaitCycle = false;
-
-if (false && current_heel_pressure > threshold_heel_pressure && previous_heel_pressure < threshold_heel_pressure){
-  //switch mode
-
-  current_threshold_time = (getMicrosTimeStamp() - start_time) / 1000000;
-  system("scripts/UDP.sh");
-  
-  if (current_threshold_time <= 1){
-    //switch mode
-    mode = !mode;
-    digitalWrite(23, HIGH); //Turn motors on and off to show device is on
-    digitalWrite(20, HIGH);
-    delay(500);
-    digitalWrite(23, LOW);
-    digitalWrite(20, LOW);
-    cout << "Mode Switched" << endl;
+  if (current_pressure_sum < min_pressure){
+    min_pressure = current_pressure_sum;
   }
-  
-  start_time = getMicrosTimeStamp();
-  // save current threshold time to an array
-  threshold_time_array[num_threshold_reached % 20] = current_threshold_time;
-  // take the average of the array
-  double mean_time = 0;
-  for (double t:threshold_time_array)
-    mean_time += t;
-  mean_time /= 20;
-  cout << "mean time: " << mean_time << endl;
-  
-  cout << min_pressure << endl;
-cout << max_pressure << endl;
-}
+
+  else if (current_pressure_sum > max_pressure){
+    max_pressure = current_pressure_sum;
+  }
+
+  // Record Max/Min Heel Pressure
+  previous_heel_pressure = current_heel_pressure;
+  current_heel_pressure = adc_channel0;
+
+  if (current_pressure_sum < min_heel_pressure){
+    min_heel_pressure = current_heel_pressure;
+  }
+
+  else if (current_pressure_sum > max_heel_pressure){
+    max_heel_pressure = current_heel_pressure;
+  }
+
+
+  threshold_pressure_sum = (max_pressure - min_pressure)*0.1 + min_pressure;
+  threshold_heel_pressure = (max_heel_pressure - min_heel_pressure)*0.5 + min_heel_pressure;
+
+  inGaitCycle = false;
+
+  if (false && current_heel_pressure > threshold_heel_pressure && previous_heel_pressure < threshold_heel_pressure){
+    //switch mode
+
+    current_threshold_time = (getMicrosTimeStamp() - start_time) / 1000000;
+    system("scripts/UDP.sh");
+    
+    if (current_threshold_time <= 1){
+      //switch mode
+      mode = !mode;
+      digitalWrite(23, HIGH); //Turn motors on and off to show device is on
+      digitalWrite(20, HIGH);
+      delay(500);
+      digitalWrite(23, LOW);
+      digitalWrite(20, LOW);
+      cout << "Mode Switched" << endl;
+    }
+    
+    start_time = getMicrosTimeStamp();
+    // save current threshold time to an array
+    threshold_time_array[num_threshold_reached % 20] = current_threshold_time;
+    // take the average of the array
+    double mean_time = 0;
+    for (double t:threshold_time_array)
+      mean_time += t;
+    mean_time /= 20;
+    cout << "mean time: " << mean_time << endl;
+    
+    cout << min_pressure << endl;
+  cout << max_pressure << endl;
+  }
 
 
   
