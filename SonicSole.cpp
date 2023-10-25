@@ -29,7 +29,7 @@ SonicSole::SonicSole() {
     printf("Initializing SPI...\n\n");
     int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
     if (fd == -1) {
-        fprintf ("Failed to init SPI communication.\n") ;
+        printf ("Failed to init SPI communication.\n") ;
         //std::cout << ("Failed to init SPI communication.\n");
     }
     else {
