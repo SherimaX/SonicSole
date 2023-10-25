@@ -59,6 +59,8 @@ static int CS = 17;
 
 uint64_t getMicrosTimeStamp();
 uint64_t getSecondsTimeStamp();
+uint8_t IMU_PACKET_LENGTH = 52;
+uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
 
 void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr);
 
@@ -86,9 +88,6 @@ public:
     uint64_t currentTime = 0;
     uint64_t startInterval = 0;
     uint64_t endInterval = 0;
-
-    uint8_t IMU_PACKET_LENGTH = 52;
-    uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
 
     SonicSole();
     void motorVibrate();
