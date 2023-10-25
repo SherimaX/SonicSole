@@ -770,11 +770,11 @@ int main(int argc, char* argv[])
 	cout << "Start infinite loop...\n\n\n" ;
 
 	// INIFINITE LOOP
-  cout << "loop checkpoint 0";
+  cout << "loop checkpoint 0" << endl;
 	while(true)
 	{
     
-    cout << "loop checkpoint 1";
+    cout << "loop checkpoint 1" << endl;
     currentTime = (getMicrosTimeStamp() - timestampStart);
 
 	    
@@ -811,7 +811,7 @@ int main(int argc, char* argv[])
       
     
     // IMU data
-    cout << "loop checkpoint 2";
+    cout << "loop checkpoint 2" << endl;
 		for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00;
     cout << "loop checkpoint 3";
 
