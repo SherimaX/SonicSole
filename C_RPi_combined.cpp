@@ -6,7 +6,6 @@
 #include <thread>
 #include <condition_variable>
 #include <chrono>
-#include <iomanip>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,8 +47,6 @@ static int SPI_CHANNEL = 0;
 
 
 static int CS = 17;
-
-//int start_up = 1;
 
 // mutex dataMutex[2];
 mutex dataMutex[3];
@@ -134,9 +131,11 @@ struct structComponentSensorData
 struct structStreamingData
 {
   //Big Endian
+//  structComponentRawMag mag;
   structComponentRawAcceleration acc;
   structComponentRawGyro gyro;
   structComponentLinearAcceleration lAcc;
+  //structEulerAngles eulerAngles;
   structComponentQuaternion q;
 };
 
@@ -404,6 +403,10 @@ inline void reconstructBinaryPacketBinary_test(uint8_t* recvbuffer, float &ax, f
 {
   uint8_t *pointer;
 
+  //recvbuffer[0];
+  //recvbuffer[1];
+  //recvbuffer[2];
+
   pointer = (uint8_t*)&ax;
   pointer[3] = recvbuffer[0];
   pointer[2] = recvbuffer[1];
@@ -423,6 +426,11 @@ inline void reconstructBinaryPacketBinary_test(uint8_t* recvbuffer, float &ax, f
   pointer[0] = recvbuffer[11];
 }
 
+// union unionComponentSensorData
+// {
+//   structComponentSensorData sData;
+//   uint8_t vData[sizeof(structComponentSensorData)];
+// } uCompSensData;
 
 uint8_t calcCRC256(uint8_t* dataPacket, uint8_t nByte)
 {
@@ -433,6 +441,14 @@ uint8_t calcCRC256(uint8_t* dataPacket, uint8_t nByte)
   }
   return (checksum % 256);
 }
+
+// int waitByteCountFromSerial(HardwareSerial& serial, unsigned int bytecount)
+// {
+//   while (serial.available() < bytecount)
+//   {
+//     delayMicroseconds(DELAY_WAIT_SERIAL_YEI);
+//   }
+// }
 
 
 void createLogPacket_v01(uint8_t* dataPacket, uint64_t currentTime)
@@ -463,9 +479,12 @@ void createLogPacket_v01(uint8_t* dataPacket, uint64_t currentTime)
 ////////////////////////////////////////////////////
 // YEI FUNCTIONS
 
+// void YEIwriteCommand(HardwareSerial& serial, uint8_t cmd, uint8_t value)
 inline void YEIwriteCommandValue(int serial, uint8_t cmd, uint8_t value)
 {
+	// uint8_t YEIdataPacket[4];
   YEIdataPacket[0] = START_NO_RESP_HEADER;
+  // YEIdataPacket[0] = START_RESP_HEADER;
   YEIdataPacket[1] = cmd;
   YEIdataPacket[2] = value;
   YEIdataPacket[3] = calcCRC256(YEIdataPacket, 3);
@@ -475,7 +494,9 @@ inline void YEIwriteCommandValue(int serial, uint8_t cmd, uint8_t value)
 
 inline void YEIwriteCommandNoDelay(int serial, uint8_t cmd)
 {
+	// uint8_t YEIdataPacket[3];
   YEIdataPacket[0] = START_NO_RESP_HEADER;
+  // YEIdataPacket[0] = START_RESP_HEADER;
   YEIdataPacket[1] = cmd;
   YEIdataPacket[2] = calcCRC256(YEIdataPacket, 2);
   write(serial, YEIdataPacket, 3);
@@ -489,8 +510,10 @@ inline void YEIwriteCommand(int serial, uint8_t cmd)
 
 inline void YEIsettingsHeader(int serial)
 {
+	// uint8_t YEIdataPacket[7];
   // Settings Header
   YEIdataPacket[0] = START_NO_RESP_HEADER;
+  // YEIdataPacket[0] = START_RESP_HEADER;
   YEIdataPacket[1] = CMD_RESPONSE_HEADER_BITFIELD;
   YEIdataPacket[2] = 0x00;
   YEIdataPacket[3] = 0x00;
@@ -501,11 +524,25 @@ inline void YEIsettingsHeader(int serial)
   delay(YEI_DELAY_AFTER_COMMAND);
 }
 
+// inline void YEIsettingsHeader(int serial)
+// {
+//   // Settings Header
+//   // YEIdataPacket[0] = START_NO_RESP_HEADER;
+//   YEIdataPacket[0] = START_RESP_HEADER;
+//   YEIdataPacket[1] = CMD_RESPONSE_HEADER_BITFIELD;
+//   YEIdataPacket[2] = 64;
+//   YEIdataPacket[3] = calcCRC256(YEIdataPacket, 3);
+//   write(serial, YEIdataPacket, 4);
+//   delay(YEI_DELAY_AFTER_COMMAND);
+// }
+
 
 inline void YEIsetStreamingMode(int serial, uint8_t slot1, uint8_t slot2, uint8_t slot3, uint8_t slot4, uint8_t slot5, uint8_t slot6, uint8_t slot7, uint8_t slot8)
 {
+	// uint8_t YEIdataPacket[11];
   // Setting Streaming Mode
   YEIdataPacket[0] = START_NO_RESP_HEADER;
+  // YEIdataPacket[0] = START_RESP_HEADER;
   YEIdataPacket[1] = CMD_SET_STREAMING_SLOT;
 
   YEIdataPacket[2] = slot1; //1st slot
@@ -525,8 +562,10 @@ inline void YEIsetStreamingMode(int serial, uint8_t slot1, uint8_t slot2, uint8_
 
 inline void YEIsetStreamingTime(int serial)
 {
+	// uint8_t YEIdataPacket[15];
   // Set Streaming Time
   YEIdataPacket[0] = START_NO_RESP_HEADER;
+  // YEIdataPacket[0] = START_RESP_HEADER;
   YEIdataPacket[1] = CMD_SET_STREAMING_TIMING;
 
   uint8_t *pointer = (uint8_t*)&sStreamingTime.interval;
@@ -561,13 +600,16 @@ inline void YEIgetStreamingBatch(unionStreamingData& uStreamingDataIMU)
 
   if(serialDataAvail(IMU))
   {
-    cout << "IMU AVAILABLE" << endl;
-  	read(IMU, &uStreamingDataIMU.vData, 26);
-  }
-  else {
-    cout << "IMU NOT AVAILABLE" << endl;
+  		// read(IMU, &uStreamingDataIMU.vData, sizeof(uStreamingDataIMU.vData));
+  		read(IMU, &uStreamingDataIMU.vData, 26);
+    // delayMicroseconds(DELAY_WAIT_SERIAL_YEI);
   }
   
+  // while (!(bIMU >= nPacketStreamingData))
+  // {
+  //     uStreamingDataIMU1.vData[nPacketStreamingData - bIMU - 1] = read();
+  //     bIMU++;
+  // }
 }
 
 uint64_t getMicrosTimeStamp() 
@@ -576,6 +618,95 @@ uint64_t getMicrosTimeStamp()
 	gettimeofday(&tv,NULL);
 	return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
 }
+
+////////////////////////////////////////////////////
+// FSR FUNCTIONS
+
+// unsigned int readADC(int ADCModule)
+// {
+//   unsigned int val;
+//   uint8_t ADCBuffer[2];
+//   ADCBuffer[0] = 0;
+//   ADCBuffer[1] = 0;
+//   read(ADCModule, &ADCBuffer, 2);
+//   val = ADCBuffer[0] << 8 | ADCBuffer[1];
+//   return val;
+// }
+
+// uint16_t voltageToPressure(uint16_t num, uint16_t RawOutput)
+// {
+//   uint16_t val;
+//   if (RawOutput <= segmentpoint)
+//   {
+//     val = coef1[num - 1] * RawOutput * 4; // FACTOR OF 4 (10-BIT TO 12-BIT RES)
+//   } 
+//   else 
+//   {
+//     val = (coef2[num - 1] * (RawOutput - segmentpoint) + coef1[num - 1] * segmentpoint) * 4; // FACTOR OF 4 (10-BIT TO 12-BIT RES)
+//   }
+//   return ((uint16_t) val);
+// }
+
+// uint16_t readPressure(uint8_t num, int ADCModule)
+// {
+//   uint16_t pressVal;
+//   uint16_t rawVal;
+
+//   digitalWrite(PIN_ENABLE, LOW);
+//   switch (num) {
+//     case 1:
+//       digitalWrite(PIN_A, LOW);
+//       digitalWrite(PIN_B, HIGH);
+//       digitalWrite(PIN_C, LOW);
+//       break;
+//     case 2:
+//       digitalWrite(PIN_A, LOW);
+//       digitalWrite(PIN_B, HIGH);
+//       digitalWrite(PIN_C, HIGH);
+//       break;
+//     case 3:
+//       digitalWrite(PIN_A, HIGH);
+//       digitalWrite(PIN_B, HIGH);
+//       digitalWrite(PIN_C, LOW);
+//       break;
+//     case 4:
+//       digitalWrite(PIN_A, HIGH);
+//       digitalWrite(PIN_B, LOW);
+//       digitalWrite(PIN_C, HIGH);
+//       break;
+//     case 5:
+//       digitalWrite(PIN_A, LOW);
+//       digitalWrite(PIN_B, LOW);
+//       digitalWrite(PIN_C, HIGH);
+//       break;
+//     case 6:
+//       digitalWrite(PIN_A, HIGH);
+//       digitalWrite(PIN_B, HIGH);
+//       digitalWrite(PIN_C, HIGH);
+//       break;
+//     case 7:
+//       digitalWrite(PIN_A, HIGH);
+//       digitalWrite(PIN_B, LOW);
+//       digitalWrite(PIN_C, LOW);
+//       break;
+//     case 8:
+//       digitalWrite(PIN_A, LOW);
+//       digitalWrite(PIN_B, LOW);
+//       digitalWrite(PIN_C, LOW);
+//       break;
+//   }
+//   // this_thread::sleep_for(chrono::microseconds(2));
+//   // delayMicroseconds(2);
+//   rawVal = readADC(ADCModule);
+//   // rawVal = wiringPiI2CReadReg16(ADCModule, 0x01);
+//   pressVal = voltageToPressure(num, rawVal);
+//   return ((uint16_t) pressVal);
+// }
+
+
+
+
+
 
 ////////////////////////////////////////////////////
 // MAIN CODE
@@ -589,10 +720,15 @@ int main(int argc, char* argv[])
 
    	cout << "Initializing SPI" << endl ;
 	unsigned char SPIbuff[3];
+	// char dummy;
+	// uint8_t adc_l8;
+	// uint8_t adc_h4;
+
+	// int SPIreturn;
 
 	int adc_channel0;
 	int adc_channel1;
-
+	// char dataOut;
 	// Configure the interface.
 	// CHANNEL insicates chip select,
 	// 500000 indicates bus speed, change depending on bus speed
@@ -609,7 +745,7 @@ int main(int argc, char* argv[])
 
     this_thread::sleep_for(chrono::milliseconds(500));
   
-  	char strSession[N_STR];
+  char strSession[N_STR];
 
 	printf("\nRaspberry Pi for SonicSole: \n\n");
 	printf("UART0 IMU and Multi-thread Data Logging\n\n");
@@ -637,7 +773,7 @@ int main(int argc, char* argv[])
   	printf("Initializing UART0...\n\n");
     if ((IMU = serialOpen ("/dev/ttyS0", 115200)) < 0)
   	// if ((IMU = serialOpen ("/dev/ttyS0", 460800)) < 0)
-  	//if ((IMU = serialOpen ("/dev/ttyS0", 921600)) < 0)
+  	// if ((IMU = serialOpen ("/dev/ttyS1", 921600)) < 0)
   	// if ((IMU = serialOpen ("/dev/ttyS1", 230400)) < 0)
   	{
   		fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
@@ -654,6 +790,19 @@ int main(int argc, char* argv[])
     	return 1 ;
   	}
   	printf("GPIO initialized successfully!\n\n");
+    // pinMode(PIN_ENABLE, OUTPUT);
+    // pinMode(PIN_A, OUTPUT);
+    // pinMode(PIN_B, OUTPUT);
+    // pinMode(PIN_C, OUTPUT);
+
+
+  	// INITIALIZING I2C
+  	// printf("Initializing I2C...\n\n");
+  	// // ADCModule = open("/dev/i2c-1", O_RDWR);
+  	// // ioctl(ADCModule, I2C_SLAVE, ADCAddress);
+   //  ADCModule = wiringPiI2CSetup(ADCAddress);
+   //  printf("I2C initialized successfully!\n\n");
+
 
     structComponentQuaternion dataQuat;
     structComponentLinearAcceleration dataAcce;
@@ -664,11 +813,24 @@ int main(int argc, char* argv[])
     uint8_t IMU_PACKET_LENGTH = 52;
     uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
 
+
+
+	// // BLINK
+	// for (int i = 0; i < 20; i++)
+	// {
+ //  	led_state = !led_state;
+ //  	digitalWrite(debug_LED, led_state);
+ //  	delay(75);
+	// }
+	// led_state = TRUE;
+	// digitalWrite(debug_LED, led_state);
+
+
 	// CONFIGURING IMU
 	printf("Configuring IMU...\n\n");
 	YEIsettingsHeader(IMU);
 	YEIwriteCommandNoDelay(IMU, CMD_STOP_STREAMING);
-  	this_thread::sleep_for(chrono::milliseconds(1000));
+  this_thread::sleep_for(chrono::milliseconds(1000));
 	YEIwriteCommandValue(IMU, CMD_SET_ACCELEROMETER_RANGE, ACCELEROMETER_RANGE_8G);
 	YEIwriteCommandValue(IMU, CMD_SET_GYROSCOPE_RANGE, GYROSCOPE_RANGE_2000);
 	YEIwriteCommandValue(IMU, CMD_SET_COMPASS_RANGE, COMPASS_RANGE_1_3);
@@ -678,66 +840,54 @@ int main(int argc, char* argv[])
 	YEIwriteCommandValue(IMU, CMD_SET_COMPASS_ENABLE, FALSE);
 	YEIwriteCommandValue(IMU, CMD_SET_FILTER_MODE, FILTER_KALMAN);
 	YEIwriteCommandNoDelay(IMU, CMD_BEGIN_GYROSCOPE_AUTOCALIBRATION);
-  	this_thread::sleep_for(chrono::milliseconds(500));
+  this_thread::sleep_for(chrono::milliseconds(500));
 	YEIwriteCommandNoDelay(IMU, CMD_RESET_FILTER);
-  	this_thread::sleep_for(chrono::milliseconds(500));
-  	YEIsetStreamingMode(IMU, READ_TARED_ORIENTATION_AS_QUATERNION, READ_CORRECTED_LINEAR_ACCELERATION, READ_CORRECTED_GYROSCOPE_VECTOR, READ_CORRECTED_ACCELEROMETER_VECTOR, NO_SLOT, NO_SLOT, NO_SLOT, NO_SLOT);
+  this_thread::sleep_for(chrono::milliseconds(500));
+	// YEIsetStreamingMode(IMU, READ_TARED_ORIENTATION_AS_QUATERNION, READ_CORRECTED_ACCELEROMETER_VECTOR, READ_CORRECTED_GYROSCOPE_VECTOR, READ_CORRECTED_ACCELEROMETER_VECTOR, NO_SLOT, NO_SLOT, NO_SLOT, NO_SLOT);
+  YEIsetStreamingMode(IMU, READ_TARED_ORIENTATION_AS_QUATERNION, READ_CORRECTED_LINEAR_ACCELERATION, READ_CORRECTED_GYROSCOPE_VECTOR, READ_CORRECTED_ACCELEROMETER_VECTOR, NO_SLOT, NO_SLOT, NO_SLOT, NO_SLOT);
+  // YEIsetStreamingMode(IMU, READ_CORRECTED_ACCELEROMETER_VECTOR, NO_SLOT, NO_SLOT, NO_SLOT, NO_SLOT, NO_SLOT, NO_SLOT, NO_SLOT);
 
+	// sStreamingTime.interval = 2000; //10000; //[us]
+	// sStreamingTime.duration = 0xFFFFFFFF;
+	// sStreamingTime.delay = 0;	//[us]
+	// YEIsetStreamingTime(IMU);
 	YEIwriteCommandNoDelay(IMU, CMD_TARE_WITH_CURRENT_ORIENTATION);
-	printf("IMU configured successfully!\n\n");
+	printf("IMU configured successfully!\n");
 
 	bool recordState = TRUE;
 
 
-	printf("Here\n\n");
+	printf("Here\n");
 
 
 	// INITIALIZE OFSTREAM FILE
 	ofstream dataFile;
-	string fileName = "log_RPi.csv";
+	string fileName = "testlog_RPi.dat";
 
 
 	// TIME VARIABLES
 	struct timeval tv;
 	uint64_t timestampStart= getMicrosTimeStamp();
-	uint64_t currentTime;
-  	uint64_t currentTimeSecs;
-	
-  	uint8_t syncTrigger = 0;
+	uint32_t currentTime;
+  uint32_t currentTimeSecs;
+	uint8_t syncTrigger = 0;
 	uint32_t syncTime = 0;
 
 	uint16_t intervalWait = 3000;
 	uint32_t headTime;
 	uint32_t deltaTime;
-  	uint32_t cycle = 0;
-  
-  // pinMode
-	pinMode(3, OUTPUT);
-	pinMode(20, OUTPUT);
 
-  //OPEN FILE
-  dataFile.open(fileName);
-
-  if(dataFile.is_open()) {
-
-    printf("File opened\n\n");
-
-  } else {
-
-    printf("File not opened \n");
-    return 0;
-
-  }
+  // // DUMMY PRESSURE PACKET
+  // for (int j = 1; j < 8; j++)
+  // {
+  //   p[j] = 0x00;
+  // }
 
 	cout << "Start infinite loop...\n\n\n" ;
 
 	// INIFINITE LOOP
 	while(recordState)
 	{
-    cout << "checkpoint 1" << endl;
-    
-    currentTime = (getMicrosTimeStamp() - timestampStart);
-    
     // ADC channels
     // Channel 0
 		digitalWrite(CS,LOW);
@@ -757,23 +907,27 @@ int main(int argc, char* argv[])
 		adc_channel1 = SPIbuff[1] << 8 | SPIbuff[2];
 		digitalWrite(CS, HIGH);
 
-		/*printf("Forefoot sensor : %d \n", adc_channel0);
+		printf("Forefoot sensor : %d \n", adc_channel0);
 		printf("Hindfoot sensor : %d \n", adc_channel1);
 		printf("  \n");
-		*/
-    //this_thread::sleep_for(chrono::milliseconds(400));
+		this_thread::sleep_for(chrono::milliseconds(400));
 		
-		
+		// pinMode
+		pinMode(3, OUTPUT);
+		pinMode(20, OUTPUT);
     
     
     // IMU data
+		// YEIgetStreamingBatch(uStreamingDataIMU);
 		for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00;
 
-    cout << "checkpoint 2" << endl;
+    // {lock_guard<mutex> lck(dataMutex[currBuff]);
+
+      // cout << "Get sensor data...\n\n";
 
       // FILL UP BUFFER BLOCK
-      //for (int i = 0; i < NUMBER_BUFFER_PACKET; i++)
-      //{
+      for (int i = 0; i < NUMBER_BUFFER_PACKET; i++)
+      {
         // GET IMU DATA
         YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
         while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
@@ -783,7 +937,22 @@ int main(int argc, char* argv[])
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
         reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
 
-                
+        // uint64_t currentTime = getMicrosTimeStamp() - timestampStart;
+        currentTime = (getMicrosTimeStamp() - timestampStart) / 1000;
+        // syncTime = (getMicrosTimeStamp() - timestampStart) / 1000;
+        // syncTime = 	currentTime;
+        
+
+        // GET PRESSURE DATA
+        // for (int j = 0; j < 8; j++)
+        // {
+        // 	p[j] = readPressure(j+1, ADCModule) - offset_p[j];
+        // }
+
+
+        // CREATE SINGLE LOG PACKET
+        // constructLogPacket(singleLogPacket, currentTime, dataQuat, dataAcce, dataGyro, dataRAcc,
+        //         p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], syncTime, syncTrigger);
 
         // DEBUG ONLY
         // printf("Pressure values: %i , %i , %i , %i , %i , %i , %i , %i \n", p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
@@ -812,69 +981,33 @@ int main(int argc, char* argv[])
 
         // // SLEEP FOR 4 MS (250 Hz)
         // this_thread::sleep_for(chrono::milliseconds(4));
-      //}
+      }
     // }
 
     // PRINT OUT SOME DEBUG DATA
-    float currentTimeSecs = currentTime / 1000000.0;
+    // currentTimeSecs = currentTime / 1000;
     
     //on off switch
-    if (adc_channel0 > 200 or adc_channel1 > 200) {
-		digitalWrite(3, HIGH);
-		digitalWrite(20, HIGH);
-	} else {
-		digitalWrite(3, LOW);
-		digitalWrite(20, LOW);
-	}
-
-  cout << "checkpoint 3" << endl;
+    if (adc_channel0 > 500) {
+			digitalWrite(3, HIGH);
+		} else {
+			digitalWrite(3, LOW);
+		}
 		
-	/*
-	if (adc_channel1 > 200) {
+		// Led Channel 1
+		
+		if (adc_channel1 > 500) {
 			digitalWrite(20, HIGH);
 		} else {
 			digitalWrite(20, LOW);
 		}
-	*/
     
     //IMU data print
+    printf("Time: %i msecs \n", currentTime);
+    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
     
-    if ((cycle % 20) == 0) {
-			//cout << cycle + ", " + currentTimeSecs + "seconds" + "/n";
-    printf("cycle: %i , time: %0.3f seconds \n", cycle, currentTimeSecs);
-    printf("IMU Raw Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
-    //printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
-    //printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
-    //printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
-    printf("Forefoot sensor : %d \n", adc_channel0);
-    printf("Hindfoot sensor : %d \n", adc_channel1);
-    printf("\n");
-    //dataFile.close();
-
-	}
-
-	if (currentTime > 600000000) {
-
-	cout << "ten minute stop\n";
-	//dataFile.close();
-	return 0;
-
-	}
-
-	//if (start_up == 1) {
-
-	// put ios::app if you want it to add instead of overwrite
-	//dataFile.open(fileName);
-	//start_up = 2;
-
-	//}
-
-	dataFile << cycle << "," << currentTime << "," << dataRAcc.r_ax << "," << dataRAcc.r_ay << "," << dataRAcc.r_az
-	<< "," << dataAcce.ax << "," << dataAcce.ay << "," << dataAcce.az << "," << dataGyro.gx << "," << dataGyro.gy << "," << dataGyro.gz
-    << "," << dataQuat.qw << "," << dataQuat.qx << "," << dataQuat.qy << "," << dataQuat.qz << "," << adc_channel0 << "," << adc_channel1 << "\n";
-
-      //this_thread::sleep_for(chrono::milliseconds(2));
-    cycle++;
+    // SLEEP FOR 4 MS (250 Hz)
+    // this_thread::sleep_for(chrono::milliseconds(4));
 	}
 	cout << "End of code!"; // Although we will never get here...
 	return 0;
