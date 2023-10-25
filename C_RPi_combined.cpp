@@ -563,6 +563,8 @@ inline void YEIgetStreamingBatch(unionStreamingData& uStreamingDataIMU)
   if(serialDataAvail(IMU))
   {
   		read(IMU, &uStreamingDataIMU.vData, 26);
+  } else {
+    cout << "IMU NOT AVAILABLE!!!" << endl;
   }
   
 }
@@ -823,11 +825,12 @@ int main(int argc, char* argv[])
         // GET IMU DATA
         YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
 		
-      //   while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
-      //   {
-			//     printf("while loop \n");
-			// // If no IMU data received, do nothing
-      //   }
+        // always gets stuck on this loop
+        while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
+        {
+			    printf("while loop \n");
+			// If no IMU data received, do nothing
+        }
 		
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
 		
