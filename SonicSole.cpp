@@ -58,7 +58,11 @@ SonicSole::SonicSole() {
     else {
         printf("GPIO initialized successfully!\n\n"); 
     }
- 
+    
+    structComponentQuaternion dataQuat;
+    structComponentLinearAcceleration dataAcce;
+    structComponentRawGyro dataGyro;
+    structComponentRawAcceleration dataRAcc;
 	// CONFIGURING IMU
 	printf("Configuring IMU...\n\n");
 	YEIsettingsHeader(IMU);
