@@ -209,10 +209,13 @@ void SonicSole::motorVibrate() {
 }
 
 void SonicSole::readIMU() {
-    structComponentQuaternion dataQuat;
-    structComponentLinearAcceleration dataAcce;
-    structComponentRawGyro dataGyro;
-    structComponentRawAcceleration dataRAcc;
+    // structComponentQuaternion dataQuat;
+    // structComponentLinearAcceleration dataAcce;
+    // structComponentRawGyro dataGyro;
+    // structComponentRawAcceleration dataRAcc;
+
+    imu.getMotion6(&dataAcce.ax, &dataAcce.ay, &dataAcce.az, &dataGyro.gx, &dataGyro.gy, &dataGyro.gz);
+    imu.getQuaternion(&dataQuat.qw, &dataQuat.qx, &dataQuat.qy, &dataQuat.qz);
 
     printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
     printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
