@@ -60,26 +60,31 @@ SonicSole::SonicSole() {
     }
 
 	// CONFIGURING IMU
-	printf("Configuring IMU...\n\n");
-	YEIsettingsHeader(IMU);
-	YEIwriteCommandNoDelay(IMU, CMD_STOP_STREAMING);
-  	this_thread::sleep_for(chrono::milliseconds(1000));
-	YEIwriteCommandValue(IMU, CMD_SET_ACCELEROMETER_RANGE, ACCELEROMETER_RANGE_8G);
-	YEIwriteCommandValue(IMU, CMD_SET_GYROSCOPE_RANGE, GYROSCOPE_RANGE_2000);
-	YEIwriteCommandValue(IMU, CMD_SET_COMPASS_RANGE, COMPASS_RANGE_1_3);
-	YEIwriteCommandValue(IMU, CMD_SET_CALIBRATION_MODE, CALIBRATION_MODE_BIAS_SCALE);
-	YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XR_YF_ZU);
-	YEIwriteCommandValue(IMU, CMD_SET_REFERENCE_VECTOR_MODE, REFERENCE_VECTOR_MULTI_REFERENCE_MODE);
-	YEIwriteCommandValue(IMU, CMD_SET_COMPASS_ENABLE, FALSE);
-	YEIwriteCommandValue(IMU, CMD_SET_FILTER_MODE, FILTER_KALMAN);
-	YEIwriteCommandNoDelay(IMU, CMD_BEGIN_GYROSCOPE_AUTOCALIBRATION);
-  	this_thread::sleep_for(chrono::milliseconds(500));
-	YEIwriteCommandNoDelay(IMU, CMD_RESET_FILTER);
-  	this_thread::sleep_for(chrono::milliseconds(500));
-  	YEIsetStreamingMode(IMU, READ_TARED_ORIENTATION_AS_QUATERNION, READ_CORRECTED_LINEAR_ACCELERATION, READ_CORRECTED_GYROSCOPE_VECTOR, READ_CORRECTED_ACCELEROMETER_VECTOR, NO_SLOT, NO_SLOT, NO_SLOT, NO_SLOT);
+    try {
+        printf("Configuring IMU...\n\n");
+        YEIsettingsHeader(IMU);
+        YEIwriteCommandNoDelay(IMU, CMD_STOP_STREAMING);
+        this_thread::sleep_for(chrono::milliseconds(1000));
+        YEIwriteCommandValue(IMU, CMD_SET_ACCELEROMETER_RANGE, ACCELEROMETER_RANGE_8G);
+        YEIwriteCommandValue(IMU, CMD_SET_GYROSCOPE_RANGE, GYROSCOPE_RANGE_2000);
+        YEIwriteCommandValue(IMU, CMD_SET_COMPASS_RANGE, COMPASS_RANGE_1_3);
+        YEIwriteCommandValue(IMU, CMD_SET_CALIBRATION_MODE, CALIBRATION_MODE_BIAS_SCALE);
+        YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XR_YF_ZU);
+        YEIwriteCommandValue(IMU, CMD_SET_REFERENCE_VECTOR_MODE, REFERENCE_VECTOR_MULTI_REFERENCE_MODE);
+        YEIwriteCommandValue(IMU, CMD_SET_COMPASS_ENABLE, FALSE);
+        YEIwriteCommandValue(IMU, CMD_SET_FILTER_MODE, FILTER_KALMAN);
+        YEIwriteCommandNoDelay(IMU, CMD_BEGIN_GYROSCOPE_AUTOCALIBRATION);
+        this_thread::sleep_for(chrono::milliseconds(500));
+        YEIwriteCommandNoDelay(IMU, CMD_RESET_FILTER);
+        this_thread::sleep_for(chrono::milliseconds(500));
+        YEIsetStreamingMode(IMU, READ_TARED_ORIENTATION_AS_QUATERNION, READ_CORRECTED_LINEAR_ACCELERATION, READ_CORRECTED_GYROSCOPE_VECTOR, READ_CORRECTED_ACCELEROMETER_VECTOR, NO_SLOT, NO_SLOT, NO_SLOT, NO_SLOT);
 
-	YEIwriteCommandNoDelay(IMU, CMD_TARE_WITH_CURRENT_ORIENTATION);
-	printf("IMU configured successfully!\n\n");
+        YEIwriteCommandNoDelay(IMU, CMD_TARE_WITH_CURRENT_ORIENTATION);
+        printf("IMU configured successfully!\n\n");
+    }
+    catch (...) {
+        printf("IMU not configured successfully: Error. \n\n")
+    }
 
 	bool recordState = true;
 }
@@ -214,20 +219,15 @@ void SonicSole::readIMU() {
     structComponentRawGyro dataGyro;
     structComponentRawAcceleration dataRAcc;
 
-    // In readIMU()
 
     printf("Raw IMU packet: \n");
     for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
         printf("%02X ", YEIdataPacket[i]);
     }
 
-    // Parse data 
     reconstructIMUPacket(YEIdataPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
 
-    // Print parsed data
-    printf("\nQuaternion: %f %f %f %f\n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz); 
-    printf("Acceleration: %f %f %f\n", dataAcce.ax, dataAcce.ay, dataAcce.az);
-
+    // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
     printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
     printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
     printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
