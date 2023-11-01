@@ -209,13 +209,24 @@ void SonicSole::motorVibrate() {
 }
 
 void SonicSole::readIMU() {
-    // structComponentQuaternion dataQuat;
-    // structComponentLinearAcceleration dataAcce;
-    // structComponentRawGyro dataGyro;
-    // structComponentRawAcceleration dataRAcc;
+    structComponentQuaternion dataQuat;
+    structComponentLinearAcceleration dataAcce;
+    structComponentRawGyro dataGyro;
+    structComponentRawAcceleration dataRAcc;
 
-    imu.getMotion6(&dataAcce.ax, &dataAcce.ay, &dataAcce.az, &dataGyro.gx, &dataGyro.gy, &dataGyro.gz);
-    imu.getQuaternion(&dataQuat.qw, &dataQuat.qx, &dataQuat.qy, &dataQuat.qz);
+    // In readIMU()
+
+    printf("Raw IMU packet: \n");
+    for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
+        printf("%02X ", YEIdataPacket[i]);
+    }
+
+    // Parse data 
+    reconstructIMUPacket(YEIdataPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
+
+    // Print parsed data
+    printf("\nQuaternion: %f %f %f %f\n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz); 
+    printf("Acceleration: %f %f %f\n", dataAcce.ax, dataAcce.ay, dataAcce.az);
 
     printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
     printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
