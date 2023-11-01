@@ -592,19 +592,23 @@ inline void YEIsetStreamingTime(int serial)
 
 // Polling mode
 inline void YEIgetStreamingBatch(unionStreamingData& uStreamingDataIMU)
-{
+{ 
   int nPacketStreamingData = sizeof(uStreamingDataIMU);
   int bIMU = 0;
 
   YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
 
-  if(serialDataAvail(IMU))
-  {
-  		// read(IMU, &uStreamingDataIMU.vData, sizeof(uStreamingDataIMU.vData));
-  		read(IMU, &uStreamingDataIMU.vData, 26);
+  if(serialDataAvail(IMU)) {
+    cout << "IMU AVAILABLE\n\n\n\n\n\n\n\n\n\n" << endl;
+    // read(IMU, &uStreamingDataIMU.vData, sizeof(uStreamingDataIMU.vData));
+    read(IMU, &uStreamingDataIMU.vData, 26);
     // delayMicroseconds(DELAY_WAIT_SERIAL_YEI);
+  } 
+  else {
+    cout << "IMU NOT AVAILABLE\n\n\n\n\n\n\n\n\n" << endl;
   }
   
+
   // while (!(bIMU >= nPacketStreamingData))
   // {
   //     uStreamingDataIMU1.vData[nPacketStreamingData - bIMU - 1] = read();
