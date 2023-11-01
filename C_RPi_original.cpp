@@ -348,8 +348,7 @@ inline void constructLogPacket(uint8_t* dataPacket, uint32_t currentTime,
   ////////////////////////////////////////
 
   pointer = (uint8_t*)&p0;
-  dataPacket[
-  	3] = pointer[1];
+  dataPacket[33] = pointer[1];
   dataPacket[34] = pointer[0];
 
   pointer = (uint8_t*)&p1;
