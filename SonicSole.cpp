@@ -214,6 +214,9 @@ void SonicSole::motorVibrate() {
 }
 
 void SonicSole::readIMU() {
+    // https://www.telesens.co/2017/03/11/imu-sampling-using-the-raspberry-pi/
+    // look at documentation later, has some useful code
+
     structComponentQuaternion dataQuat;
     structComponentLinearAcceleration dataAcce;
     structComponentRawGyro dataGyro;

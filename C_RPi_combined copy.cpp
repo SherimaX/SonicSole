@@ -753,7 +753,7 @@ int main(int argc, char* argv[])
 
   bool inGaitCycle = false;
 	
-
+  
   // pinMode
 	pinMode(23, OUTPUT);
 	pinMode(20, OUTPUT);
@@ -980,7 +980,7 @@ int main(int argc, char* argv[])
     cout << "mean time: " << mean_time << endl;
     
     cout << min_pressure << endl;
-  cout << max_pressure << endl;
+    cout << max_pressure << endl;
   }
 
 
@@ -990,9 +990,9 @@ int main(int argc, char* argv[])
   
 	if (currentTime > 600000000) {
 
-	cout << "ten minute stop\n";
-	//dataFile.close();
-	return 0;
+    cout << "ten minute stop\n";
+    //dataFile.close();
+    return 0;
 
 	}
 
@@ -1006,7 +1006,7 @@ int main(int argc, char* argv[])
 
 	dataFile << cycle << "," << currentTime << "," << dataRAcc.r_ax << "," << dataRAcc.r_ay << "," << dataRAcc.r_az
 	<< "," << dataAcce.ax << "," << dataAcce.ay << "," << dataAcce.az << "," << dataGyro.gx << "," << dataGyro.gy << "," << dataGyro.gz
-    << "," << dataQuat.qw << "," << dataQuat.qx << "," << dataQuat.qy << "," << dataQuat.qz << "," << adc_channel0 << "," << adc_channel1 << "," << collectmotor << "\n";
+  << "," << dataQuat.qw << "," << dataQuat.qx << "," << dataQuat.qy << "," << dataQuat.qz << "," << adc_channel0 << "," << adc_channel1 << "," << collectmotor << "\n";
 
       //this_thread::sleep_for(chrono::milliseconds(2));
     cycle++;
