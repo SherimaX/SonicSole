@@ -712,7 +712,7 @@ int main(int argc, char* argv[])
     printf("IMU configured successfully!\n\n");
   }
   catch (...) {
-    printf("IMU not configured successfully: Error. \n\n")
+    printf("IMU not configured successfully: Error. \n\n");
   }
 
 	bool recordState = TRUE;
