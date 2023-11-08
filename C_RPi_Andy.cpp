@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
           sole->runVibrateMode();
       }
 
-      sole->readAndOutputIMUData();
+      sole->readIMU();
       
       sole->toCSV();
       cout << "\n";
