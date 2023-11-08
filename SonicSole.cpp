@@ -223,21 +223,15 @@ void SonicSole::readIMU() {
     structComponentLinearAcceleration dataAcce;
     structComponentRawGyro dataGyro;
     structComponentRawAcceleration dataRAcc;
-    
-    // Read IMU packet
-    // readIMUPacket(sData);
-
-    // Reconstruct IMU packet
-    // reconstructIMUPacket(sData, structQuat, structAcce, structGyro, structRAcc); 
-
+     
+    read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
+    reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
 
     printf("Raw IMU packet: \n");
     for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
         printf("%02X ", YEIdataPacket[i]);
     }
     
-    reconstructIMUPacket(YEIdataPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
-
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
     printf("\nIMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
     printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
