@@ -25,6 +25,8 @@ SonicSole::SonicSole() {
     pinMode(CS, OUTPUT) ;
     digitalWrite(CS,HIGH);
 
+    uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
+
     // INITIALIZING SPI
     printf("Initializing SPI...\n\n");
     int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
