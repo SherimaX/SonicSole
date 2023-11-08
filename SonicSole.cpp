@@ -247,22 +247,17 @@ void SonicSole::readAndOutputIMUData()
     structComponentQuaternion structQuat;
     structComponentLinearAcceleration structAcce;
     structComponentRawGyro structGyro;
-    structComponentRawAcceleration structRAcc;
-    float ax, ay, az;
+    structComponentRawAcceleration structRAcc; 
 
     // Read IMU packet
     readIMUPacket(sData);
 
     // Reconstruct IMU packet
-    reconstructIMUPacket(sData, structQuat, structAcce, structGyro, structRAcc);
-
-    // Reconstruct binary packet
-    reconstructBinaryPacketBinary_test(sData, ax, ay, az);
+    reconstructIMUPacket(sData, structQuat, structAcce, structGyro, structRAcc); 
 
     // Output IMU data
     cout << "Quaternion: " << structQuat.qx << ", " << structQuat.qy << ", " << structQuat.qz << endl;
     cout << "Linear Acceleration: " << structAcce.ax << ", " << structAcce.ay << ", " << structAcce.az << endl;
     cout << "Raw Gyro: " << structGyro.gx << ", " << structGyro.gy << ", " << structGyro.gz << endl;
-    cout << "Raw Acceleration: " << structRAcc.r_ax << ", " << structRAcc.r_ay << ", " << structRAcc.r_az << endl;
-    cout << "Binary Packet: " << ax << ", " << ay << ", " << az << endl;
+    cout << "Raw Acceleration: " << structRAcc.r_ax << ", " << structRAcc.r_ay << ", " << structRAcc.r_az << endl; 
 }
