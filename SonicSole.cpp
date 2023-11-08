@@ -260,9 +260,9 @@ void SonicSole::readAndOutputIMUData()
     reconstructBinaryPacketBinary_test(sData.dataBinaryPacket, ax, ay, az);
 
     // Output IMU data
-    cout << "Quaternion: " << structQuat.x << ", " << structQuat.y << ", " << structQuat.z << ", " << structQuat.w << endl;
-    cout << "Linear Acceleration: " << structAcce.x << ", " << structAcce.y << ", " << structAcce.z << endl;
-    cout << "Raw Gyro: " << structGyro.x << ", " << structGyro.y << ", " << structGyro.z << endl;
-    cout << "Raw Acceleration: " << structRAcc.x << ", " << structRAcc.y << ", " << structRAcc.z << endl;
+    cout << "Quaternion: " << structQuat.qx << ", " << structQuat.qy << ", " << structQuat.qz << endl;
+    cout << "Linear Acceleration: " << structAcce.ax << ", " << structAcce.ay << ", " << structAcce.az << endl;
+    cout << "Raw Gyro: " << structGyro.gx << ", " << structGyro.gy << ", " << structGyro.gz << endl;
+    cout << "Raw Acceleration: " << structRAcc.r_ax << ", " << structRAcc.r_ay << ", " << structRAcc.r_az << endl;
     cout << "Binary Packet: " << ax << ", " << ay << ", " << az << endl;
 }
