@@ -83,7 +83,7 @@ SonicSole::SonicSole() {
         printf("IMU configured successfully!\n\n");
     }
     catch (...) {
-        printf("IMU not configured successfully: Error. \n\n")
+        printf("IMU not configured successfully: Error. \n\n");
     }
 
 	bool recordState = true;
