@@ -835,7 +835,7 @@ int main(int argc, char* argv[])
         while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
         {
 			    printf("while loop \n");
-          delay(1000);
+          delay(10000);
 			// If no IMU data received, do nothing
         }
 		
