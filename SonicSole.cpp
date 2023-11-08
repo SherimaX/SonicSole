@@ -254,10 +254,10 @@ void SonicSole::readAndOutputIMUData()
     readIMUPacket(sData);
 
     // Reconstruct IMU packet
-    reconstructIMUPacket(sData.dataIMUPacket, structQuat, structAcce, structGyro, structRAcc);
+    reconstructIMUPacket(sData, structQuat, structAcce, structGyro, structRAcc);
 
     // Reconstruct binary packet
-    reconstructBinaryPacketBinary_test(sData.dataBinaryPacket, ax, ay, az);
+    reconstructBinaryPacketBinary_test(sData, ax, ay, az);
 
     // Output IMU data
     cout << "Quaternion: " << structQuat.qx << ", " << structQuat.qy << ", " << structQuat.qz << endl;
