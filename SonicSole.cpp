@@ -226,6 +226,7 @@ void SonicSole::readIMU() {
     uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
     
     YEIgetStreamingBatch(uStreamingDataIMU);
+    YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
     read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
     reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
 
