@@ -1,1 +1,1 @@
-g++ -o C_RPi_combined C_RPi_combined_copy.cpp -lwiringPi -lpthread -std=c++11
+g++ -o C_RPi_combined_copy C_RPi_combined_copy.cpp -lwiringPi -lpthread -std=c++11
