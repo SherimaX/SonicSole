@@ -219,22 +219,50 @@ void SonicSole::readIMU() {
     // ADC - MCP3221
     // #define ADCAddress 0x4D
 
-    structComponentQuaternion dataQuat;
-    structComponentLinearAcceleration dataAcce;
-    structComponentRawGyro dataGyro;
-    structComponentRawAcceleration dataRAcc;
+    // structComponentQuaternion dataQuat;
+    // structComponentLinearAcceleration dataAcce;
+    // structComponentRawGyro dataGyro;
+    // structComponentRawAcceleration dataRAcc;
 
 
-    printf("Raw IMU packet: \n");
-    for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
-        printf("%02X ", YEIdataPacket[i]);
-    }
+    // printf("Raw IMU packet: \n");
+    // for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
+    //     printf("%02X ", YEIdataPacket[i]);
+    // }
+    
+    // reconstructIMUPacket(YEIdataPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
 
-    reconstructIMUPacket(YEIdataPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
-
-    // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
-    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
-    printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
-    printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
+    // // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
+    // printf("\nIMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
+    // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
+    // printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
     return;
+}
+
+// Function to read and output IMU data
+void SonicSole::readAndOutputIMUData()
+{
+    // Initialize variables
+    structStreamingData sData;
+    structComponentQuaternion structQuat;
+    structComponentLinearAcceleration structAcce;
+    structComponentRawGyro structGyro;
+    structComponentRawAcceleration structRAcc;
+    float ax, ay, az;
+
+    // Read IMU packet
+    readIMUPacket(sData);
+
+    // Reconstruct IMU packet
+    reconstructIMUPacket(sData.dataIMUPacket, structQuat, structAcce, structGyro, structRAcc);
+
+    // Reconstruct binary packet
+    reconstructBinaryPacketBinary_test(sData.dataBinaryPacket, ax, ay, az);
+
+    // Output IMU data
+    cout << "Quaternion: " << structQuat.x << ", " << structQuat.y << ", " << structQuat.z << ", " << structQuat.w << endl;
+    cout << "Linear Acceleration: " << structAcce.x << ", " << structAcce.y << ", " << structAcce.z << endl;
+    cout << "Raw Gyro: " << structGyro.x << ", " << structGyro.y << ", " << structGyro.z << endl;
+    cout << "Raw Acceleration: " << structRAcc.x << ", " << structRAcc.y << ", " << structRAcc.z << endl;
+    cout << "Binary Packet: " << ax << ", " << ay << ", " << az << endl;
 }

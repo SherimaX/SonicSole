@@ -451,4 +451,11 @@ inline void YEIgetStreamingBatch(unionStreamingData &uStreamingDataIMU)
     }
 }
 
+inline void readIMUPacket(structStreamingData &sData)
+{
+    unionStreamingData uStreamingDataIMU;
+    YEIgetStreamingBatch(uStreamingDataIMU);
+    memcpy(&sData, &uStreamingDataIMU.sData, sizeof(structStreamingData));
+}
+
 #endif
