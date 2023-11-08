@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
 
       sole->readAndOutputIMUData();
       
-
       sole->toCSV();
       cout << "\n";
       delay(100);
