@@ -224,7 +224,7 @@ void SonicSole::readIMU() {
     structComponentRawGyro dataGyro;
     structComponentRawAcceleration dataRAcc;
     uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
-     
+    
     YEIgetStreamingBatch(uStreamingDataIMU);
     read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
     reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
