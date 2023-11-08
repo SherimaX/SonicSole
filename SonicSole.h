@@ -99,10 +99,8 @@ public:
     void updatePressure();
     int getSensorReadings(unsigned char signal);
     bool getMode();
-    uint64_t getCurrentTime();
-
-    void readAndOutputIMUData();
-
+    uint64_t getCurrentTime(); 
+    
 private: 
     double heelThresholdInterval = 0;
     double previousHeelThresholdTime = 0;

@@ -219,45 +219,28 @@ void SonicSole::readIMU() {
     // ADC - MCP3221
     // #define ADCAddress 0x4D
 
-    // structComponentQuaternion dataQuat;
-    // structComponentLinearAcceleration dataAcce;
-    // structComponentRawGyro dataGyro;
-    // structComponentRawAcceleration dataRAcc;
-
-
-    // printf("Raw IMU packet: \n");
-    // for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
-    //     printf("%02X ", YEIdataPacket[i]);
-    // }
+    structComponentQuaternion dataQuat;
+    structComponentLinearAcceleration dataAcce;
+    structComponentRawGyro dataGyro;
+    structComponentRawAcceleration dataRAcc;
     
-    // reconstructIMUPacket(YEIdataPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
-
-    // // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
-    // printf("\nIMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
-    // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
-    // printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
-    return;
-}
-
-// Function to read and output IMU data
-void SonicSole::readAndOutputIMUData()
-{
-    // Initialize variables
-    structStreamingData sData;
-    structComponentQuaternion structQuat;
-    structComponentLinearAcceleration structAcce;
-    structComponentRawGyro structGyro;
-    structComponentRawAcceleration structRAcc; 
-
     // Read IMU packet
-    readIMUPacket(sData);
+    // readIMUPacket(sData);
 
     // Reconstruct IMU packet
-    reconstructIMUPacket(sData, structQuat, structAcce, structGyro, structRAcc); 
+    // reconstructIMUPacket(sData, structQuat, structAcce, structGyro, structRAcc); 
 
-    // Output IMU data
-    cout << "Quaternion: " << structQuat.qx << ", " << structQuat.qy << ", " << structQuat.qz << endl;
-    cout << "Linear Acceleration: " << structAcce.ax << ", " << structAcce.ay << ", " << structAcce.az << endl;
-    cout << "Raw Gyro: " << structGyro.gx << ", " << structGyro.gy << ", " << structGyro.gz << endl;
-    cout << "Raw Acceleration: " << structRAcc.r_ax << ", " << structRAcc.r_ay << ", " << structRAcc.r_az << endl; 
+
+    printf("Raw IMU packet: \n");
+    for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
+        printf("%02X ", YEIdataPacket[i]);
+    }
+    
+    reconstructIMUPacket(YEIdataPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
+
+    // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
+    printf("\nIMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
+    printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
+    printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
+    return;
 }
