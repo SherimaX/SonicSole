@@ -227,7 +227,7 @@ void SonicSole::readIMU() {
     
     // YEIgetStreamingBatch(uStreamingDataIMU);
     // YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH); // didnt really do anything
-    // read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
+    // read(IMU, dataIMUPacket, IMU_PACKET_LENGTH); // slows down everything, only allows reading every 10 seconds
     reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc); // important
 
     // printf("Raw IMU packet: \n");
