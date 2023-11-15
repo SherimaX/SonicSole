@@ -226,14 +226,14 @@ void SonicSole::readIMU() {
     uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
     
     YEIgetStreamingBatch(uStreamingDataIMU);
-    YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
+    // YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH); // didnt really do anything
     read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
-    reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
+    // reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
 
-    printf("Raw IMU packet: \n");
-    for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
-        printf("%02X ", YEIdataPacket[i]);
-    }
+    // printf("Raw IMU packet: \n");
+    // for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
+    //     printf("%02X ", YEIdataPacket[i]);
+    // }
 
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
     printf("\nIMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
