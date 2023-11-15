@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
       
       sole->toCSV();
       cout << "\n";
-      // delay(100);
+      delay(100);
       // if (sole->getRunningTime() > MAX_RUN_TIME) {
       //    cout << sole->getRunningTime() << endl;
       //    cout << MAX_RUN_TIME << endl;
