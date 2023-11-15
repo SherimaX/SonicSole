@@ -225,10 +225,10 @@ void SonicSole::readIMU() {
     structComponentRawAcceleration dataRAcc;
     uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
     
-    YEIgetStreamingBatch(uStreamingDataIMU);
+    // YEIgetStreamingBatch(uStreamingDataIMU);
     // YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH); // didnt really do anything
     read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
-    reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
+    reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc); // important
 
     // printf("Raw IMU packet: \n");
     // for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
