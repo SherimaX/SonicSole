@@ -102,6 +102,8 @@ public:
     int getSensorReadings(unsigned char signal);
     bool getMode();
     uint64_t getCurrentTime(); 
+    int getCurrForePressure();
+    int getCurrHeelPressure();
     
 private: 
     double heelThresholdInterval = 0;
