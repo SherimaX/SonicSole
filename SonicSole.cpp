@@ -137,6 +137,14 @@ void SonicSole::updatePressure() {
 
 }
 
+int SonicSole::getCurrHeelPressure() {
+    return currHeelPressure;
+}
+
+int SonicSole::getCurrForePresure() {
+    return currForePressure;
+}
+
 int SonicSole::getSensorReadings(unsigned char signal) {
     // ADC channels
     digitalWrite(CS,LOW);
