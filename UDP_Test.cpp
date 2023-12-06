@@ -45,10 +45,10 @@ inline void sendFlexSensorData(int flexSensorData) {
         // sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
     }
     catch (...) {
-        std:cout << "Error: UDPSend cannot send data" << endl;
+        std::cout << "Error: UDPSend cannot send data" << std::endl;
     }
 
-    std::cout << "Data sent to UDP" << endl;
+    std::cout << "Data sent to UDP" << std::endl;
     close(sockfd);
 }
 
