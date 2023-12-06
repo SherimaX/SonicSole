@@ -119,7 +119,7 @@ private:
     bool detectHeelThreshold();
     bool detectCombinedThreshold();
     void playSound();
-    void sendFlexSensorData(int flexSensorData);
+    void sendFlexSensorData(int heelFlexSensorData, int foreFlexSensorData);
     // uint64_t getCurrentTime();
 };
 
