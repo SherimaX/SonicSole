@@ -116,6 +116,7 @@ private:
     bool detectHeelThreshold();
     bool detectCombinedThreshold();
     void playSound();
+    void sendFlexSensorData(int flexSensorData);
     // uint64_t getCurrentTime();
 };
 
