@@ -141,7 +141,7 @@ int SonicSole::getCurrHeelPressure() {
     return currHeelPressure;
 }
 
-int SonicSole::getCurrForePresure() {
+int SonicSole::getCurrForePressure() {
     return currForePressure;
 }
 
