@@ -251,7 +251,7 @@ void SonicSole::readIMU() {
     return;
 }
 
-void SonicSole::sendFlexSensorData(int heelFlexSensorData, int foreFlexSensorData) {
+void SonicSole::sendFlexSensorData(int flexSensorData) {
     int sockfd;
     struct sockaddr_in serverAddr;
 
@@ -266,14 +266,6 @@ void SonicSole::sendFlexSensorData(int heelFlexSensorData, int foreFlexSensorDat
     serverAddr.sin_port = htons(PORT);
     serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
 
-    struct FlexSensorData {
-        int heelPressure;
-        int forePressure;
-    } flexData;
-
-    flexData.heelPressure = heelFlexSensorData;
-    flexData.forePressure = foreFlexSensorData;
-
     /*
     if (sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
         std::cerr << "Error sending data" << std::endl;
@@ -283,8 +275,8 @@ void SonicSole::sendFlexSensorData(int heelFlexSensorData, int foreFlexSensorDat
     */
 
     try {
-        // UDPSend(sockfd, &flexData, sizeof(flexData), serverAddr);
-        sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
+        UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
+        // sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
     }
     catch (...) {
         std:cout << "Error: UDPSend cannot send data" << endl;

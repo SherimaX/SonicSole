@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 
       sole->updatePressure();
 
-      sole->sendFlexSensorData(sole->getCurrHeelPressure(), sole->getCurrForePressure());
+      sole->sendFlexSensorData(sole->getCurrHeelPressure());
 
       sole->detectModeChange();
 
