@@ -112,7 +112,6 @@ private:
     double currentHeelThresholdTime = 0;
     int thresholdCross = 0;
     unsigned char SPIbuff[3];
-    int port = 123456;
 
     void updateHeelThresholdInterval();
     bool detectThreshold(int prevReading, int currReading, int minReading, int maxReading);
