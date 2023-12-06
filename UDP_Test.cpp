@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-public void sendFlexSensorData(int flexSensorData) {
+inline void sendFlexSensorData(int flexSensorData) {
     int sockfd;
     struct sockaddr_in serverAddr;
 
@@ -52,7 +52,7 @@ public void sendFlexSensorData(int flexSensorData) {
     close(sockfd);
 }
 
-public void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
+inline void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
     sendto(sockfd, (const int *)reading, len,
            MSG_CONFIRM, (const struct sockaddr *) &servaddr,
            sizeof(servaddr));
