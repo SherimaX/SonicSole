@@ -8,7 +8,7 @@
 #define PORT 25000
 
 
-inline void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
+void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
     sendto(sockfd, (const int *)reading, len,
            MSG_CONFIRM, (const struct sockaddr *) &servaddr,
            sizeof(servaddr));
