@@ -6,17 +6,6 @@
 
 #define PORT 25000
 
-int main(int argc, char* argv[]) {
-    sendFlexSensorData(103);
-    sendFlexSensorData(26);
-    sendFlexSensorData(1743);
-    sendFlexSensorData(302);
-    sendFlexSensorData(592);
-    sendFlexSensorData(0);
-
-    return 0;
-}
-
 void sendFlexSensorData(int flexSensorData) {
     int sockfd;
     struct sockaddr_in serverAddr;
@@ -56,4 +45,15 @@ inline void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockad
     sendto(sockfd, (const int *)reading, len,
            MSG_CONFIRM, (const struct sockaddr *) &servaddr,
            sizeof(servaddr));
+}
+
+int main(int argc, char* argv[]) {
+    sendFlexSensorData(103);
+    sendFlexSensorData(26);
+    sendFlexSensorData(1743);
+    sendFlexSensorData(302);
+    sendFlexSensorData(592);
+    sendFlexSensorData(0);
+
+    return 0;
 }
