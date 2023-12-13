@@ -29,15 +29,13 @@ void sendFlexSensorData(int flexSensorData) {
         std::cout << "Flex sensor data sent successfully!" << std::endl;
     }
     */
-    void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
-    sendto(sockfd, (const int *)reading, len,
-           MSG_CONFIRM, (const struct sockaddr *) &servaddr,
-           sizeof(servaddr));
-    }
 
     try {
-        UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
+        // UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
         // sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
+        sendto(sockfd, (const int *)&flexSensorData, sizeof(flexSensorData),
+           MSG_CONFIRM, (const struct sockaddr *) &serverAddr,
+           sizeof(serverAddr));
     }
     catch (...) {
         std::cout << "Error: UDPSend cannot send data" << std::endl;
@@ -45,6 +43,12 @@ void sendFlexSensorData(int flexSensorData) {
 
     std::cout << "Data sent to UDP" << std::endl;
     close(sockfd);
+}
+
+void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
+    sendto(sockfd, (const int *)reading, len,
+        MSG_CONFIRM, (const struct sockaddr *) &servaddr,
+        sizeof(servaddr));
 }
 
 int main(int argc, char* argv[]) {
