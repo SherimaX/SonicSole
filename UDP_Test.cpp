@@ -7,13 +7,6 @@
 
 #define PORT 25000
 
-
-void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
-    sendto(sockfd, (const int *)reading, len,
-           MSG_CONFIRM, (const struct sockaddr *) &servaddr,
-           sizeof(servaddr));
-}
-
 void sendFlexSensorData(int flexSensorData) {
     int sockfd;
     struct sockaddr_in serverAddr;
@@ -36,6 +29,11 @@ void sendFlexSensorData(int flexSensorData) {
         std::cout << "Flex sensor data sent successfully!" << std::endl;
     }
     */
+    void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
+    sendto(sockfd, (const int *)reading, len,
+           MSG_CONFIRM, (const struct sockaddr *) &servaddr,
+           sizeof(servaddr));
+    }
 
     try {
         UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
