@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-inline void sendFlexSensorData(int flexSensorData) {
+void sendFlexSensorData(int flexSensorData) {
     int sockfd;
     struct sockaddr_in serverAddr;
 
