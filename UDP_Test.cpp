@@ -4,6 +4,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define PORT 25000
 
