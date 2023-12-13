@@ -275,8 +275,8 @@ void SonicSole::sendFlexSensorData(int flexSensorData) {
     */
 
     try {
-        UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
-        // sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
+        // UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
+        sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
     }
     catch (...) {
         std:cout << "Error: UDPSend cannot send data" << endl;
