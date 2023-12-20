@@ -105,6 +105,7 @@ public:
     int getCurrForePressure();
     int getCurrHeelPressure();
     void sendFlexSensorData(int flexSensorData);
+    bool detectHeelThreshold();
     
 private: 
     double heelThresholdInterval = 0;
@@ -116,7 +117,6 @@ private:
     void updateHeelThresholdInterval();
     bool detectThreshold(int prevReading, int currReading, int minReading, int maxReading);
     void updateThresholdCounter();
-    bool detectHeelThreshold();
     bool detectCombinedThreshold();
     void playSound();
     // uint64_t getCurrentTime();
