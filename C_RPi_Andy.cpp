@@ -23,15 +23,19 @@ int main(int argc, char* argv[])
 
       sole->updatePressure();
 
-      // sole->sendFlexSensorData(200);
-      sole->sendFlexSensorData(sole->getCurrHeelPressure());
-
       sole->detectModeChange();
 
       if (sole->getMode()) {
           sole->runSoundMode();
       } else {
           sole->runVibrateMode();
+      }
+
+      //sole->sendFlexSensorData(sole->getCurrHeelPressure());
+
+      //if (sole->getMode() && sole->detectHeelThreshold()) {
+      if (sole->detectHeelThreshold()) {
+        sole->sendFlexSensorData(1);
       }
 
       sole->readIMU();
