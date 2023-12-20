@@ -1,3 +1,4 @@
+// #include <iostream>
 #include "SonicSole.h"
 
 using namespace std; 
@@ -35,6 +36,7 @@ int main(int argc, char* argv[])
       //if (sole->getMode() && sole->detectHeelThreshold()) {
       if (sole->detectHeelThreshold()) {
         sole->sendFlexSensorData(1);
+        cout << "Data sent to UDP" << endl;
       }
 
       sole->readIMU();
