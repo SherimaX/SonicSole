@@ -276,7 +276,6 @@ void SonicSole::sendFlexSensorData(int flexSensorData) {
 
     try {
         UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
-        UDPSend(sockfd, 230, sizeof(int), serverAddr);
         // sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
     }
     catch (...) {
