@@ -1,4 +1,3 @@
-#include <iostream>
 #include "SonicSole.h"
 
 using namespace std; 
