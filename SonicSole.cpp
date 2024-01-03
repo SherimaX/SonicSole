@@ -117,7 +117,6 @@ void SonicSole::updatePressure() {
     prevForePressure =  currForePressure;
     prevCombinedPressure = currCombinedPressure;
     
-    // to test code without sensors plugged in
     currHeelPressure = getSensorReadings(224);
     currForePressure = getSensorReadings(160);
     currCombinedPressure = currHeelPressure + currForePressure;
