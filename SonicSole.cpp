@@ -251,6 +251,7 @@ void SonicSole::readIMU() {
     return;
 
     // some old code that might be useful later
+    // check out YEIgetStreamingBatch later
     // YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
     // if(serialDataAvail(IMU))
     // {
