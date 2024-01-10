@@ -937,7 +937,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-//   YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
+// YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
 // if(serialDataAvail(IMU))
 // {
 // 	uint64_t timeRead = getMicrosTimeStamp() - timestamp_start;
@@ -959,4 +959,3 @@ int main(int argc, char *argv[])
 // printf("Time obtained!\n");
 // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
 // printf("Time: %0.3f secs \n", deltaTime);
-
