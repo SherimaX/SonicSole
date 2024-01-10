@@ -39,6 +39,9 @@ int main(int argc, char* argv[])
         cout << "Data sent to UDP" << endl;
       }
 
+      if () {
+        
+      }
       sole->readIMU();
       
       sole->toCSV();
