@@ -117,8 +117,8 @@ void SonicSole::updatePressure() {
     prevForePressure =  currForePressure;
     prevCombinedPressure = currCombinedPressure;
     
-    currHeelPressure = getSensorReadings(224);
-    currForePressure = getSensorReadings(160);
+    currHeelPressure = getSensorReadings(160);
+    currForePressure = getSensorReadings(224);
     currCombinedPressure = currHeelPressure + currForePressure;
 
     if (currCombinedPressure < minCombinedPressure)
