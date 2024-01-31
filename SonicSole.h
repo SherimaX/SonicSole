@@ -67,6 +67,9 @@ public:
     bool mode = true;
     int thresholdCounter = 0;
 
+    int heelSensorAddr = 160;
+    int foreSensorAddr = 224;
+
     double maxHeelPressure = 0;
     double minHeelPressure = 1000;
 
