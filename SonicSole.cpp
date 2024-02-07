@@ -163,7 +163,7 @@ bool SonicSole::getMode() {
 }
 
 uint64_t SonicSole::getCurrentTime() {
-    return getSecondsTimeStamp();
+    return getMicrosTimeStamp();
 }
 
 void SonicSole::updateHeelThresholdInterval() {
