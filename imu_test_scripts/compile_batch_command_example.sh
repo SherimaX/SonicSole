@@ -1,0 +1,1 @@
+gcc -o first_file_test batch_command_example.c
