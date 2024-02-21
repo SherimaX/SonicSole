@@ -70,19 +70,20 @@ public:
     int heelSensorAddr = 160;
     int foreSensorAddr = 224;
 
-    double maxHeelPressure = 0;
-    double minHeelPressure = 1000;
+    double minHeelPressure = 0;
+    double minForePressure = 0;
+    double minCombinedPressure = 0;
 
+    double maxHeelPressure = 0;
+    double maxForePressure = 0;
     double maxCombinedPressure = 0;
-    double minCombinedPressure = 1000;
 
     double currHeelPressure = 0;
-    double prevHeelPressure = 0;
-
     double currForePressure = 0;
-    double prevForePressure = 0;
-
     double currCombinedPressure = 0;
+
+    double prevHeelPressure = 0;
+    double prevForePressure = 0;
     double prevCombinedPressure = 0;
 
     uint64_t startTime = 0;
