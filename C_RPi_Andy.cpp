@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
       //if (sole->getMode() && sole->detectHeelThreshold()) {
       if (sole->detectHeelThreshold()) {
         sole->sendFlexSensorData(1);
-        cout << "Data sent to UDP" << endl;
+        // cout << "Data sent to UDP" << endl;
       }
 
       //if () {
