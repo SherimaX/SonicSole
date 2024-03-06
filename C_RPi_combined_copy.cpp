@@ -836,7 +836,7 @@ int main(int argc, char* argv[])
         {
 			    printf("while loop \n");
           delay(10000);
-			// If no IMU data received, do nothing
+			  // If no IMU data received, do nothing
         }
 		
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);

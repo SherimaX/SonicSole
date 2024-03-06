@@ -21,7 +21,7 @@
 
 // Stream data stuctures must be packed else they will not properly work
 #pragma pack(push,1)
-typedef struct Batch_Data{
+typedef struct Batch_Data {
     float quaternion[4]; // xyzw
     float linear_acceleration[3]; // xyz
 	unsigned char button_state; // bit 0 - button 0, bit 1 - button 1
