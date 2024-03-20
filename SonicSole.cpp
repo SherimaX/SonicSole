@@ -139,7 +139,7 @@ void SonicSole::updatePressure() {
     if (currForePressure > maxForePressure)
         maxForePressure = currForePressure;
 
-    cout << "currHeelPressure: " << 4096 - currHeelPressure << endl; 
+    cout << "currHeelPressure: " << 4096 - currHeelPressure << endl;
     cout << "maxHeelPressure: " << 4096 - maxHeelPressure << endl;
     cout << "currForePressure: " << 4096 - currForePressure << endl;
     cout << "maxForePressure: " << 4096 - maxForePressure << endl;
