@@ -99,7 +99,7 @@ uint64_t SonicSole::getRunningTime() {
 }
 
 void SonicSole::updateCurrentTime() {
-    currentTime = getCurrentTime();
+    currentTime = getSecondsTimeStamp();
 }
 
 void SonicSole::updatePressure() {
@@ -173,10 +173,6 @@ void SonicSole::detectModeChange() {
 
 bool SonicSole::getMode() {
     return mode;
-}
-
-uint64_t SonicSole::getCurrentTime() {
-    return getSecondsTimeStamp();
 }
 
 void SonicSole::updateHeelThresholdInterval() {
