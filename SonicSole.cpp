@@ -90,16 +90,6 @@ SonicSole::SonicSole() {
 	bool recordState = true;
 }
 
-void SonicSole::detectModeChange() {
-    startInterval = getSecondsTimeStamp();
-    detectHeelThreshold();    
-    if (thresholdCross == 3 && heelThresholdInterval < 3) { //&& (endInterval - startInterval < 1)) {
-        mode = !mode;
-        thresholdCross = 0;
-        string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
-    }
-}
-
 void SonicSole::toCSV() {
     return;
 }
@@ -139,10 +129,15 @@ void SonicSole::updatePressure() {
     if (currForePressure > maxForePressure)
         maxForePressure = currForePressure;
 
-    cout << "currHeelPressure: " << 4096 - currHeelPressure << endl;
-    cout << "maxHeelPressure: " << 4096 - maxHeelPressure << endl;
-    cout << "currForePressure: " << 4096 - currForePressure << endl;
-    cout << "maxForePressure: " << 4096 - maxForePressure << endl;
+    // cout << "currHeelPressure: " << 4096 - currHeelPressure << endl;
+    // cout << "maxHeelPressure: " << 4096 - maxHeelPressure << endl;
+    // cout << "currForePressure: " << 4096 - currForePressure << endl;
+    // cout << "maxForePressure: " << 4096 - maxForePressure << endl;
+
+    cout << "currHeelPressure: " << currHeelPressure << endl;
+    cout << "maxHeelPressure: " << maxHeelPressure << endl;
+    cout << "currForePressure: " << currForePressure << endl;
+    cout << "maxForePressure: " << maxForePressure << endl;
 
 }
 
@@ -166,6 +161,16 @@ int SonicSole::getSensorReadings(unsigned char signal) {
     return sensorReading;
 }
 
+void SonicSole::detectModeChange() {
+    startInterval = getSecondsTimeStamp();
+    detectHeelThreshold();    
+    if (thresholdCross == 3 && heelThresholdInterval < 3) { //&& (endInterval - startInterval < 1)) {
+        mode = !mode;
+        thresholdCross = 0;
+        string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
+    }
+}
+
 bool SonicSole::getMode() {
     return mode;
 }
@@ -182,12 +187,12 @@ void SonicSole::updateHeelThresholdInterval() {
 
 bool SonicSole::detectThreshold(int prevReading, int currReading, int minReading, int maxReading) {
     double threshold = 0.4 * (maxReading - minReading) + minReading;
-    if (prevReading < threshold && currReading > threshold) {
+    if ((prevReading < threshold) && (currReading > threshold)) {
         endInterval = getSecondsTimeStamp();
         return true;
-    } else {
-        return false;
-    }
+    } 
+
+    return false;
 }
 
 bool SonicSole::detectHeelThreshold() {
