@@ -88,14 +88,14 @@ public:
 
     uint64_t startTime = 0;
     uint64_t currentTime = 0;
-    uint64_t startInterval = 0;
-    uint64_t endInterval = 0;
+    // uint64_t startInterval = 0;
+    // uint64_t endInterval = 0;
     
     uint8_t IMU_PACKET_LENGTH = 52;
 
     SonicSole();
     void motorVibrate();
-    void detectModeChange();
+    // void detectModeChange();
     void runSoundMode();
     void runVibrateMode();
     void toCSV();
@@ -118,9 +118,10 @@ private:
     int thresholdCross = 0;
     unsigned char SPIbuff[3];
 
-    void updateHeelThresholdInterval();
+    // void updateHeelThresholdInterval();
     bool detectThreshold(int prevReading, int currReading, int minReading, int maxReading);
     void updateThresholdCounter();
+    void switchMode();
     bool detectCombinedThreshold();
     void playSound();
     // uint64_t getCurrentTime();

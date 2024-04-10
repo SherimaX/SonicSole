@@ -23,9 +23,18 @@ int main(int argc, char* argv[])
 
       sole->updatePressure();
 
+      uint64_t tEnd = time + 3;
+      while (sole->getRunningTime() < tEnd) {
+        sole->detectHeelThreshold();
+      }
+
+      if (sole->thresholdCross >= 3) {
+        sole->switchMode();
+      }
+
       sole->detectModeChange();
 
-      if (sole->getMode()) {
+      if (sole->getMode()) {    // when getMode is true, soundMode is active, if false than vibMode
           sole->runSoundMode();
       } else {
           sole->runVibrateMode();
