@@ -24,7 +24,8 @@ int main(int argc, char* argv[])
       sole->updatePressure();
 
       uint64_t tEnd = time + 3;
-      if (sole->getRunningTime() < tEnd) {
+      //if (sole->getRunningTime() < tEnd) {
+      if (cycle % 30 == 0)
         sole->detectHeelThreshold();
       }
 
