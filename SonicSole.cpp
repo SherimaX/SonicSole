@@ -161,40 +161,44 @@ int SonicSole::getSensorReadings(unsigned char signal) {
     return sensorReading;
 }
 
-void SonicSole::detectModeChange() {
-    startInterval = getSecondsTimeStamp();
-    detectHeelThreshold();    
-    if (thresholdCross == 3 && heelThresholdInterval < 3) { //&& (endInterval - startInterval < 1)) {
-        mode = !mode;
-        thresholdCross = 0;
-        string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
-    }
+// void SonicSole::detectModeChange() {
+//     startInterval = getSecondsTimeStamp();
+//     detectHeelThreshold();    
+//     if (thresholdCross == 3 && heelThresholdInterval < 3) { //&& (endInterval - startInterval < 1)) {
+//         mode = !mode; 
+//         thresholdCross = 0;
+//         string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
+//     }
+// }
+
+void SonicSole::switchMode() {
+    mode = !mode;
+    thresholdCross = 0;
+    string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
 }
 
 bool SonicSole::getMode() {
     return mode;
 }
 
-void SonicSole::updateHeelThresholdInterval() {
-    previousHeelThresholdTime = currentHeelThresholdTime;
-    currentHeelThresholdTime = getRunningTime();
-    heelThresholdInterval = currentHeelThresholdTime - previousHeelThresholdTime;    
-}
+// void SonicSole::updateHeelThresholdInterval() {
+//     previousHeelThresholdTime = currentHeelThresholdTime;
+//     currentHeelThresholdTime = getRunningTime();
+//     heelThresholdInterval = currentHeelThresholdTime - previousHeelThresholdTime;    
+// }
 
 bool SonicSole::detectThreshold(int prevReading, int currReading, int minReading, int maxReading) {
     double threshold = 0.4 * (maxReading - minReading) + minReading;
     if ((prevReading < threshold) && (currReading > threshold)) {
-        endInterval = getSecondsTimeStamp();
+        // endInterval = getSecondsTimeStamp();
         return true;
-    } 
-
+    }
     return false;
 }
 
 bool SonicSole::detectHeelThreshold() {
     bool thresholdDetected = detectThreshold(prevHeelPressure, currHeelPressure, minHeelPressure, maxHeelPressure);
     if (thresholdDetected) {
-        updateHeelThresholdInterval();
         updateThresholdCounter();
     }
     return thresholdDetected;
