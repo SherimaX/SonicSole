@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 
       uint64_t tEnd = time + 3;
       //if (sole->getRunningTime() < tEnd) {
-      if (cycle % 30 == 0) // every 10 cycle is a second
+      if (cycle % 30 == 0) { // every 10 cycle is a second
         sole->detectHeelThreshold();
       }
 
