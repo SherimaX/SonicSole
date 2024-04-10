@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
         sole->switchMode();
       }
 
-      sole->detectModeChange();
+      // sole->detectModeChange();
 
       if (sole->getMode()) {    // when getMode is true, soundMode is active, if false than vibMode
           sole->runSoundMode();

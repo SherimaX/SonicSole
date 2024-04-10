@@ -66,6 +66,7 @@ class SonicSole {
 public:
     bool mode = true;
     int thresholdCounter = 0;
+    int thresholdCross = 0;
 
     int heelSensorAddr = 224;
     int foreSensorAddr = 160;
@@ -105,6 +106,7 @@ public:
     void updatePressure();
     int getSensorReadings(unsigned char signal);
     bool getMode();
+    void switchMode();
     uint64_t getCurrentTime(); 
     int getCurrForePressure();
     int getCurrHeelPressure();
@@ -115,13 +117,11 @@ private:
     double heelThresholdInterval = 0;
     double previousHeelThresholdTime = 0;
     double currentHeelThresholdTime = 0;
-    int thresholdCross = 0;
     unsigned char SPIbuff[3];
 
     // void updateHeelThresholdInterval();
     bool detectThreshold(int prevReading, int currReading, int minReading, int maxReading);
     void updateThresholdCounter();
-    void switchMode();
     bool detectCombinedThreshold();
     void playSound();
     // uint64_t getCurrentTime();
