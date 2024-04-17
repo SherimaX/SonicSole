@@ -95,7 +95,7 @@ public:
     
     uint8_t IMU_PACKET_LENGTH = 52;
 
-    vector<uint64_t> timeArr;
+    vector<int> timeArr;
 
     SonicSole();
     void motorVibrate();
