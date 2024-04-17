@@ -23,11 +23,10 @@ int main(int argc, char* argv[])
 
       sole->updatePressure();
 
-      uint64_t tEnd = time + 3;
       //if (sole->getRunningTime() < tEnd) {
-      if (cycle % 30 == 0) { // every 10 cycles is a second
-        sole->detectHeelThreshold();
-      }
+      // if (cycle % 30 == 0) { // every 10 cycles is a second
+      //   sole->detectHeelThreshold();
+      // }
 
       if (sole->thresholdCross >= 3) {
         sole->switchMode();
