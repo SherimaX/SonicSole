@@ -45,7 +45,6 @@ int main(int argc, char* argv[])
       //if (sole->getMode() && sole->detectHeelThreshold()) {
       if (sole->detectHeelThreshold()) {
         //sole->timeArr.push_back(cycle);
-        sole->timeArr[cycle] = cycle;
         sole->sendFlexSensorData(1);
         // cout << "Data sent to UDP" << endl;
       }
