@@ -188,7 +188,7 @@ bool SonicSole::getMode() {
 // }
 
 bool SonicSole::detectThreshold(int prevReading, int currReading, int minReading, int maxReading) {
-    double threshold = 0.4 * (maxReading - minReading) + minReading;
+    double threshold = 0.1 * (maxReading - minReading) + minReading; // threshold of device is 10% or 0.1
     if ((prevReading < threshold) && (currReading > threshold)) {
         // endInterval = getSecondsTimeStamp();
         return true;
