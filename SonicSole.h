@@ -10,6 +10,7 @@
 #include <condition_variable>
 #include <chrono>
 #include <iomanip>
+#include <vector>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,6 +94,8 @@ public:
     // uint64_t endInterval = 0;
     
     uint8_t IMU_PACKET_LENGTH = 52;
+
+    vector<uint64_t> timeArr;
 
     SonicSole();
     void motorVibrate();
