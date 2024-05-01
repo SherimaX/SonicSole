@@ -4,8 +4,7 @@
 uint64_t getMicrosTimeStamp() {
     struct timeval tv;
 	gettimeofday(&tv,NULL);
-	//return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
-	return tv.tv_sec+tv.tv_usec;
+	return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
 }
 
 uint64_t getSecondsTimeStamp() {
@@ -98,7 +97,7 @@ void SonicSole::toCSV() {
 }
 
 uint64_t SonicSole::getRunningTime() {
-    return currentTime - startTime;
+    return (currentTime - startTime) / 1000000;
 }
 
 void SonicSole::updateCurrentTime() {
