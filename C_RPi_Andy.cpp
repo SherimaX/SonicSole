@@ -1,4 +1,4 @@
-// #include <iostream>
+#include <iostream>
 #include "SonicSole.h"
 
 using namespace std; 
@@ -12,6 +12,7 @@ int main(int argc, char* argv[])
     cout << "Motor Vibrated" << endl;
 
     int cycle = 0;
+    vector<uint64_t> thresholdTimes; 
 
     while (true) {
       uint64_t time = sole->getRunningTime();
@@ -21,24 +22,39 @@ int main(int argc, char* argv[])
       cycle++;
 
       sole->updateCurrentTime();
-
       sole->updatePressure();
 
-      //if (sole->getRunningTime() < tEnd) {
-      // if (cycle % 30 == 0) { // every 10 cycles is a second
-      //   sole->detectHeelThreshold();
-      // }
-
-      if (sole->thresholdCross >= 3) {
-        sole->switchMode();
+      if (sole->detectHeelThreshold()) {
+        sole->updateThresholdCounter();
+        thresholdTimes.push_back(time);
       }
 
-      // sole->detectModeChange();
+      /* 
+       * places time values in thresholdTimes vector whenever the threshold is crossed
+       * if threshold has been crossed 3 times (size of vector >= 3), runs a check to see 
+       * if the threshold was crossed in sucession (within 3 seconds)
+       * if it has, switch mode and the vector clears
+       */ 
+      if (sole->thresholdCross >= 3) {
+        bool modeSwitch = false;
+          for (size_t i = 2; i < thresholdTimes.size(); i++) {
+              if (thresholdTimes[i] - thresholdTimes[i - 2] <= 3) { // within 3 seconds
+                  modeSwitch = true;
+                  break;
+              }
+          }
+          if (modeSwitch) {
+              sole->switchMode();
+              thresholdTimes.clear(); // Clear the threshold times after mode switch
+          }
+        }
+      }
+
 
       if (sole->getMode()) {    // when getMode is true, soundMode is active, if false than vibMode
-          sole->runSoundMode();
+        sole->runSoundMode();
       } else {
-          sole->runVibrateMode();
+        sole->runVibrateMode();
       }
 
       //sole->sendFlexSensorData(sole->getCurrHeelPressure());
