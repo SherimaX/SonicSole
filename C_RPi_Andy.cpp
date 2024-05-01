@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 
       if (sole->detectHeelThreshold()) {
         sole->updateThresholdCounter();
-        // thresholdTimes.push_back(time);
+        thresholdTimes.push_back(time);
       }
 
       /* 
