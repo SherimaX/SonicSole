@@ -36,20 +36,20 @@ int main(int argc, char* argv[])
        * was crossed in sucession (within 3 seconds)
        * if it has, switch mode and the vector clears
        */ 
-      // if (sole->thresholdCross >= 3) {
-      //   bool modeSwitch = false;
-      //   for (size_t i = 2; i < thresholdTimes.size(); i++) {
-      //       if (thresholdTimes[i] - thresholdTimes[i - 2] <= static_cast<uint64_t>(3)) { // within 3 seconds
-      //           modeSwitch = true;
-      //           break;
-      //       }
-      //   }
+      if (sole->thresholdCross >= 3) {
+        bool modeSwitch = false;
+        for (size_t i = 2; i < thresholdTimes.size(); i++) {
+            if (thresholdTimes[i] - thresholdTimes[i - 2] <= 3) { // within 3 seconds
+                modeSwitch = true;
+                break;
+            }
+        }
 
-      //   if (modeSwitch) {
-      //       sole->switchMode();
-      //       thresholdTimes.clear(); // Clear the threshold times after mode switch
-      //   }
-      // }
+        if (modeSwitch) {
+            sole->switchMode();
+            thresholdTimes.clear(); // Clear the threshold times after mode switch
+        }
+      }
 
 
       if (sole->getMode()) {    // when getMode is true, soundMode is active, if false than vibMode
