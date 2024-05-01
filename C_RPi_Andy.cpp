@@ -37,16 +37,16 @@ int main(int argc, char* argv[])
        */ 
       if (sole->thresholdCross >= 3) {
         bool modeSwitch = false;
-          for (size_t i = 2; i < thresholdTimes.size(); i++) {
-              if (thresholdTimes[i] - thresholdTimes[i - 2] <= 3) { // within 3 seconds
-                  modeSwitch = true;
-                  break;
-              }
-          }
-          if (modeSwitch) {
-              sole->switchMode();
-              thresholdTimes.clear(); // Clear the threshold times after mode switch
-          }
+        for (size_t i = 2; i < thresholdTimes.size(); i++) {
+            if (thresholdTimes[i] - thresholdTimes[i - 2] <= 3) { // within 3 seconds
+                modeSwitch = true;
+                break;
+            }
+        }
+        
+        if (modeSwitch) {
+            sole->switchMode();
+            thresholdTimes.clear(); // Clear the threshold times after mode switch
         }
       }
 
