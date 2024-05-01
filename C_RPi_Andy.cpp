@@ -16,8 +16,8 @@ int main(int argc, char* argv[])
     vector<int> thresholdTimes; 
 
     while (true) {
-      // uint64_t time = sole->getRunningTime();
-      int time = 0;
+      int time = sole->getRunningTime();
+      // int time = 0;
       cout << "time: " << time << endl;
       // printf("time: %0.3f seconds \n", time);
       cout << "Cycle: " << cycle << endl;
