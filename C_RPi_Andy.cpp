@@ -13,11 +13,11 @@ int main(int argc, char* argv[])
     cout << "Motor Vibrated" << endl;
 
     int cycle = 0;
-    vector<uint64_t> thresholdTimes; 
+    vector<int> thresholdTimes; 
 
     while (true) {
       // uint64_t time = sole->getRunningTime();
-      uint64_t time = 0;
+      int time = 0;
       cout << "time: " << time << endl;
       // printf("time: %0.3f seconds \n", time);
       cout << "Cycle: " << cycle << endl;
