@@ -97,7 +97,7 @@ void SonicSole::toCSV() {
 }
 
 uint64_t SonicSole::getRunningTime() {
-    return (currentTime - startTime) / 1000000;
+    return currentTime - startTime;
 }
 
 void SonicSole::updateCurrentTime() {
