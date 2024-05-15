@@ -117,6 +117,7 @@ public:
     void sendFlexSensorData(int flexSensorData);
     bool detectHeelThreshold();
     void updateThresholdCounter();
+    void thresholdLogic(vector<int> thresholdVector);
 
 private: 
     double heelThresholdInterval = 0;
