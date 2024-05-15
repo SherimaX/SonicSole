@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
        */ 
       if (sole->thresholdCross >= 3) {
         bool modeSwitch = false;
-        for (int i = 2; i < thresholdTimes.size(); i++) {
+        for (size_t i = 2; i < thresholdTimes.size(); i++) {
             if (thresholdTimes[i] - thresholdTimes[i - 2] <= 3) { // within 3 seconds
                 modeSwitch = true;
                 break;
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
         }
       }
       
-
+      
       if (sole->getMode()) {    // when getMode is true, soundMode is active, if false than vibMode
         sole->runSoundMode();
       } else {
