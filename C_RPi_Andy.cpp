@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
       //   }
       // }
 
-      if (sole.thresholdCross >= 3) {
+      if (sole->thresholdCross >= 3) {
         sole->thresholdLogic(thresholdTimes);
       }
       
