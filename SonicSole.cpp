@@ -327,25 +327,3 @@ void SonicSole::sendFlexSensorData(int flexSensorData) {
     std::cout << "Data sent to UDP" << endl;
     close(sockfd);
 }
-
-
-/* 
-* places time values in thresholdTimes vector whenever the threshold is crossed
-* if threshold has been crossed 3 times, runs a check to see if the threshold
-* was crossed in sucession (within 3 seconds)
-* if it has, switch mode and the vector clears
-*/ 
-void SonicSole::thresholdLogic(vector<int> thresholdVector) {
-    bool modeSwitch = false;
-    for (int i = 2; i < thresholdVector.size(); i++) {
-        if (thresholdVector[i] - thresholdVector[i - 2] <= 3) { // within 3 seconds
-            modeSwitch = true;
-            break;
-        }
-    }
-
-    if (modeSwitch) {
-        switchMode();
-        thresholdVector.clear(); 
-    }
-}
