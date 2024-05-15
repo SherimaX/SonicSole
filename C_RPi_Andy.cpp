@@ -50,8 +50,11 @@ int main(int argc, char* argv[])
       //       thresholdTimes.clear(); // Clear the threshold times after mode switch
       //   }
       // }
-      sole->thresholdLogic(thresholdTimes);
 
+      if (sole.thresholdCross >= 3) {
+        sole->thresholdLogic(thresholdTimes);
+      }
+      
 
       if (sole->getMode()) {    // when getMode is true, soundMode is active, if false than vibMode
         sole->runSoundMode();
