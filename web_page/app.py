@@ -41,4 +41,4 @@ if __name__ == '__main__':
     udp_thread = threading.Thread(target=read_udp_pressure)
     udp_thread.daemon = True
     udp_thread.start()
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='127.0.0.1', port=80)
