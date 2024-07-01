@@ -6,18 +6,17 @@ import random
 app = Flask(__name__)
 
 UDP_IP = "127.0.0.1"
-UDP_PORT = 25000
+UDP_PORT = 20000
 bufferSize = 1024
 received_data = "50"
 
 def read_udp_pressure():
     global received_data
-    # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
-    # sock.bind((UDP_IP, UDP_PORT))
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+    sock.bind((UDP_IP, UDP_PORT))
     while True:
-        # data, addr = sock.recvfrom(1024)
-        # received_data = data.decode('utf-8')
-        received_data = str(random.random())
+        data, addr = sock.recvfrom(1024)
+        received_data = int.from_bytes(data, byteorder='little')
         print("received message: %s" % data)
 
 def send_udp_data():
