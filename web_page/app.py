@@ -16,7 +16,7 @@ def read_udp_pressure():
     while True:
         data, addr = sock.recvfrom(1024)
         # received_data = data.decode('utf-8')
-        received_data = "10"
+        received_data = 10
         print("received message: %s" % data)
 
 def send_udp_data():
