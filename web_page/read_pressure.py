@@ -17,7 +17,7 @@ while True:
     try:
         received_int = int.from_bytes(data, byteorder='little')
         print(f"Received message: {received_int}")
-        recieved_int2 = int.from_bytes(data2, bytyeorder='little')
+        recieved_int2 = int.from_bytes(data2, byteorder='little')
         print(f"Received message: {recieved_int2}")
 
 
