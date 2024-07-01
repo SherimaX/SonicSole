@@ -82,6 +82,11 @@
                 .then(data => {
                     document.getElementById('data-window2').innerText = data.data;
                 });
+            fetch('/heel_graph')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('data-window2').innerText = data.data;
+                });
         }
     
 
@@ -101,6 +106,9 @@
     </div>
     <h3>Fore Data</h3>
     <div id="data-window2">
+        <p>Data</p>
+    </div>
+    <div id="data-window3">
         <p>Data</p>
     </div>
 </div>
