@@ -88,7 +88,6 @@
             fetch('/heel_graph')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('data-window3').innerText = data.data;
                     updateChart(data.data);
                 });
         }
@@ -148,9 +147,6 @@
         <p>Data</p>
     </div>
     <h3>Heel Pressure Data</h3>
-    <div id="data-window3">
-        <p>Data</p>
-    </div>
     <div class="chart-container">
         <canvas id="myChart"></canvas>
     </div>
