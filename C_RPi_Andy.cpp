@@ -85,8 +85,8 @@ int main(int argc, char* argv[])
       cout << "Fore Pressure" << sole->currForePressure << endl;
       cout << "Heel Pressure" << sole->currHeelPressure << endl;
 
-      sole->sendFlexSensorData(sole->currForePressure, 20000);      
-      sole->sendFlexSensorData(sole->currHeelPressure, 21000);
+      sole->sendFlexSensorData((int)sole->currForePressure, 20000);      
+      sole->sendFlexSensorData((int)sole->currHeelPressure, 21000);
 
 
 
