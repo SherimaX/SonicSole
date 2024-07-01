@@ -8,7 +8,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet, UDP
 sock.bind((UDP_IP, UDP_PORT1))
 
 sock2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind((UDP_IP, UDP_PORT2))
+sock2.bind((UDP_IP, UDP_PORT2))
 
 while True:
     data, addr = sock.recvfrom(1024)  # Buffer size is 1024 bytes
