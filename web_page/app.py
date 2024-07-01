@@ -1,19 +1,22 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import socket
+import threading
 
 app = Flask(__name__)
 
 UDP_IP = "127.0.0.1"
 UDP_PORT = 25000
 bufferSize = 1024
+received_data = ""
 
 def read_udp_pressure():
+    global received_data
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
     sock.bind((UDP_IP, UDP_PORT))
-    while True: 
+    while True:
         data, addr = sock.recvfrom(1024)
+        received_data = data.decode('utf-8')
         print("received message: %s" % data)
-        return data
 
 def send_udp_data():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
@@ -29,28 +32,13 @@ def button():
     send_udp_data()
     return redirect(url_for('index'))
 
+@app.route('/data', methods=['GET'])
+def data():
+    global received_data
+    return jsonify({'data': received_data})
+
 if __name__ == '__main__':
+    udp_thread = threading.Thread(target=read_udp_pressure)
+    udp_thread.daemon = True
+    udp_thread.start()
     app.run(host='0.0.0.0', port=80)
-
-    # UDP_PORT1 = 20000
-    # UDP_PORT2 = 21000
-
-    # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet, UDP
-    # sock.bind((UDP_IP, UDP_PORT1))
-
-    # sock2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # sock2.bind((UDP_IP, UDP_PORT2))
-
-    # while True:
-    #     data, addr = sock.recvfrom(1024)  # Buffer size is 1024 bytes
-    #     data2, addr2 = sock.recvfrom(1024)
-        
-    #     try:
-    #         received_int = int.from_bytes(data, byteorder='little')
-    #         print(f"Received message: {received_int}")
-    #         recieved_int2 = int.from_bytes(data2, byteorder='little')
-    #         print(f"Received message: {recieved_int2}")
-
-
-    #     except Exception as e:
-    #         print(f"Error decoding message: {e}")
