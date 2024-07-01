@@ -7,17 +7,17 @@
 
 using namespace std; 
 
-struct soleData {
-  int sole-> currForePressure;
-  int sole-> currHeelPressure;
-}
+// struct soleData {
+//   int sole-> currForePressure;
+//   int sole-> currHeelPressure;
+// }
 
-std::string createJsonPayload(const SoleData& data){
-  root["currForePressure"] = data.currForePressure;
+// std::string createJsonPayload(const SoleData& data){
+//   root["currForePressure"] = data.currForePressure;
 
-  JSON::StreamWriterBuilder writer;
-  return Json::writeString(writer, root);
-}
+//   JSON::StreamWriterBuilder writer;
+//   return Json::writeString(writer, root);
+// }
 
 int main(int argc, char* argv[])
 {
