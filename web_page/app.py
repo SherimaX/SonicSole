@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 import socket
 import threading
 import random
+import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 
@@ -11,15 +12,19 @@ UDP_PORT2 = 20000
 bufferSize = 1024
 received_heel_data = "HEEL DATA"
 received_fore_data = "FORE DATA"
+heel_list = [0 for _ in range(100)]
+
 
 def read_heel_pressure():
-    global received_heel_data
+    global received_heel_data, heel_list
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
     sock.bind((UDP_IP, UDP_PORT))
     while True:
         data, addr = sock.recvfrom(1024)
         received_heel_data = int.from_bytes(data, byteorder='little')
-        print("received message: %s" % data)
+        heel_list.append(received_heel_data)
+        print("received message: %s" % heel_list[-100:-1])
+        
 
 def read_fore_pressure():
     global received_fore_data
