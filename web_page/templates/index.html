@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SonicSole</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .title-container {
+            position: absolute;
+            top: 25vh; /* Position the title about 1/4 from the top */
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        button {
+            font-size: 1.5em;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:active {
+            animation: clickEffect 0.2s;
+        }
+        @keyframes clickEffect {
+            0% {
+                transform: scale(1);
+                background-color: #007bff;
+            }
+            50% {
+                transform: scale(0.9);
+                background-color: #0056b3;
+            }
+            100% {
+                transform: scale(1);
+                background-color: #007bff;
+            }
+        }
+        #data-window {
+            font-size: 1.2em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-container">
+        <h1>SonicSole</h1>
+    </div>
+    <form action="/button" method="post">
+        <button type="submit">Play</button>
+    </form>
+    <div id="data-window">
+        <p>Data</p>
+    </div>
+</body>
+</html>
+
