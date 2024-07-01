@@ -65,6 +65,17 @@
             color: #666;
         }
     </style>
+    <script>
+        function fetchData() {
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('data-window').innerText = data.data;
+                });
+        }
+
+        setInterval(fetchData, 1000); // Fetch data every second
+    </script>
 </head>
 <body>
     <div class="title-container">
@@ -78,4 +89,3 @@
     </div>
 </body>
 </html>
-
