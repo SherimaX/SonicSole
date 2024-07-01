@@ -59,8 +59,8 @@ def fore_data():
     global received_fore_data
     return jsonify({'data': received_fore_data})
 
-@app.route('/heel_list', methods=['GET'])
-def heel_data():
+@app.route('/heel_graph', methods=['GET'])
+def heel_graph():
     global heel_list
     return jsonify({'data': heel_list})
 
