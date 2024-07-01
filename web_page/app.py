@@ -11,12 +11,12 @@ received_data = "50"
 
 def read_udp_pressure():
     global received_data
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
-    sock.bind((UDP_IP, UDP_PORT))
+    # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+    # sock.bind((UDP_IP, UDP_PORT))
     while True:
-        data, addr = sock.recvfrom(1024)
+        # data, addr = sock.recvfrom(1024)
         # received_data = data.decode('utf-8')
-        received_data = 10
+        received_data = "10"
         print("received message: %s" % data)
 
 def send_udp_data():
