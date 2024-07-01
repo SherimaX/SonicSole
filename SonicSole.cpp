@@ -1,5 +1,5 @@
 #include "SonicSole.h"
-#define PORT 2000;
+// #define PORT 2000
 
 uint64_t getMicrosTimeStamp() {
     struct timeval tv;
