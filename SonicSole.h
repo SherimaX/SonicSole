@@ -115,6 +115,7 @@ public:
     int getCurrForePressure();
     int getCurrHeelPressure();
     void sendFlexSensorData(int flexSensorData);
+    void sendFlexSensorData(int flexSensorData, int port) 
     bool detectHeelThreshold();
     void updateThresholdCounter();
 
