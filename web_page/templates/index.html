@@ -113,7 +113,9 @@
                     animation: false,
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            min: 0,
+                            max: 2000
                         }
                     }
                 }
@@ -128,7 +130,7 @@
 
         window.onload = function() {
             fetchData();
-            setInterval(fetchData, 1000); // Fetch data every second
+            setInterval(fetchData, 100); // Fetch data every 0.1 seconds
         };
     </script>
 </head>
@@ -143,16 +145,4 @@
     <div id="data-window1">
         <p>Data</p>
     </div>
-    <h3>Fore Data</h3>
-    <div id="data-window2">
-        <p>Data</p>
-    </div>
-    <h3>Heel Pressure Data</h3>
-    <div id="data-window3">
-        <p>Data</p>
-    </div>
-    <div class="chart-container">
-        <canvas id="myChart"></canvas>
-    </div>
-</body>
-</html>
+    <h3>Fore Data</h​⬤
