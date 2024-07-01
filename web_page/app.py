@@ -7,7 +7,7 @@ app = Flask(__name__)
 UDP_IP = "127.0.0.1"
 UDP_PORT = 25000
 bufferSize = 1024
-received_data = ""
+received_data = "50"
 
 def read_udp_pressure():
     global received_data
