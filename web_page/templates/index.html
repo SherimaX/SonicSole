@@ -85,7 +85,7 @@
             fetch('/heel_graph')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('data-window3').innerText = data.data;
+                    document.getElementById('data-window3').innerText = Math.floor(Math.random() * 100);
                 });
         }
     
