@@ -85,7 +85,35 @@
             fetch('/heel_graph')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('data-window3').innerText = Math.floor(Math.random() * 100);
+                    const labels = Array.from({length: 100}, (_, i) => i + 1);
+                    const data = {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Random Data',
+                            data: Array.from(data.data),
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    };
+                
+                    const config = {
+                        type: 'line',
+                        data: data,
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    };
+                
+                    // Render the chart
+                    window.onload = function() {
+                        const ctx = document.getElementById('myChart').getContext('2d');
+                        new Chart(ctx, config);
+                    };
                 });
         }
     
@@ -119,35 +147,7 @@
 
 <script>
     // Generate 100 random datapoints
-    const labels = Array.from({length: 100}, (_, i) => i + 1);
-    const data = {
-        labels: labels,
-        datasets: [{
-            label: 'Random Data',
-            data: Array.from({length: 100}, () => Math.floor(Math.random() * 100)),
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-        }]
-    };
-
-    const config = {
-        type: 'line',
-        data: data,
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    };
-
-    // Render the chart
-    window.onload = function() {
-        const ctx = document.getElementById('myChart').getContext('2d');
-        new Chart(ctx, config);
-    };
+    
 </script>
 
 </body>
