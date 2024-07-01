@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import socket
 import threading
+import random
 
 app = Flask(__name__)
 
@@ -16,7 +17,7 @@ def read_udp_pressure():
     while True:
         # data, addr = sock.recvfrom(1024)
         # received_data = data.decode('utf-8')
-        received_data = "10"
+        received_data = str(random.random())
         print("received message: %s" % data)
 
 def send_udp_data():
