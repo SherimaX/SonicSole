@@ -21,8 +21,7 @@ def read_heel_pressure():
         data, addr = sock.recvfrom(1024)
         received_heel_data = int.from_bytes(data, byteorder='little')
         heel_list.append(received_heel_data)
-        heel_list = heel_list[-100:-1]
-        print("received message: %s" % heel_list)
+        print("received message: %s" % heel_list[-100:-1])
         
 
 def read_fore_pressure():
@@ -62,7 +61,7 @@ def fore_data():
 @app.route('/heel_graph', methods=['GET'])
 def heel_graph():
     global heel_list
-    return jsonify({'data': heel_list})
+    return jsonify({'data': heel_list[-100:-1]})
 
 
 if __name__ == '__main__':
