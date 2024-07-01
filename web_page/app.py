@@ -6,8 +6,8 @@ import random
 app = Flask(__name__)
 
 UDP_IP = "127.0.0.1"
-UDP_PORT = 20000
-UDP_PORT2 = 21000
+UDP_PORT = 21000
+UDP_PORT2 = 20000
 bufferSize = 1024
 received_heel_data = "HEEL DATA"
 received_fore_data = "FORE DATA"
