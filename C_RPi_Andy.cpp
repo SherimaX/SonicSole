@@ -1,7 +1,24 @@
 #include <iostream>
 #include "SonicSole.h"
+#include "boost/asio.hpp"
+#include <json/json.h>
+using boost::asio::ip::udp;
+
+
 
 using namespace std; 
+
+struct soleData {
+  int sole-> currForePressure;
+  int sole-> currHeelPressure;
+}
+
+std::string createJsonPayload(const SoleData& data){
+  root["currForePressure"] = data.currForePressure;
+
+  JSON::StreamWriterBuilder writer;
+  return Json::writeString(writer, root);
+}
 
 int main(int argc, char* argv[])
 {
@@ -66,8 +83,13 @@ int main(int argc, char* argv[])
     }
 
 
-      cout << sole-> currHeelPressure << endl;
-      cout << sole-> currForePressure << endl;
+      cout << "Fore Pressure" << sole-> currForePressure << endl;
+      cout << "Heel Pressure" << sole-> currHeelPressure << endl;
+
+      sendFlexSensorData(currForePressure, 20000);      
+      sendFlexSensorData(currHeelPressure, 21000);
+
+
 
       sole->readIMU();
       sole->toCSV();
