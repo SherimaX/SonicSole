@@ -67,10 +67,15 @@
     </style>
     <script>
         function fetchData() {
-            fetch('/data')
+            fetch('/heel_data')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('data-window').innerText = data.data;
+                    document.getElementById('data-window1').innerText = data.data;
+                });
+            fetch('/fore_data')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('data-window2').innerText = data.data;
                 });
         }
 
@@ -84,7 +89,12 @@
     <form action="/button" method="post">
         <button type="submit">Play</button>
     </form>
-    <div id="data-window">
+    <p>Heel Data</p>
+    <div id="data-window1">
+        <p>Data</p>
+    </div>
+    <p>Fore Data</p>
+    <div id="data-window2">
         <p>Data</p>
     </div>
 </body>
