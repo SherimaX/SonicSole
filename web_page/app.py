@@ -6,6 +6,11 @@ app = Flask(__name__)
 UDP_IP = "127.0.0.1"
 UDP_PORT = 25000
 
+def read_udp_pressure():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+    data = sock.recvfrom(n.to_bytes(1, byteorder='big'), (UDP_IP, 2000))
+    return data
+
 def send_udp_data():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
     n = 1
