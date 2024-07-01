@@ -8,8 +8,6 @@ int main(int argc, char* argv[])
     SonicSole* sole = new SonicSole();
     cout << "SonicSole Class Initialized" << endl;
 
-    sole->motorVibrate();
-    cout << "Motor Vibrated" << endl;
 
     int cycle = 0;
     vector<int> thresholdTimes; 
@@ -25,6 +23,7 @@ int main(int argc, char* argv[])
       sole->updateCurrentTime();
       sole->updatePressure();
 
+    {
       if (sole->detectHeelThreshold()) {
         sole->updateThresholdCounter();
         thresholdTimes.push_back(time);
@@ -63,11 +62,19 @@ int main(int argc, char* argv[])
         sole->sendFlexSensorData(1);
         // cout << "Data sent to UDP" << endl;
       }
+      
+    }
+
+
+      cout << sole-> currHeelPressure << endl;
+      cout << sole-> currForePressure << endl;
 
       sole->readIMU();
-      
       sole->toCSV();
       cout << "\n";
+
+
+
       delay(100);
       // if (sole->getRunningTime() > MAX_RUN_TIME) { 
       //    cout << sole->getRunningTime() << endl;

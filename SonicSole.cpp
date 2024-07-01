@@ -1,5 +1,5 @@
 #include "SonicSole.h"
-// #define PORT 25000;
+#define PORT 2000;
 
 uint64_t getMicrosTimeStamp() {
     struct timeval tv;
@@ -137,10 +137,10 @@ void SonicSole::updatePressure() {
     // cout << "currForePressure: " << 4096 - currForePressure << endl;
     // cout << "maxForePressure: " << 4096 - maxForePressure << endl;
 
-    cout << "currHeelPressure: " << currHeelPressure << endl;
-    cout << "maxHeelPressure: " << maxHeelPressure << endl;
-    cout << "currForePressure: " << currForePressure << endl;
-    cout << "maxForePressure: " << maxForePressure << endl;
+    // cout << "currHeelPressure: " << currHeelPressure << endl;
+    // cout << "maxHeelPressure: " << maxHeelPressure << endl;
+    // cout << "currForePressure: " << currForePressure << endl;
+    // cout << "maxForePressure: " << maxForePressure << endl;
 
 }
 
