@@ -62,8 +62,13 @@
         }
         #data-window {
             font-size: 1.2em;
-            color: #666;
+            color: #000000;
+            text-align: center
         }
+
+
+
+
     </style>
 </head>
 <body>
@@ -73,9 +78,11 @@
     <form action="/button" method="post">
         <button type="submit">Play</button>
     </form>
-    <div id="data-window">
-        <p>Data</p>
+    <div id="data-window" class="currData">
+        <h2> Heel Data | Fore Data</h2>
+        <p>Heel Force: ______ | Fore Force: ______</p>
     </div>
+
 </body>
 </html>
 
