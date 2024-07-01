@@ -19,6 +19,7 @@ while True:
         print(f"Received message: {received_int}")
         recieved_int2 = int.from_bytes(data2, byteorder='little')
         print(f"Received message: {recieved_int2}")
+        
 
 
     except Exception as e:
