@@ -21,7 +21,8 @@ def read_heel_pressure():
         data, addr = sock.recvfrom(1024)
         received_heel_data = int.from_bytes(data, byteorder='little')
         heel_list.append(received_heel_data)
-        print("received message: %s" % heel_list[-100:-1])
+        heel_list = heel_list[-100:-1]
+        print("received message: %s" % heel_list)
         
 
 def read_fore_pressure():
@@ -57,6 +58,12 @@ def heel_data():
 def fore_data():
     global received_fore_data
     return jsonify({'data': received_fore_data})
+
+@app.route('/heel_list', methods=['GET'])
+def heel_data():
+    global heel_list
+    return jsonify({'data': heel_list})
+
 
 if __name__ == '__main__':
     udp_thread = threading.Thread(target=read_heel_pressure)

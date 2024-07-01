@@ -77,6 +77,12 @@
                 .then(data => {
                     document.getElementById('data-window2').innerText = data.data;
                 });
+            fetch('heel_list')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('data-window2').innerText = data.data;
+                });
+
         }
     
 
