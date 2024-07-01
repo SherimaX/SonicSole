@@ -69,8 +69,11 @@
             max-width: 800px;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+    <!-- Use a different CDN link that does not include source maps -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        let myChart;
+
         function fetchData() {
             fetch('/heel_data')
                 .then(response => response.json())
@@ -91,7 +94,7 @@
         }
 
         function updateChart(data) {
-            const labels = Array.from({length: data.length}, (_, i) => i + 1);
+            const labels = Array.from({ length: data.length }, (_, i) => i + 1);
             const chartData = {
                 labels: labels,
                 datasets: [{
@@ -116,13 +119,16 @@
             };
 
             const ctx = document.getElementById('myChart').getContext('2d');
-            if (window.myChart) {
-                window.myChart.destroy();
+            if (myChart) {
+                myChart.destroy();
             }
-            window.myChart = new Chart(ctx, config);
+            myChart = new Chart(ctx, config);
         }
 
-        setInterval(fetchData, 1000); // Fetch data every second
+        window.onload = function() {
+            fetchData();
+            setInterval(fetchData, 1000); // Fetch data every second
+        };
     </script>
 </head>
 <body>
