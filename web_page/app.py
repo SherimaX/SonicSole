@@ -65,10 +65,10 @@ def index():
 def balance():
     return render_template('balance.html')
 
-@app.route('/balancing_pressure', methods=['GET'])
-def balancing_pressure():
-    global totalTime
-    return jsonify({'data': totalTime})
+@app.route('/heel_data', methods=['GET'])
+def heel_data():
+    global received_heel_data
+    return jsonify({'data': received_heel_data})
 
 @app.route('/button', methods=['POST'])
 def button():
