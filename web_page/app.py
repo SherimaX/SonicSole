@@ -65,11 +65,6 @@ def index():
 def balance():
     return render_template('balance.html')
 
-@app.route('/balancing', methods=['GET'])
-def balancing():
-    global totalTime
-    return jsonify({'data': totalTime})
-
 @app.route('/button', methods=['POST'])
 def button():
     send_udp_data()
@@ -90,6 +85,10 @@ def heel_graph():
     global heel_list
     return jsonify({'data': heel_list[-100:-1]})
 
+@app.route('/balancing', methods=['GET'])
+def balancing():
+    global totalTime
+    return jsonify({'data': totalTime})
 
 
 if __name__ == '__main__':
