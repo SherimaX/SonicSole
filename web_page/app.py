@@ -65,7 +65,7 @@ def index():
 def balance():
     return render_template('balance.html')
 
-@app.route('/heel_data', methods=['GET'])
+@app.route('/balance', methods=['GET'])
 def heel_data():
     global received_heel_data
     return jsonify({'data': received_heel_data})
