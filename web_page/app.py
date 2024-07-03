@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import socket
 import threading
+import time
 
 app = Flask(__name__)
 
@@ -11,7 +12,24 @@ bufferSize = 1024
 received_heel_data = "HEEL DATA"
 received_fore_data = "FORE DATA"
 heel_list = [0 for _ in range(100)]
+totalTime = 0
 
+#For balance.html
+
+def balancing_pressure():
+    global totalTime, received_heel_data, received_fore_data
+    start_time = time.time()
+    while (received_heel_data < 90 and received_fore_data < 90):
+        end_time = time.time()
+        time.sleep(0.1)
+        print("Currently Balaned for %s" % end_time-start_time % " seconds")
+    
+    totalTime = end_time - start_time
+    print("Total time balanced: {:.2f} seconds".format(totalTime))
+
+
+
+# For index.html
 
 def read_heel_pressure():
     global received_heel_data, heel_list
@@ -43,6 +61,11 @@ def send_udp_data():
 def index():
     return render_template('index.html')
 
+@app.route('/balance/')
+def balance():
+    return render_template('balance.html')
+
+
 @app.route('/button', methods=['POST'])
 def button():
     send_udp_data()
@@ -63,7 +86,6 @@ def heel_graph():
     global heel_list
     return jsonify({'data': heel_list[-100:-1]})
 
-
 if __name__ == '__main__':
     udp_thread = threading.Thread(target=read_heel_pressure)
     udp_thread2 = threading.Thread(target=read_fore_pressure)
@@ -73,3 +95,4 @@ if __name__ == '__main__':
     udp_thread2.start()
 
     app.run(host='0.0.0.0', port=5000)
+
