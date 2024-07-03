@@ -56,20 +56,20 @@
               data.data;
           });
       }
-      $(document).ready(function () {
-        $("#startBtn").click(function () {
-          $.ajax({
-            url: "/start-balance",
-            type: "POST",
-            success: function (response) {
-              console.log("Started balancing");
-            },
-            error: function (error) {
-              console.error("Error starting balancing");
-            },
-          });
-        });
-      });
+    //   $(document).ready(function () {
+    //     $("#startBtn").click(function () {
+    //       $.ajax({
+    //         url: "/start-balance",
+    //         type: "POST",
+    //         success: function (response) {
+    //           console.log("Started balancing");
+    //         },
+    //         error: function (error) {
+    //           console.error("Error starting balancing");
+    //         },
+    //       });
+    //     });
+    //   });
     </script>
   </head>
   <body>
