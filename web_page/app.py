@@ -65,6 +65,10 @@ def index():
 def balance():
     return render_template('balance.html')
 
+@app.route('/balancing_pressure', methods=['GET'])
+def balancing_pressure():
+    global totalTime
+    return jsonify({'data': totalTime})
 
 @app.route('/button', methods=['POST'])
 def button():
@@ -86,10 +90,7 @@ def heel_graph():
     global heel_list
     return jsonify({'data': heel_list[-100:-1]})
 
-@app.route('/balancing_pressure', methods=['GET'])
-def balancing_pressure():
-    global heel_list
-    return jsonify({'data': heel_list[-100:-1]})
+
 
 if __name__ == '__main__':
     udp_thread = threading.Thread(target=read_heel_pressure)
