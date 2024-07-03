@@ -8,10 +8,24 @@
 </head>
 <body>
     <h1>Balancing Activity</h1>
-</body>
     <form action="/button" method="post">
         <button type="submit">Play</button>
     </form>
+    <div id="balanceDataLocation"> 
+        <p>
+            Time Balanced
+        </p>
+    </div>
+</body>
 
-    
+<script>
+    function fetchBalance(){
+        fetch('/balancing_pressure')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('balanceDataLocation').innerText = data.data;
+            });
+
+    }
+</script>
 </html>
