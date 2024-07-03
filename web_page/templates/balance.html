@@ -50,18 +50,32 @@
     <script>
       function fetchBalance() {
         fetch("/balancing")
-          .then(response => response.json())
-          .then(data => {
+          .then((response) => response.json())
+          .then((data) => {
             document.getElementById("balanceDataLocation").innerText =
               data.data;
           });
       }
+      $(document).ready(function () {
+        $("#startBtn").click(function () {
+          $.ajax({
+            url: "/start-balance",
+            type: "POST",
+            success: function (response) {
+              console.log("Started balancing");
+            },
+            error: function (error) {
+              console.error("Error starting balancing");
+            },
+          });
+        });
+      });
     </script>
   </head>
   <body>
     <h1>Balancing Activity</h1>
     <form action="/button" method="post">
-      <button type="submit">Play</button>
+      <button id="startBtn">Start Balancing</button>
     </form>
     <div id="balanceDataLocation">
       <p>Time Balanced</p>
