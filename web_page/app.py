@@ -61,7 +61,7 @@ def send_udp_data():
 def index():
     return render_template('index.html')
 
-@app.route('/web_page/templates/balance/')
+@app.route('/balance/')
 def balance():
     return render_template('balance.html')
 
