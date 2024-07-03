@@ -1,32 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <link rel="stylesheet" href="balanceStyles.css">
-    <script>
-        function fetchBalance(){
-            fetch('/balancing')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('balanceDataLocation').innerText = data.data;
-                    // console.log("got balance data");
-                });
-    
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+      }
+
+      button {
+        font-size: 1.5em;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      button:active {
+        animation: clickEffect 0.2s;
+      }
+      @keyframes clickEffect {
+        0% {
+          transform: scale(1);
+          background-color: #007bff;
         }
-    </script>    
-</head>
-<body>
+        50% {
+          transform: scale(0.9);
+          background-color: #0056b3;
+        }
+        100% {
+          transform: scale(1);
+          background-color: #007bff;
+        }
+      }
+    </style>
+    <script>
+      function fetchBalance() {
+        fetch("/balancing")
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("balanceDataLocation").innerText =
+              data.data;
+            // console.log("got balance data");
+          });
+      }
+    </script>
+  </head>
+  <body>
     <h1>Balancing Activity</h1>
     <form action="/button" method="post">
-        <button type="submit">Play</button>
+      <button type="submit">Play</button>
     </form>
-    <div id="balanceDataLocation"> 
-        <p>
-            Time Balanced
-        </p>
+    <div id="balanceDataLocation">
+      <p>Time Balanced</p>
     </div>
-</body>
-
+  </body>
 </html>
