@@ -21,7 +21,8 @@ def balancing_pressure():
     start_time = time.time()
     while (int(received_heel_data) < 90 and int(received_fore_data) < 90):
         end_time = time.time()
-        print("Currently Balaned for {:.2f} seconds".format(end_time-start_time))
+        totalTime = end_time - start_time
+        print("Currently Balaned for {:.2f} seconds".format(totalTime))
     
     totalTime = end_time - start_time
     print("Total time balanced: {:.2f} seconds".format(totalTime))
