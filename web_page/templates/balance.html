@@ -50,11 +50,10 @@
     <script>
       function fetchBalance() {
         fetch("/balancing")
-          .then((response) => response.json())
-          .then((data) => {
+          .then(response => response.json())
+          .then(data => {
             document.getElementById("balanceDataLocation").innerText =
               data.data;
-            // console.log("got balance data");
           });
       }
     </script>
