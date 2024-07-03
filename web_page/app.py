@@ -67,8 +67,8 @@ def balance():
 
 @app.route('/balancing', methods=['GET'])
 def balancing():
-    global received_heel_data
-    return jsonify({'data': received_heel_data})
+    global totalTime
+    return jsonify({'data': totalTime})
 
 @app.route('/button', methods=['POST'])
 def button():
