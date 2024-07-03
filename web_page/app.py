@@ -9,8 +9,8 @@ UDP_IP = "127.0.0.1"
 UDP_PORT = 21000
 UDP_PORT2 = 20000
 bufferSize = 1024
-received_heel_data = "HEEL DATA"
-received_fore_data = "FORE DATA"
+received_heel_data = "0"
+received_fore_data = "0"
 heel_list = [0 for _ in range(100)]
 totalTime = 0
 
@@ -19,7 +19,7 @@ totalTime = 0
 def balancing_pressure():
     global totalTime, received_heel_data, received_fore_data
     start_time = time.time()
-    while (received_heel_data < 90 and received_fore_data < 90):
+    while (int(received_heel_data) < 90 and int(received_fore_data) < 90):
         end_time = time.time()
         print("Currently Balaned for {:.2f} seconds".format(end_time-start_time))
     
