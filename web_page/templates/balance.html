@@ -20,7 +20,7 @@
 
 <script>
     function fetchBalance(){
-        fetch('/balancing_pressure')
+        fetch('/balancing')
             .then(response => response.json())
             .then(data => {
                 document.getElementById('balanceDataLocation').innerText = data.data;
