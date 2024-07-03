@@ -93,6 +93,9 @@ if __name__ == '__main__':
     udp_thread.start()
     udp_thread2.daemon = True
     udp_thread2.start()
+    udp_thread_balance = threading.Thread(target=balancing_pressure)
+    udp_thread_balance.daemon = True
+    udp_thread_balance.start()
 
     app.run(host='0.0.0.0', port=5000)
 
