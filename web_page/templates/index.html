@@ -79,19 +79,19 @@
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('data-window1').innerText = data.data;
-                    console.log("got heel_data");
+                    // console.log("got heel_data");
                 });
             fetch('/fore_data')
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('data-window2').innerText = data.data;
-                    console.log("got fore_data");
+                    // console.log("got fore_data");
                 });
             fetch('/heel_graph')
                 .then(response => response.json())
                 .then(data => {
                     updateChart(data.data);
-                    console.log("got chart data");
+                    // console.log("got chart data");
                 });
         }
 
