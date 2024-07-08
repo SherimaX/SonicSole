@@ -170,6 +170,7 @@
           .then((response) => response.json())
           .then((data) => {
             updateChart(data.data);
+            window.scrollTo(0, scrollPos);
           });
       }
 
