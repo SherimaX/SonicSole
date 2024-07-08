@@ -172,6 +172,12 @@
             updateChart(data.data);
             window.scrollTo(0, scrollPos);
           });
+        fetch("/color_data")
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("colorDataLocation").innerText =
+              `R: ${data.R}, G: ${data.G}`;
+          });
       }
 
       function updateChart(data) {
@@ -252,6 +258,9 @@
     <h3>Fore Data</h3>
     <div id="data-window2">
       <p>Data</p>
+    </div>
+    <div id="colorDataLocation">
+      <p>Color Data</p>
     </div>
     <h3>Heel Pressure Data</h3>
     <div class="chart-container">
