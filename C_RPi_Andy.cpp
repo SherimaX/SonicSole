@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
 
 
 
-      sole->readIMU();
+      // sole->readIMU();
       sole->toCSV();
       cout << "\n";
 
