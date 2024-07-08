@@ -12,7 +12,7 @@ bufferSize = 1024
 received_heel_data = "0"
 received_fore_data = "0"
 heel_list = [0 for _ in range(100)]
-totalTime = 0
+totalTime = "0"
 
 #For balance.html
 
@@ -22,12 +22,12 @@ def balancing_pressure():
     while True:
         if (int(received_heel_data) < 500 and int(received_fore_data) < 500):
             end_time = time.time()
-            totalTime = end_time - start_time
-            print("Currently Balanced for {:.2f} seconds".format(totalTime))
+            totalTime = str(end_time - start_time)
+            print("Currently Balanced for {} seconds".format(totalTime))
             time.sleep(0.1)
         else:
-            totalTime = end_time - start_time
-            print("Total time balanced: {:.2f} seconds".format(totalTime))
+            totalTime = str(end_time - start_time)
+            print("Total time balanced: {} seconds".format(totalTime))
             time.sleep(0.1)
 
 
