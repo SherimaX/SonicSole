@@ -133,6 +133,12 @@
               data.data;
           });
       }
+
+      window.onload = function () {
+        fetchData();
+        setInterval(fetchData, 1000);
+      };
+
       function openModal() {
         document.getElementById("instructionsModal").style.display = "flex";
       }
