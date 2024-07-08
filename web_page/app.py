@@ -11,7 +11,7 @@ UDP_PORT2 = 20000
 bufferSize = 1024
 received_heel_data = "0"
 received_fore_data = "0"
-heel_list = [0 for _ in range(100)]
+# heel_list = [0 for _ in range(100)]
 totalTime = "0"
 recording_time = False
 R = 0
@@ -53,14 +53,14 @@ def balancing_pressure():
 # For index.html
 
 def read_heel_pressure():
-    global received_heel_data, heel_list
+    global received_heel_data #, heel_list
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
     sock.bind((UDP_IP, UDP_PORT))
     while True:
         data, addr = sock.recvfrom(1024)
         received_heel_data = int.from_bytes(data, byteorder='little')
-        heel_list.append(received_heel_data)
-        print("received message: %s" % heel_list[-100:-1])
+        # heel_list.append(received_heel_data)
+        # print("received message: %s" % heel_list[-100:-1])
         update_color(received_heel_data)
         
 
@@ -106,10 +106,10 @@ def fore_data():
     global received_fore_data
     return jsonify({'data': received_fore_data})
 
-@app.route('/heel_graph', methods=['GET'])
-def heel_graph():
-    global heel_list
-    return jsonify({'data': heel_list[-100:-1]})
+# @app.route('/heel_graph', methods=['GET'])
+# def heel_graph():
+#     global heel_list
+#     return jsonify({'data': heel_list[-100:-1]})
 
 @app.route('/balancing', methods=['GET'])
 def balancing():

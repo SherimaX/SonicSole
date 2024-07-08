@@ -181,41 +181,41 @@
           });
       }
 
-      function updateChart(data) {
-        const labels = Array.from({ length: data.length }, (_, i) => i + 1);
-        const chartData = {
-          labels: labels,
-          datasets: [
-            {
-              label: "Heel Pressure Data",
-              data: data,
-              backgroundColor: "rgba(75, 192, 192, 0.2)",
-              borderColor: "rgba(75, 192, 192, 1)",
-              borderWidth: 1,
-            },
-          ],
-        };
+    //   function updateChart(data) {
+    //     const labels = Array.from({ length: data.length }, (_, i) => i + 1);
+    //     const chartData = {
+    //       labels: labels,
+    //       datasets: [
+    //         {
+    //           label: "Heel Pressure Data",
+    //           data: data,
+    //           backgroundColor: "rgba(75, 192, 192, 0.2)",
+    //           borderColor: "rgba(75, 192, 192, 1)",
+    //           borderWidth: 1,
+    //         },
+    //       ],
+    //     };
 
-        const config = {
-          type: "line",
-          data: chartData,
-          options: {
-            animation: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: 2000,
-              },
-            },
-          },
-        };
+        // const config = {
+        //   type: "line",
+        //   data: chartData,
+        //   options: {
+        //     animation: false,
+        //     scales: {
+        //       y: {
+        //         beginAtZero: true,
+        //         max: 2000,
+        //       },
+        //     },
+        //   },
+        // };
 
-        const ctx = document.getElementById("myChart").getContext("2d");
-        if (myChart) {
-          myChart.destroy();
-        }
-        myChart = new Chart(ctx, config);
-      }
+    //     const ctx = document.getElementById("myChart").getContext("2d");
+    //     if (myChart) {
+    //       myChart.destroy();
+    //     }
+    //     myChart = new Chart(ctx, config);
+    //   }
 
       window.onload = function () {
         fetchData();
@@ -263,10 +263,10 @@
     <div id="colorDataLocation">
       <p>Color Data</p>
     </div>
-    <h3>Heel Pressure Data</h3>
+    <!-- <h3>Heel Pressure Data</h3>
     <div class="chart-container">
       <canvas id="myChart"></canvas>
-    </div>
+    </div> -->
     <a href="/">Home</a>
   </body>
 </html>
