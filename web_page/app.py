@@ -36,12 +36,12 @@ def balancing_pressure():
             end_time = time.time()
             totalTime = str(end_time - start_time)
             print("Currently Balanced for {} seconds".format(totalTime))
-            time.sleep(0.1)
+            time.sleep(0.01)
         else:
             recording_time = False
             start_time = time.time()
             print("Total time balanced: {} seconds".format(totalTime))
-            time.sleep(0.1)
+            time.sleep(0.01)
             
 
 
