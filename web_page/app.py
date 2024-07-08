@@ -30,7 +30,7 @@ def update_heel_color(pressure):
         G_heel = int(255 - ((pressure - 1000) / 1000) * 255)
 
 def update_fore_color(pressure):
-    global R_fore, G
+    global R_fore, G_fore
     if pressure < 1000:
         G_fore = 255
         R_fore = int((pressure / 1000) * 255)
