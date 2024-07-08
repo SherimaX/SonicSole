@@ -175,7 +175,7 @@
         fetch("/color_data")
           .then((response) => response.json())
           .then((data) => {
-            document.body.style.backgroundColor = `rgb(${data.R}, ${data.G}, 0)`;
+            document.getElementById("data-window1").style.backgroundColor = `rgb(${data.R}, ${data.G}, 0)`;
           });
       }
 
