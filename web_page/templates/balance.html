@@ -147,20 +147,6 @@
         document.getElementById("instructionsModal").style.display = "none";
       }
 
-      document.getElementById('startButton').addEventListener('click', function() {
-          fetch('/button_click', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({})
-          })
-          .then(response => response.json())
-          .then(data => {
-              console.log(data.message);
-          });
-      });
-
       //   $(document).ready(function () {
       //     $("#startBtn").click(function () {
       //       $.ajax({
@@ -180,7 +166,9 @@
   <body>
     <h1>Balancing Activity</h1>
     <div class="buttons">
-      <button id="startButton">Start Balancing</button>
+      <form action="/button_click" method="post">
+        <button type="submit">Start Balancing</button>
+      </form>
       <button onclick="openModal()">Instructions</button>
       <div id="instructionsModal" class="modal">
         <div class="modal-content">
