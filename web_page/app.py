@@ -13,7 +13,7 @@ received_heel_data = "0"
 received_fore_data = "0"
 heel_list = [0 for _ in range(100)]
 totalTime = "0"
-recording_time = False
+recording_time = True
 
 #For balance.html
 
