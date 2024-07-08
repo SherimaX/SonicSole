@@ -147,12 +147,14 @@
         document.getElementById("instructionsModal").style.display = "none";
       }
 
-      document.getElementById('startButton').addEventListener('click', function() {
-            fetch('/start', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => console.log(data.status))
-                .catch(error => console.error('Error:', error));
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('startButton').addEventListener('click', function() {
+          fetch('/start', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => console.log(data.status))
+            .catch(error => console.error('Error:', error));
         });
+      });
 
       //   $(document).ready(function () {
       //     $("#startBtn").click(function () {
