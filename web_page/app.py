@@ -13,7 +13,7 @@ received_heel_data = "0"
 received_fore_data = "0"
 heel_list = [0 for _ in range(100)]
 totalTime = "0"
-recording_time = True
+recording_time = False
 
 #For balance.html
 
@@ -28,9 +28,13 @@ def balancing_pressure():
             time.sleep(0.1)
         else:
             recording_time = False
-            totalTime = str(end_time - start_time)
+            start_time = time.time()
             print("Total time balanced: {} seconds".format(totalTime))
             time.sleep(0.1)
+            
+
+
+
 
 
 
@@ -99,6 +103,13 @@ def heel_graph():
 def balancing():
     global totalTime
     return jsonify({'data': totalTime})
+
+@app.route('/start', methods=['POST'])
+def start_data():
+    global recording_time
+    recording_time = True
+    return jsonify({"status": "Data transmission started"})
+
 
 
 if __name__ == '__main__':
