@@ -9,13 +9,13 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start; 
+        justify-content: flex-start;
         height: 100vh;
         margin: 0;
-        padding: 0; 
+        padding: 0;
         font-family: Arial, sans-serif;
-        background-color: #fff3dc; 
-        color: #333; 
+        background-color: #fff3dc;
+        color: #333;
       }
 
       .title-container {
@@ -93,6 +93,63 @@
         background-color: #333;
         color: #fff;
       }
+
+      /* Modal styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background-color: #fff3dc;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        width: 80%;
+        max-width: 400px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
+      .close {
+        color: #333;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .close:hover,
+      .close:focus {
+        color: #555;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .modal-content p {
+        color: #333;
+        font-size: 1.2em;
+        margin: 20px 0;
+      }
+      .modal-content button {
+        font-size: 1em;
+        padding: 10px 20px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      .modal-content button:hover {
+        background-color: #555;
+      }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -154,8 +211,16 @@
 
       window.onload = function () {
         fetchData();
-        setInterval(fetchData, 1000); // Fetch data every second
+        setInterval(fetchData, 1000);
       };
+
+      function openModal() {
+        document.getElementById("instructionsModal").style.display = "flex";
+      }
+
+      function closeModal() {
+        document.getElementById("instructionsModal").style.display = "none";
+      }
     </script>
   </head>
   <body>
@@ -165,6 +230,20 @@
     <form action="/button" method="post">
       <button type="submit">Play</button>
     </form>
+    <button onclick="openModal()">Instructions</button>
+
+    <div id="instructionsModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Instructions</h2>
+        <p>
+          Press the play button. From there, your goal is to jump as high as you
+          can. By jumping higher, the sensors of your SonicSole kit should
+          indicate higher force.
+        </p>
+      </div>
+    </div>
+
     <h3>Heel Data</h3>
     <div id="data-window1">
       <p>Data</p>
