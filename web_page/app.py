@@ -136,8 +136,8 @@ def button_click():
 
 @app.route('/color_data', methods=['GET'])
 def color_data():
-    global R, G
-    return jsonify({'R': R, 'G': G})
+    global R_heel, G_heel, R_fore, G_fore
+    return jsonify({'R_heel': R_heel, 'G_heel': G_heel, 'R_fore': R_fore, 'G_fore': G_fore})
 
 
 if __name__ == '__main__':
