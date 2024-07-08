@@ -166,12 +166,12 @@
           .then((data) => {
             document.getElementById("data-window2").innerText = data.data;
           });
-        fetch("/heel_graph")
-          .then((response) => response.json())
-          .then((data) => {
-            updateChart(data.data);
-            window.scrollTo(0, scrollPos);
-          });
+        // fetch("/heel_graph")
+        //   .then((response) => response.json())
+        //   .then((data) => {
+        //     updateChart(data.data);
+        //     window.scrollTo(0, scrollPos);
+        //   });
         fetch("/color_data")
           .then((response) => response.json())
           .then((data) => {
