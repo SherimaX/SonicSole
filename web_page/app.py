@@ -105,11 +105,13 @@ def balancing():
     return jsonify({'data': totalTime})
 
 
+
 @app.route('/button_click', methods=['POST'])
 def button_click():
-    # Handle the button click event here
     global recording_time
     recording_time = True
+    return jsonify({"status": "Data transmission started"})
+
 
 if __name__ == '__main__':
     udp_thread = threading.Thread(target=read_heel_pressure)
