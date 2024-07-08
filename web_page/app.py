@@ -110,6 +110,8 @@ def button_click():
     # Handle the button click event here
     global recording_time
     recording_time = True
+    while True:
+        print("Button Clicked")
     return jsonify(message="Button clicked!")
 
 if __name__ == '__main__':
