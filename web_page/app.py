@@ -28,6 +28,8 @@ def balancing_pressure():
         else:
             totalTime = end_time - start_time
             print("Total time balanced: {:.2f} seconds".format(totalTime))
+            time.sleep(0.1)
+
 
 
 
