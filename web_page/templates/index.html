@@ -175,6 +175,11 @@
         fetch("/color_data")
           .then((response) => response.json())
           .then((data) => {
+            console.log(data); // Log the entire data object to the console
+            console.log("R_heel:", data.R_heel); // Log the R_heel value
+            console.log("G_heel:", data.G_heel); // Log the G_heel value
+            console.log("R_fore:", data.R_fore); // Log the R_fore value
+            console.log("G_fore:", data.G_fore); // Log the G_fore value
             document.getElementById("data-window2").style.backgroundColor = `rgb(${data.R_fore}, ${data.G_fore}, 0)`;
             document.getElementById("data-window1").style.backgroundColor = `rgb(${data.R_heel}, ${data.G_heel}, 0)`;
           });
