@@ -156,11 +156,11 @@
       let myChart;
 
       function fetchData() {
-        fetch("/heel_data")
-          .then((response) => response.json())
-          .then((data) => {
-            document.getElementById("data-window1").innerText = data.data;
-          });
+        // fetch("/heel_data")
+        //   .then((response) => response.json())
+        //   .then((data) => {
+        //     document.getElementById("data-window1").innerText = data.data;
+        //   });
         // fetch("/fore_data")
         //   .then((response) => response.json())
         //   .then((data) => {
@@ -172,13 +172,11 @@
         //     updateChart(data.data);
         //     window.scrollTo(0, scrollPos);
         //   });
-        // fetch("/color_data")
-        //   .then((response) => response.json())
-        //   .then((data) => {
-        //     document.body.style.backgroundColor = `rgb(${data.R}, ${data.G}, 0)`;
-        //     document.getElementById("colorDataLocation").innerText =
-        //       `R: ${data.R}, G: ${data.G}`;
-        //   });
+        fetch("/color_data")
+          .then((response) => response.json())
+          .then((data) => {
+            document.body.style.backgroundColor = `rgb(${data.R}, ${data.G}, 0)`;
+          });
       }
 
     //   function updateChart(data) {
@@ -259,9 +257,6 @@
     <h3>Fore Data</h3>
     <div id="data-window2">
       <p>Data</p>
-    </div>
-    <div id="colorDataLocation">
-      <p>Color Data</p>
     </div>
     <!-- <h3>Heel Pressure Data</h3>
     <div class="chart-container">
