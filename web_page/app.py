@@ -14,17 +14,29 @@ received_fore_data = "0"
 # heel_list = [0 for _ in range(100)]
 totalTime = "0"
 recording_time = False
-R = 0
-G = 255
+R_heel = 0
+G_heel = 255
 
-def update_color(pressure):
-    global R, G
+R_fore = 0
+G_fore = 255
+
+def update_heel_color(pressure):
+    global R_heel, G_heel
     if pressure < 1000:
-        G = 255
-        R = int((pressure / 1000) * 255)
+        G_heel = 255
+        R_heel = int((pressure / 1000) * 255)
     elif pressure < 2000:
-        R = 255
-        G = int(255 - ((pressure - 1000) / 1000) * 255)
+        R_heel = 255
+        G_heel = int(255 - ((pressure - 1000) / 1000) * 255)
+
+def update_fore_color(pressure):
+    global R_fore, G
+    if pressure < 1000:
+        G_fore = 255
+        R_fore = int((pressure / 1000) * 255)
+    elif pressure < 2000:
+        R_fore = 255
+        G_fore = int(255 - ((pressure - 1000) / 1000) * 255)
 
 #For balance.html
 
@@ -59,10 +71,8 @@ def read_heel_pressure():
     while True:
         data, addr = sock.recvfrom(1024)
         received_heel_data = int.from_bytes(data, byteorder='little')
-        # heel_list.append(received_heel_data)
-        # print("received message: %s" % heel_list[-100:-1])
-        update_color(received_heel_data)
-        time.sleep(0.1)
+        update_heel_color(received_heel_data)
+        # time.sleep(0.1)
         
 
 def read_fore_pressure():
@@ -72,7 +82,8 @@ def read_fore_pressure():
     while True:
         data, addr = sock.recvfrom(1024)
         received_fore_data = int.from_bytes(data, byteorder='little')
-        print("received message: %s" % data)
+        update_fore_color(received_fore_data)
+        # print("received message: %s" % data)
 
 
 def send_udp_data():
