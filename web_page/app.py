@@ -110,8 +110,6 @@ def start_data():
     recording_time = True
     return jsonify({"status": "Data transmission started"})
 
-
-
 if __name__ == '__main__':
     udp_thread = threading.Thread(target=read_heel_pressure)
     udp_thread2 = threading.Thread(target=read_fore_pressure)
