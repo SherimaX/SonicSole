@@ -146,6 +146,15 @@
       function closeModal() {
         document.getElementById("instructionsModal").style.display = "none";
       }
+      
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('startButton').addEventListener('click', function() {
+          fetch('/start', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => console.log(data.status))
+            .catch(error => console.error('Error:', error));
+        });
+      });
 
       //   $(document).ready(function () {
       //     $("#startBtn").click(function () {
@@ -166,9 +175,7 @@
   <body>
     <h1>Balancing Activity</h1>
     <div class="buttons">
-      <form action="/button_click" method="post">
-        <button type="submit">Start Balancing</button>
-      </form>
+      <button id="startButton">Start Balancing</button>
       <button onclick="openModal()">Instructions</button>
       <div id="instructionsModal" class="modal">
         <div class="modal-content">
