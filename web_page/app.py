@@ -14,6 +14,17 @@ received_fore_data = "0"
 heel_list = [0 for _ in range(100)]
 totalTime = "0"
 recording_time = False
+R = 0
+G = 255
+
+def update_color(pressure):
+    global R, G
+    if pressure < 1000:
+        G = 255
+        R = int((pressure / 1000) * 255)
+    elif pressure < 2000:
+        R = 255
+        G = int(255 - ((pressure - 1000) / 1000) * 255)
 
 #For balance.html
 
@@ -50,6 +61,7 @@ def read_heel_pressure():
         received_heel_data = int.from_bytes(data, byteorder='little')
         heel_list.append(received_heel_data)
         print("received message: %s" % heel_list[-100:-1])
+        update_color(received_heel_data)
         
 
 def read_fore_pressure():
@@ -104,13 +116,16 @@ def balancing():
     global totalTime
     return jsonify({'data': totalTime})
 
-
-
 @app.route('/button_click', methods=['POST'])
 def button_click():
     global recording_time
     recording_time = True
     return jsonify({"status": "Data transmission started"})
+
+@app.route('/color_data', methods=['GET'])
+def color_data():
+    global R, G
+    return jsonify({'R': R, 'G': G})
 
 
 if __name__ == '__main__':
