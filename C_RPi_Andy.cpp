@@ -39,47 +39,47 @@ int main(int argc, char* argv[])
       sole->updateCurrentTime();
       sole->updatePressure();
 
-    {
-      if (sole->detectHeelThreshold()) {
-        sole->updateThresholdCounter();
-        thresholdTimes.push_back(time);
-      }
+    // {
+    //   if (sole->detectHeelThreshold()) {
+    //     sole->updateThresholdCounter();
+    //     thresholdTimes.push_back(time);
+    //   }
 
-      /* 
-       * places time values in thresholdTimes vector whenever the threshold is crossed
-       * if threshold has been crossed 3 times, runs a check to see if the threshold
-       * was crossed in sucession (within 3 seconds)
-       * if it has, switch mode and the vector clears
-       */ 
-      if (sole->thresholdCross >= 3) {
-        bool modeSwitch = false;
-        for (size_t i = 2; i < thresholdTimes.size(); i++) {
-            if (thresholdTimes[i] - thresholdTimes[i - 2] <= 3) { // within 3 seconds
-                modeSwitch = true;
-                break;
-            }
-        }
+    //   /* 
+    //    * places time values in thresholdTimes vector whenever the threshold is crossed
+    //    * if threshold has been crossed 3 times, runs a check to see if the threshold
+    //    * was crossed in sucession (within 3 seconds)
+    //    * if it has, switch mode and the vector clears
+    //    */ 
+    //   if (sole->thresholdCross >= 3) {
+    //     bool modeSwitch = false;
+    //     for (size_t i = 2; i < thresholdTimes.size(); i++) {
+    //         if (thresholdTimes[i] - thresholdTimes[i - 2] <= 3) { // within 3 seconds
+    //             modeSwitch = true;
+    //             break;
+    //         }
+    //     }
 
-        if (modeSwitch) {
-            sole->switchMode();
-            thresholdTimes.clear(); // Clear the threshold times after mode switch
-        }
-      }
+    //     if (modeSwitch) {
+    //         sole->switchMode();
+    //         thresholdTimes.clear(); // Clear the threshold times after mode switch
+    //     }
+    //   }
       
       
-      if (sole->getMode()) {    // when getMode is true, soundMode is active, if false than vibMode
-        sole->runSoundMode();
-      } else {
-        sole->runVibrateMode();
-      }
+    //   if (sole->getMode()) {    // when getMode is true, soundMode is active, if false than vibMode
+    //     sole->runSoundMode();
+    //   } else {
+    //     sole->runVibrateMode();
+    //   }
 
-      if (sole->detectHeelThreshold()) {
-        //sole->timeArr.push_back(cycle);
-        sole->sendFlexSensorData(1);
-        // cout << "Data sent to UDP" << endl;
-      }
+    //   if (sole->detectHeelThreshold()) {
+    //     //sole->timeArr.push_back(cycle);
+    //     sole->sendFlexSensorData(1);
+    //     // cout << "Data sent to UDP" << endl;
+    //   }
       
-    }
+    // }
 
 
       cout << "Fore Pressure" << sole->currForePressure << endl;
@@ -91,8 +91,8 @@ int main(int argc, char* argv[])
 
 
       // sole->readIMU();
-      sole->toCSV();
-      cout << "\n";
+      // sole->toCSV();
+      // cout << "\n";
 
 
 
