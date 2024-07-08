@@ -17,12 +17,12 @@ totalTime = 0
 #For balance.html
 
 def balancing_pressure():
-    global totalTime, received_heel_data, received_fore_data
+    global totalTime
     start_time = time.time()
     while (int(received_heel_data) < 90 and int(received_fore_data) < 90):
         end_time = time.time()
         totalTime = end_time - start_time
-        print("Currently Balaned for {:.2f} seconds".format(totalTime))
+        print("Currently Balanced for {:.2f} seconds".format(totalTime))
         time.sleep(0.1)
     
     totalTime = end_time - start_time
