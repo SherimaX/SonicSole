@@ -13,19 +13,21 @@ received_heel_data = "0"
 received_fore_data = "0"
 heel_list = [0 for _ in range(100)]
 totalTime = "0"
+recording_time = True
 
 #For balance.html
 
 def balancing_pressure():
-    global totalTime
+    global totalTime, recording_time
     start_time = time.time()
     while True:
-        if (int(received_heel_data) < 500 and int(received_fore_data) < 500):
+        if recording_time and (int(received_heel_data) < 500 and int(received_fore_data) < 500):
             end_time = time.time()
             totalTime = str(end_time - start_time)
             print("Currently Balanced for {} seconds".format(totalTime))
             time.sleep(0.1)
         else:
+            recording_time = False
             totalTime = str(end_time - start_time)
             print("Total time balanced: {} seconds".format(totalTime))
             time.sleep(0.1)
