@@ -62,7 +62,7 @@ def read_heel_pressure():
         # heel_list.append(received_heel_data)
         # print("received message: %s" % heel_list[-100:-1])
         update_color(received_heel_data)
-        time.sleep(0.5)
+        time.sleep(0.1)
         
 
 def read_fore_pressure():
