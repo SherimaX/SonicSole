@@ -142,14 +142,14 @@ def color_data():
 
 if __name__ == '__main__':
     udp_thread = threading.Thread(target=read_heel_pressure)
-    # udp_thread2 = threading.Thread(target=read_fore_pressure)
-    # udp_thread_balance = threading.Thread(target=balancing_pressure)
+    udp_thread2 = threading.Thread(target=read_fore_pressure)
+    udp_thread_balance = threading.Thread(target=balancing_pressure)
     udp_thread.daemon = True
     udp_thread.start()
-    # udp_thread2.daemon = True
-    # udp_thread2.start()
-    # udp_thread_balance.daemon = True
-    # udp_thread_balance.start()
+    udp_thread2.daemon = True
+    udp_thread2.start()
+    udp_thread_balance.daemon = True
+    udp_thread_balance.start()
 
     app.run(host='0.0.0.0', port=5000)
 
