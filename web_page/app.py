@@ -72,6 +72,26 @@ def balancing_pressure():
             time.sleep(0.01)
             
 
+def update_leaderboard(txt_file):
+    # Read current data from the txt file
+    leaderboard = {}
+    with open(txt_file, 'r') as f:
+        for line in f:
+            submitted_name, totalTime = line.strip().split(',')
+            if submitted_name in leaderboard:
+                if int(totalTime) > leaderboard[submitted_name]:
+                    leaderboard[submitted_name] = int(totalTime)
+            else:
+                leaderboard[submitted_name] = int(totalTime)
+    
+    # Sort by totalTime descending
+    sorted_leaderboard = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
+    
+    # Write sorted leaderboard back to the txt file
+    with open(txt_file, 'w') as f:
+        for name, time in sorted_leaderboard:
+            f.write(f"{name},{time}\n")
+
 # For index.html
 
 def read_heel_pressure():
