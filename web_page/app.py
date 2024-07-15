@@ -20,8 +20,10 @@ G_heel = 255
 R_fore = 0
 G_fore = 255
 
-name = ''
-time = 0
+submitted_name = None
+
+
+f = open("SonicSole.txt", "x")
 
 def update_heel_color(pressure):
     global R_heel, G_heel
@@ -43,8 +45,13 @@ def update_fore_color(pressure):
 
 #For balance.html
 
+def submit():
+    global submitted_name
+    submitted_name = request.form['name']
+    return redirect(url_for('index'))
+
 def balancing_pressure():
-    global totalTime, recording_time
+    global totalTime, recording_time, submitted_name
     start_time = time.time()
     while True:
         if recording_time and (int(received_heel_data) < 500 and int(received_fore_data) < 500):
@@ -56,14 +63,12 @@ def balancing_pressure():
             recording_time = False
             start_time = time.time()
             print("Total time balanced: {} seconds".format(totalTime))
+            if submitted_name:
+                f = open("demofile2.txt", "a")
+                f.write(submitted_name, ": ", totalTime)
+                f.close()
             time.sleep(0.01)
             
-
-
-
-
-
-
 
 # For index.html
 
@@ -87,7 +92,6 @@ def read_fore_pressure():
         received_fore_data = int.from_bytes(data, byteorder='little')
         update_fore_color(received_fore_data)
         # print("received message: %s" % data)
-
 
 def send_udp_data():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP

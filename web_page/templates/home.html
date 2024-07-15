@@ -46,7 +46,10 @@
   <body>
     <h1>SonicSole</h1>
     <p>An Interactive Lab Experience</p>
-    <input placeholder="Enter Name"> </input>
+    <form action="/submit" method="POST">
+      <input type="text" name="name" placeholder="Enter Name"/>
+      <button type="submit">Submit</button>
+  </form>
     <a href="/index">Height of Jump Activity</a>
     <a href="/balance">Balancing Activity</a>
   </body>
