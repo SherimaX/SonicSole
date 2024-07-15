@@ -23,8 +23,6 @@ G_fore = 255
 submitted_name = None
 
 
-f = open("SonicSole2.txt", "x")
-
 def update_heel_color(pressure):
     global R_heel, G_heel
     if pressure < 1000:
@@ -64,7 +62,7 @@ def balancing_pressure():
             start_time = time.time()
             print("Total time balanced: {} seconds".format(totalTime))
             if submitted_name:
-                f = open("SonicSole.txt", "a")
+                f = open("SonicSole2.txt", "a")
                 f.write(submitted_name, ": ", totalTime)
                 f.close()
             time.sleep(0.01)
