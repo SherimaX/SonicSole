@@ -23,7 +23,7 @@ G_fore = 255
 submitted_name = None
 
 
-f = open("SonicSole.txt", "x")
+f = open("SonicSole2.txt", "x")
 
 def update_heel_color(pressure):
     global R_heel, G_heel
