@@ -113,7 +113,7 @@ def balance():
     return render_template('balance.html')
 
 @app.route('/bScoreboard')
-def balance():
+def bScoreboard():
     return render_template('bScoreboard.html')
 
 @app.route('/button', methods=['POST'])
