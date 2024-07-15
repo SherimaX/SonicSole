@@ -48,7 +48,7 @@ i = 0
 def submit():
     global submitted_name
     submitted_name = request.form['name']
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))
 
 def balancing_pressure():
     global totalTime, recording_time, submitted_name, i
