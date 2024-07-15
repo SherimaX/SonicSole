@@ -20,6 +20,9 @@ G_heel = 255
 R_fore = 0
 G_fore = 255
 
+name = ''
+time = 0
+
 def update_heel_color(pressure):
     global R_heel, G_heel
     if pressure < 1000:
