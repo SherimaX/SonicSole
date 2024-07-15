@@ -52,8 +52,8 @@ def balancing_pressure():
     global totalTime, recording_time, submitted_name, i
     start_time = time.time()
     while True:
-        i = 0
         if recording_time and (int(received_heel_data) < 500 and int(received_fore_data) < 500):
+            i = 0
             end_time = time.time()
             totalTime = str(end_time - start_time)
             print("Currently Balanced for {} seconds".format(totalTime))
@@ -64,7 +64,7 @@ def balancing_pressure():
             print("Total time balanced: {} seconds".format(totalTime))
             if i==0:
                 f = open("SonicSole2.txt", "a")
-                f.write(totalTime)
+                f.write(totalTime + "\n")
                 f.close()
                 i = 1
             time.sleep(0.01)
