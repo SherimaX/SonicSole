@@ -42,7 +42,7 @@ def update_fore_color(pressure):
         G_fore = int(255 - ((pressure - 1000) / 1000) * 255)
 
 #For balance.html
-
+int i = 0
 def submit():
     global submitted_name
     submitted_name = request.form['name']
@@ -52,6 +52,7 @@ def balancing_pressure():
     global totalTime, recording_time, submitted_name
     start_time = time.time()
     while True:
+        i = 0
         if recording_time and (int(received_heel_data) < 500 and int(received_fore_data) < 500):
             end_time = time.time()
             totalTime = str(end_time - start_time)
@@ -61,10 +62,11 @@ def balancing_pressure():
             recording_time = False
             start_time = time.time()
             print("Total time balanced: {} seconds".format(totalTime))
-            if submitted_name:
+            if submitted_name and i==0:
                 f = open("SonicSole2.txt", "a")
                 f.write(submitted_name, ": ", totalTime)
                 f.close()
+                i = 1
             time.sleep(0.01)
             
 
