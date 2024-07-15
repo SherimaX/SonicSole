@@ -49,7 +49,7 @@ def submit():
     return redirect(url_for('home'))
 
 def balancing_pressure():
-    global totalTime, recording_time, submitted_name
+    global totalTime, recording_time, submitted_name, i
     start_time = time.time()
     while True:
         i = 0
