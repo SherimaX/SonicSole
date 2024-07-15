@@ -71,6 +71,28 @@ def balancing_pressure():
                 i = 1
             time.sleep(0.01)
             
+# Example code to read, process, and update leaderboard
+
+def update_leaderboard(txt_file):
+    # Read current data from the txt file
+    leaderboard = {}
+    with open(txt_file, 'r') as f:
+        for line in f:
+            submitted_name, totalTime = line.strip().split(',')
+            if submitted_name in leaderboard:
+                if int(totalTime) > leaderboard[submitted_name]:
+                    leaderboard[submitted_name] = int(totalTime)
+            else:
+                leaderboard[submitted_name] = int(totalTime)
+    
+    # Sort by totalTime descending
+    sorted_leaderboard = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
+    
+    # Write sorted leaderboard back to the txt file
+    with open(txt_file, 'w') as f:
+        for name, time in sorted_leaderboard:
+            f.write(f"{name},{time}\n")
+
 
 # For index.html
 
