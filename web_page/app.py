@@ -112,6 +112,10 @@ def index():
 def balance():
     return render_template('balance.html')
 
+@app.route('/bScoreboard')
+def balance():
+    return render_template('bScoreboard.html')
+
 @app.route('/button', methods=['POST'])
 def button():
     send_udp_data()
