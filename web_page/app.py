@@ -42,7 +42,7 @@ def update_fore_color(pressure):
         G_fore = int(255 - ((pressure - 1000) / 1000) * 255)
 
 #For balance.html
-int i = 0
+i = 0
 def submit():
     global submitted_name
     submitted_name = request.form['name']
