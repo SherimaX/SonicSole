@@ -348,7 +348,7 @@ void SonicSole::readIMU() {
         }
 
         printf("Timestamp: %u ms\n", timestamp);
-    }
+
 }
 
 void SonicSole::sendFlexSensorData(int flexSensorData, int port) {
