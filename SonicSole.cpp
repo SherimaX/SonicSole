@@ -278,13 +278,13 @@ void SonicSole::readIMU() {
 
     // reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce);
     reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce.ax, dataAcce.ay, dataAcce.az);
-    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
+    //printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
 
     printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
 
     float deltaTime = (float)(getMicrosTimeStamp() - timeRead) / 1000000.0f;
     float freq = 1/deltaTime;
-    float currenttime_micros = (float)(getMicrosTimeStamp() - timestamp_start);
+    float currenttime_micros = (float)getMicrosTimeStamp();
 
     printf("Time obtained!\n");
     printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
