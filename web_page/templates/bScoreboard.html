@@ -10,17 +10,19 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       height: 100vh;
       margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #fff3dc;
+      padding: 0;
+      font-family: Bradley Hand, cursive;
+      background-color: #ffdada;
     }
 
     h1 {
-      font-size: 3.5em;
-      margin-bottom: 10px;
-      color: #333;
+      font-size: 4.5em;
+      margin-top: 2.5em;
+      margin-bottom: 0.1em;
+      color: #8a0000;
     }
 
     p {
@@ -29,42 +31,86 @@
     }
 
     a {
+      display: inline-block;
       margin-top: 20px;
-      font-size: 1em;
-      color: #333;
+      font-size: 1.3em;
+      color: #310000;
       text-decoration: none;
-      border: 2px solid #333;
+      border: 2px solid #310000;
       padding: 10px 20px;
       border-radius: 5px;
       transition: background-color 0.3s, color 0.3s;
     }
     a:hover {
-      background-color: #333;
+      background-color: #310000;
       color: #fff;
     }
 
-    th,
-    td {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
+    .homebutton{
+      margin-bottom: 1em;
     }
+
+    table {
+      width: 80%;
+      max-width: 800px;
+      border-collapse: collapse;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 15px;
+      font-size: 1.2em;
+      text-align: center;
+    }
+
     th {
-      background-color: #4caf50;
-      color: white;
+      background-color: #320000;
+      color: #fff;
+      text-align: center;
+      font-size: 1.4em;
     }
+
     tr:nth-child(even) {
-      background-color: #f2f2f2;
+      background-color: #ffc2c0;
     }
+
+
+    
+    td:first-child {
+      font-weight: bold;
+      color: #320000;
+    }
+
+
   </style>
   <body>
     <h1>Balancing Scoreboard</h1>
+    <a href="/balance" class="homebutton">Go Back</a>
     <table id="leaderboard">
-        <tr>
-            <th>Name</th>
-            <th>Total Time</th>
-        </tr>
+      <tr>
+        <th>Name</th>
+        <th>Total Time</th>
+      </tr>
+      <tr>
+        <td>Jane Kim</td>
+        <td>50.49 Seconds</td>
+      </tr>
+      <tr>
+        <td>Joshua Hong</td>
+        <td>50.49 Seconds</td>
+      </tr>
+      <tr>
+        <td>Bob King</td>
+        <td>50.49 Seconds</td>
+      </tr>
+      <tr>
+        <td>Harry Smith</td>
+        <td>50.49 Seconds</td>
+      </tr>
     </table>
-    
   </body>
 </html>
