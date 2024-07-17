@@ -59,6 +59,12 @@
       background-color: #555;
     }
 
+    .hidden-content {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
     a {
       display: inline-block;
       margin-top: 20px;
@@ -85,13 +91,25 @@
 <body>
   <h1>SonicSole</h1>
   <p>An Interactive Lab Experience</p>
-  <form action="/submit" method="POST">
-    <input type="text" name="name" placeholder="Enter Name" />
+  <form id="name-form">
+    <input type="text" name="name" id="name-input" placeholder="Enter Name" />
     <button type="submit">Submit</button>
   </form>
-  <a href="/index">Height of Jump Activity</a>
-  <h3>_________________________________________</h3>
-  <a href="/balance">Balancing Activity</a>
-  <a href="/bScoreboard">Balancing Scoreboard</a>
+  <div class="hidden-content" id="hidden-content">
+    <a href="/index">Height of Jump Activity</a>
+    <h3>_________________________________________</h3>
+    <a href="/balance">Balancing Activity</a>
+    <a href="/bScoreboard">Balancing Scoreboard</a>
+  </div>
+
+  <script>
+    document.getElementById('name-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const nameInput = document.getElementById('name-input').value;
+      if (nameInput.trim() !== "") {
+        document.getElementById('hidden-content').style.display = 'flex';
+      }
+    });
+  </script>
 </body>
 </html>
