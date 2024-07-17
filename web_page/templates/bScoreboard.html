@@ -92,6 +92,12 @@
         <th>Name</th>
         <th>Total Time</th>
       </tr>
+      {% for entry in data %}
+      <tr>
+        <td>{{ entry.name }}</td>
+        <td>{{ entry.time }} Seconds</td>
+      </tr>
+      {% endfor %}  
       <tr>
         <td>Bob King</td>
         <td>30.4 Seconds</td>
