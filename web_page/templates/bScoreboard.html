@@ -112,5 +112,20 @@
         <td>50.49 Seconds</td>
       </tr>
     </table>
+
+
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('leaderboard');
+        const rows = Array.from(table.querySelectorAll('tr:nth-child(n+2)'));
+        rows.sort((a, b) => {
+          const timeA = parseFloat(a.cells[1].textContent.split(' ')[0]);
+          const timeB = parseFloat(b.cells[1].textContent.split(' ')[0]);
+          return timeB - timeA;  // Sort from greatest to least
+        });
+        rows.forEach(row => table.appendChild(row));  // Reattach sorted rows
+      });
+    </script>  
   </body>
 </html>
