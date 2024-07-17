@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     while (true) {
       int time = sole->getRunningTime();
       // int time = 0;
-      cout << "time: " << time << endl;
+      cout << "\ntime: " << time << endl;
       // printf("time: %0.3f seconds \n", time);
       cout << "Cycle: " << cycle << endl;
       cycle++;
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     //    * places time values in thresholdTimes vector whenever the threshold is crossed
     //    * if threshold has been crossed 3 times, runs a check to see if the threshold
     //    * was crossed in sucession (within 3 seconds)
-    //    * if it has, switch mode and the vector clears
+    //    * if it has, mode switches and the vector clears
     //    */ 
     //   if (sole->thresholdCross >= 3) {
     //     bool modeSwitch = false;
@@ -86,6 +86,8 @@ int main(int argc, char* argv[])
       cout << "Heel Pressure: " << sole->currHeelPressure << endl;
 
       cout << "\n" << endl;
+
+      sole->readIMU();
 
       sole->sendFlexSensorData((int)sole->currForePressure, 20000);      
       sole->sendFlexSensorData((int)sole->currHeelPressure, 21000);
