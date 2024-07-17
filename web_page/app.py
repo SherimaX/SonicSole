@@ -116,6 +116,7 @@ def balance():
 def bScoreboard():
     return render_template('bScoreboard.html')
 
+#new
 @app.route('/bScoreboard')
 def b_scoreboard():
     data = []
