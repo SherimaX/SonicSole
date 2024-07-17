@@ -103,13 +103,22 @@
   </div>
 
   <script>
-    document.getElementById('name-form').addEventListener('submit', function(event) {
-      event.preventDefault();
-      const nameInput = document.getElementById('name-input').value;
-      if (nameInput.trim() !== "") {
+    document.addEventListener('DOMContentLoaded', function() {
+      const name = localStorage.getItem('name');
+      if (name) {
         document.getElementById('hidden-content').style.display = 'flex';
         document.getElementById('name-form').style.display = 'none';
       }
+
+      document.getElementById('name-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const nameInput = document.getElementById('name-input').value;
+        if (nameInput.trim() !== "") {
+          localStorage.setItem('name', nameInput);
+          document.getElementById('hidden-content').style.display = 'flex';
+          document.getElementById('name-form').style.display = 'none';
+        }
+      });
     });
   </script>
 </body>
