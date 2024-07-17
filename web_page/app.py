@@ -115,6 +115,19 @@ def balance():
 def bScoreboard():
     return render_template('bScoreboard.html')
 
+@app.route('/bScoreboard')
+def b_scoreboard():
+    data = []
+    with open('SonicSole2.txt', 'r') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if row:  # Skip empty rows
+                data.append({'name': row[0], 'time': row[1]})
+    # Sort data based on total time in descending order
+    data.sort(key=lambda x: float(x['time']), reverse=True)
+    return render_template('bScoreboard.html', data=data)
+
+
 @app.route('/button', methods=['POST'])
 def button():
     send_udp_data()
