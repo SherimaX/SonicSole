@@ -240,6 +240,7 @@ void SonicSole::motorVibrate() {
 
 void SonicSole::readIMU() {
     // https://www.telesens.co/2017/03/11/imu-sampling-using-the-raspberry-pi/
+    // https://yostlabs.com/product/3-space-embedded-lx/ 
     // look at documentation later, has some useful code
     // ADC - MCP3221
     // #define ADCAddress 0x4D
