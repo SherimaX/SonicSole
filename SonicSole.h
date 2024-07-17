@@ -48,7 +48,7 @@
 #include <netinet/in.h>
 
 // IMU API
-#include "IMUAPI/threespace_api_export.h"
+// #include "IMUAPI/threespace_api_export.h"
 
 #define MAX_RUN_TIME 600000000
 
@@ -98,7 +98,7 @@ public:
     
     uint8_t IMU_PACKET_LENGTH = 52;
 
-    tss_device_id sensor_id;
+    // tss_device_id sensor_id;
 
     //vector<int> timeArr;
     //int timeArr[200];

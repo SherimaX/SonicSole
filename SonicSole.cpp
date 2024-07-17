@@ -245,109 +245,109 @@ void SonicSole::readIMU() {
     // ADC - MCP3221
     // #define ADCAddress 0x4D
 
-//     structComponentQuaternion dataQuat;
-//     structComponentLinearAcceleration dataAcce;
-//     structComponentRawGyro dataGyro;
-//     structComponentRawAcceleration dataRAcc;
-//     uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
-//     uint64_t timeRead = getMicrosTimeStamp();
+    structComponentQuaternion dataQuat;
+    structComponentLinearAcceleration dataAcce;
+    structComponentRawGyro dataGyro;
+    structComponentRawAcceleration dataRAcc;
+    uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
+    uint64_t timeRead = getMicrosTimeStamp();
     
-//     YEIgetStreamingBatch(uStreamingDataIMU);
-//     // YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH); // didnt really do anything
-//     // read(IMU, dataIMUPacket, IMU_PACKET_LENGTH); // slows down everything, only allows reading every 10 seconds
-//     reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc); // important
+    YEIgetStreamingBatch(uStreamingDataIMU);
+    // YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH); // didnt really do anything
+    // read(IMU, dataIMUPacket, IMU_PACKET_LENGTH); // slows down everything, only allows reading every 10 seconds
+    reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc); // important
 
-//     // printf("Raw IMU packet: \n");
-//     // for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
-//     //     printf("%02X ", YEIdataPacket[i]);
-//     // }
+    // printf("Raw IMU packet: \n");
+    // for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
+    //     printf("%02X ", YEIdataPacket[i]);
+    // }
 
-//     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
-//     printf("\nIMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
-//     printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
-//     printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
-//     return;
+    // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
+    printf("\nIMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
+    printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
+    printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
+    return;
 
-//     // some old code that might be useful later
-//     // check out YEIgetStreamingBatch later
-//     YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
-//     if(serialDataAvail(IMU))
-//     {
-//         read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
-//         reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
-//     }
+    // some old code that might be useful later
+    // check out YEIgetStreamingBatch later
+    YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
+    if(serialDataAvail(IMU))
+    {
+        read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
+        reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
+    }
 
-//     // reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce);
-//     reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce.ax, dataAcce.ay, dataAcce.az);
-//     //printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
+    // reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce);
+    reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce.ax, dataAcce.ay, dataAcce.az);
+    //printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
 
-//     printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
+    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
 
-//     float deltaTime = (float)(getMicrosTimeStamp() - timeRead) / 1000000.0f;
-//     float freq = 1/deltaTime;
-//     float currenttime_micros = (float)getMicrosTimeStamp();
+    float deltaTime = (float)(getMicrosTimeStamp() - timeRead) / 1000000.0f;
+    float freq = 1/deltaTime;
+    float currenttime_micros = (float)getMicrosTimeStamp();
 
-//     printf("Time obtained!\n");
-//     printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
-//     printf("Time: %0.3f secs \n", deltaTime);
-// }
+    printf("Time obtained!\n");
+    printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
+    printf("Time: %0.3f secs \n", deltaTime);
+}
 
-// void SonicSole::sendFlexSensorData(int flexSensorData) {
-//     int sockfd;
-//     struct sockaddr_in serverAddr;
+void SonicSole::sendFlexSensorData(int flexSensorData) {
+    int sockfd;
+    struct sockaddr_in serverAddr;
 
-//     // UDP Socket
-//     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-//         std::cerr << "Error creating socket" << std::endl;
-//         return;
-//     }
+    // UDP Socket
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+        std::cerr << "Error creating socket" << std::endl;
+        return;
+    }
 
-//     memset(&serverAddr, 0, sizeof(serverAddr));
-//     serverAddr.sin_family = AF_INET;
-//     serverAddr.sin_port = htons(PORT);
-//     serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
+    memset(&serverAddr, 0, sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(PORT);
+    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
 
-//     /*
-//     if (sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
-//         std::cerr << "Error sending data" << std::endl;
-//     } else {
-//         std::cout << "Flex sensor data sent successfully!" << std::endl;
-//     }
-//     */
+    /*
+    if (sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
+        std::cerr << "Error sending data" << std::endl;
+    } else {
+        std::cout << "Flex sensor data sent successfully!" << std::endl;
+    }
+    */
 
-//     try {
-//         UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
-//         // sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
-//     }
-//     catch (...) {
-//         std:cout << "Error: UDPSend cannot send data" << endl;
-//     }
+    try {
+        UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
+        // sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
+    }
+    catch (...) {
+        std:cout << "Error: UDPSend cannot send data" << endl;
+    }
 
-//     std::cout << "Data sent to UDP" << endl;
-//     close(sockfd);
+    std::cout << "Data sent to UDP" << endl;
+    close(sockfd);
 
-    float gyroscope[3], accelerometer[3], magnetometer[3];
-        U32 timestamp;
+    // float gyroscope[3], accelerometer[3], magnetometer[3];
+    //     U32 timestamp;
 
-        if (tss_sensor_getNormalizedGyroscope(sensor_id, gyroscope, &timestamp) == TSS_NO_ERROR) {
-            printf("IMU Gyroscope Vector: %0.2f, %0.2f, %0.2f\n", gyroscope[0], gyroscope[1], gyroscope[2]);
-        } else {
-            printf("Failed to get gyroscope data\n");
-        }
+    //     if (tss_sensor_getNormalizedGyroscope(sensor_id, gyroscope, &timestamp) == TSS_NO_ERROR) {
+    //         printf("IMU Gyroscope Vector: %0.2f, %0.2f, %0.2f\n", gyroscope[0], gyroscope[1], gyroscope[2]);
+    //     } else {
+    //         printf("Failed to get gyroscope data\n");
+    //     }
 
-        if (tss_sensor_getNormalizedAccelerometer(sensor_id, accelerometer, &timestamp) == TSS_NO_ERROR) {
-            printf("IMU Accelerometer Vector: %0.2f, %0.2f, %0.2f\n", accelerometer[0], accelerometer[1], accelerometer[2]);
-        } else {
-            printf("Failed to get accelerometer data\n");
-        }
+    //     if (tss_sensor_getNormalizedAccelerometer(sensor_id, accelerometer, &timestamp) == TSS_NO_ERROR) {
+    //         printf("IMU Accelerometer Vector: %0.2f, %0.2f, %0.2f\n", accelerometer[0], accelerometer[1], accelerometer[2]);
+    //     } else {
+    //         printf("Failed to get accelerometer data\n");
+    //     }
 
-        if (tss_sensor_getNormalizedMagnetometer(sensor_id, magnetometer, &timestamp) == TSS_NO_ERROR) {
-            printf("IMU Magnetometer Vector: %0.2f, %0.2f, %0.2f\n", magnetometer[0], magnetometer[1], magnetometer[2]);
-        } else {
-            printf("Failed to get magnetometer data\n");
-        }
+    //     if (tss_sensor_getNormalizedMagnetometer(sensor_id, magnetometer, &timestamp) == TSS_NO_ERROR) {
+    //         printf("IMU Magnetometer Vector: %0.2f, %0.2f, %0.2f\n", magnetometer[0], magnetometer[1], magnetometer[2]);
+    //     } else {
+    //         printf("Failed to get magnetometer data\n");
+    //     }
 
-        printf("Timestamp: %u ms\n", timestamp);
+    //     printf("Timestamp: %u ms\n", timestamp);
 
 }
 
