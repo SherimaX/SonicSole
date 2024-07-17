@@ -108,11 +108,6 @@
         <td>50.49 Seconds</td>
       </tr>
       <tr>
-        <td>Joshua Hong</td>
-        <td>40.2 Seconds</td>
-      </tr>
-
-      <tr>
         <td>Harry Smith</td>
         <td>50.49 Seconds</td>
       </tr>
@@ -124,36 +119,13 @@
       document.addEventListener('DOMContentLoaded', function() {
         const table = document.getElementById('leaderboard');
         const rows = Array.from(table.querySelectorAll('tr:nth-child(n+2)'));
-  
-        // Function to sort rows based on time
-        const sortRows = (rows) => {
-          rows.sort((a, b) => {
-            const timeA = parseFloat(a.cells[1].textContent.split(' ')[0]);
-            const timeB = parseFloat(b.cells[1].textContent.split(' ')[0]);
-            return timeB - timeA;  // Sort from greatest to least
-          });
-        };
-  
-        // Function to remove duplicate names
-        const removeDuplicates = (rows) => {
-          const namesSeen = new Set();
-          return rows.filter(row => {
-            const name = row.cells[0].textContent;
-            if (namesSeen.has(name)) {
-              return false;
-            } else {
-              namesSeen.add(name);
-              return true;
-            }
-          });
-        };
-  
-        sortRows(rows); // Sort rows by time
-        const uniqueRows = removeDuplicates(rows); // Remove duplicate rows
-  
-        // Reattach sorted and filtered rows to the table
-        uniqueRows.forEach(row => table.appendChild(row));
+        rows.sort((a, b) => {
+          const timeA = parseFloat(a.cells[1].textContent.split(' ')[0]);
+          const timeB = parseFloat(b.cells[1].textContent.split(' ')[0]);
+          return timeB - timeA;  // Sort from greatest to least
+        });
+        rows.forEach(row => table.appendChild(row));  // Reattach sorted rows
       });
-    </script>   
+    </script>  
   </body>
 </html>
