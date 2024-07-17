@@ -249,8 +249,9 @@ void SonicSole::readIMU() {
     structComponentRawGyro dataGyro;
     structComponentRawAcceleration dataRAcc;
     uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
+    uint64_t timeRead = getMicrosTimeStamp();
     
-    // YEIgetStreamingBatch(uStreamingDataIMU);
+    YEIgetStreamingBatch(uStreamingDataIMU);
     // YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH); // didnt really do anything
     // read(IMU, dataIMUPacket, IMU_PACKET_LENGTH); // slows down everything, only allows reading every 10 seconds
     reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc); // important
@@ -271,15 +272,12 @@ void SonicSole::readIMU() {
     YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
     if(serialDataAvail(IMU))
     {
-        uint64_t timeRead = getMicrosTimeStamp() - timestamp_start;
-
         read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
-
         reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
     }
 
-    reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce);
-    reconstructBinaryPacketBinary_test(dataIMUPacket, ax, ay, az);
+    // reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce);
+    reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce.ax, dataAcce.ay, dataAcce.az);
     printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
 
     printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
