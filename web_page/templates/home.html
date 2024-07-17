@@ -53,6 +53,7 @@
       border-radius: 5px;
       cursor: pointer;
       transition: background-color 0.3s;
+      margin-top: 10px;
     }
 
     button:hover {
@@ -86,6 +87,22 @@
       color: #333;
       margin: 20px 0;
     }
+
+    .reset-button {
+      margin-top: 20px;
+      font-size: 1em;
+      color: #fff;
+      background-color: #d9534f;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .reset-button:hover {
+      background-color: #c9302c;
+    }
   </style>
 </head>
 <body>
@@ -100,6 +117,7 @@
     <h3>_________________________________________</h3>
     <a href="/balance">Balancing Activity</a>
     <a href="/bScoreboard">Balancing Scoreboard</a>
+    <button class="reset-button" id="reset-button">Reset</button>
   </div>
 
   <script>
@@ -118,6 +136,12 @@
           document.getElementById('hidden-content').style.display = 'flex';
           document.getElementById('name-form').style.display = 'none';
         }
+      });
+
+      document.getElementById('reset-button').addEventListener('click', function() {
+        localStorage.removeItem('name');
+        document.getElementById('hidden-content').style.display = 'none';
+        document.getElementById('name-form').style.display = 'flex';
       });
     });
   </script>
