@@ -136,8 +136,8 @@
       }
 
       .content {
-            display: none;
-        }
+        display: none;
+      }
 
       input[type="text"] {
         padding: 10px;
@@ -211,46 +211,46 @@
   <body>
     <h1>Balancing Activity</h1>
     <form id="name-form">
-      <input
-        type="text"
-        name="name"
-        id="name-input"
-        placeholder="Enter Name"
-      />
+      <input type="text" name="name" id="name-input" placeholder="Enter Name" />
       <input type="submit" style="display: none" />
       <button type="submit">Submit</button>
     </form>
     <div class="content">
-    <div class="buttons">
-      <button id="startButton" disabled>Start Balancing</button>
-      <button onclick="openModal()">Instructions</button>
-      <div id="instructionsModal" class="modal">
-        <div class="modal-content">
-          <span class="close" onclick="closeModal()">&times;</span>
-          <h2>Instructions</h2>
-          <p>
-            Press the "Start Balancing" button. Then, close your eyes and lift
-            one of your legs up and off the ground. Keep balancing on your one
-            leg for as long as you can. As soon as your foot touches the ground,
-            your SonicSole should detect the force and the timer should stop.
-          </p>
+      <div class="buttons">
+        <button id="startButton" disabled>Start Balancing</button>
+        <button onclick="openModal()">Instructions</button>
+        <div id="instructionsModal" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Instructions</h2>
+            <p>
+              Press the "Start Balancing" button. Then, close your eyes and lift
+              one of your legs up and off the ground. Keep balancing on your one
+              leg for as long as you can. As soon as your foot touches the
+              ground, your SonicSole should detect the force and the timer
+              should stop.
+            </p>
+          </div>
         </div>
       </div>
+
+      <div id="balanceDataLocation">
+        <p class="information">Data</p>
+      </div>
+
+      <a href="/bScoreboard">Balancing Scoreboard</a>
+      <a href="/">Home</a>
     </div>
-    
-    <div id="balanceDataLocation">
-      <p class="information">Data</p>
-    </div>
-    
-    <a href="/bScoreboard">Balancing Scoreboard</a>
-    <a href="/">Home</a>
-  </div>
-  <script>
-            document.getElementById("name-input").addEventListener("submit", (e) => {
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        document
+          .getElementById("name-input")
+          .addEventListener("submit", (e) => {
             // Allow the form to submit normally
             let content = document.querySelector(".content");
             content.style.display = "block"; // Show the content
-        });
-  </script>
+          });
+      });
+    </script>
   </body>
 </html>
