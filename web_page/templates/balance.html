@@ -206,13 +206,13 @@
     </script>
   </head>
   <body>
-    <body>
-      <h1>Balancing Activity</h1>
-      <form id="name-form">
-        <input type="text" name="name" id="name-input" placeholder="Enter Name" />
-      </form>
+    <h1>Balancing Activity</h1>
+    <form id="name-form">
+      <input type="text" name="name" id="name-input" placeholder="Enter Name" />
+    </form>
+    <div class="hidden-content" id="hidden-content">
       <div class="buttons">
-        <button onclick="submitForm()" id="startButton" class="hidden">Start Balancing</button>
+        <button onclick="submitForm()" id="startButton">Start Balancing</button>
         <button onclick="openModal()">Instructions</button>
         <div id="instructionsModal" class="modal">
           <div class="modal-content">
@@ -221,49 +221,41 @@
             <p>
               Press the "Start Balancing" button. Then, close your eyes and lift
               one of your legs up and off the ground. Keep balancing on your one
-              leg for as long as you can. As soon as your foot touches the ground,
-              your SonicSole should detect the force and the timer should stop.
+              leg for as long as you can. As soon as your foot touches the
+              ground, your SonicSole should detect the force and the timer
+              should stop.
             </p>
           </div>
         </div>
       </div>
-  
-      <div id="balanceDataLocation" class="hidden">
+
+      <div id="balanceDataLocation">
         <p class="information">Data</p>
       </div>
-  
+
       <a href="/bScoreboard">Balancing Scoreboard</a>
       <a href="/">Home</a>
-  
-      <script>
-          const nameInput = document.getElementById('name-input');
-          const startButton = document.getElementById('startButton');
-          const balanceDataLocation = document.getElementById('balanceDataLocation');
-  
-          function updateVisibility() {
-              if (nameInput.value.trim() !== '') {
-                  startButton.classList.remove('hidden');
-                  balanceDataLocation.classList.remove('hidden');
-              } else {
-                  startButton.classList.add('hidden');
-                  balanceDataLocation.classList.add('hidden');
-              }
+    </div>
+    <script>
+      document
+        .getElementById("name-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          const nameInput = document.getElementById("name-input").value;
+          if (nameInput.trim() !== "") {
+            localStorage.setItem("name", nameInput);
+            document.getElementById("hidden-content").style.display = "flex";
+            document.getElementById("name-form").style.display = "none";
           }
-  
-          nameInput.addEventListener('input', updateVisibility);
-  
-          function submitForm() {
-              // Your form submission logic here
-              alert('Form submitted with name: ' + nameInput.value);
-          }
-  
-          function openModal() {
-              document.getElementById('instructionsModal').style.display = 'block';
-          }
-  
-          function closeModal() {
-              document.getElementById('instructionsModal').style.display = 'none';
-          }
-      </script>
-  
+        });
+
+      document
+        .getElementById("reset-button")
+        .addEventListener("click", function () {
+          localStorage.removeItem("name");
+          document.getElementById("hidden-content").style.display = "none";
+          document.getElementById("name-form").style.display = "flex";
+        });
+    </script>
+  </body>
 </html>
