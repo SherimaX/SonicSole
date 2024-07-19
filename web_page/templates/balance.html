@@ -154,7 +154,13 @@
       }
 
       function submitForm() {
-        var form = document.getElementById("myForm");
+        var form = document.getElementById("name-form");
+        var formData = new FormData(form);
+        fetch('/submit', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json();
       }
       
       document.addEventListener('DOMContentLoaded', function() {
