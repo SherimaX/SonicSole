@@ -263,19 +263,24 @@ void SonicSole::readIMU() {
     // }
 
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
-    printf("\nIMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
-    printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
-    printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
-    return;
+    // printf("\nIMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
+    // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
+    // printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
+    // return;
 
     // some old code that might be useful later
     // check out YEIgetStreamingBatch later
     YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
-    if(serialDataAvail(IMU))
-    {
+    // if(serialDataAvail(IMU))
+    // {
+    while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
+        {
+          // std::cout << serialDataAvail(IMU) << std::endl;
+          // If no IMU data received, do nothing
+        }
         read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
         reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
-    }
+    // }
 
     // reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce);
     reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce.ax, dataAcce.ay, dataAcce.az);
@@ -287,9 +292,9 @@ void SonicSole::readIMU() {
     float freq = 1/deltaTime;
     float currenttime_micros = (float)getMicrosTimeStamp();
 
-    printf("Time obtained!\n");
-    printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
-    printf("Time: %0.3f secs \n", deltaTime);
+    // printf("Time obtained!\n");
+    // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
+    // printf("Time: %0.3f secs \n", deltaTime);
 }
 
 void SonicSole::sendFlexSensorData(int flexSensorData) {
@@ -325,6 +330,30 @@ void SonicSole::sendFlexSensorData(int flexSensorData) {
 
     std::cout << "Data sent to UDP" << endl;
     close(sockfd);
+
+    // float gyroscope[3], accelerometer[3], magnetometer[3];
+    //     U32 timestamp;
+
+    //     if (tss_sensor_getNormalizedGyroscope(sensor_id, gyroscope, &timestamp) == TSS_NO_ERROR) {
+    //         printf("IMU Gyroscope Vector: %0.2f, %0.2f, %0.2f\n", gyroscope[0], gyroscope[1], gyroscope[2]);
+    //     } else {
+    //         printf("Failed to get gyroscope data\n");
+    //     }
+
+    //     if (tss_sensor_getNormalizedAccelerometer(sensor_id, accelerometer, &timestamp) == TSS_NO_ERROR) {
+    //         printf("IMU Accelerometer Vector: %0.2f, %0.2f, %0.2f\n", accelerometer[0], accelerometer[1], accelerometer[2]);
+    //     } else {
+    //         printf("Failed to get accelerometer data\n");
+    //     }
+
+    //     if (tss_sensor_getNormalizedMagnetometer(sensor_id, magnetometer, &timestamp) == TSS_NO_ERROR) {
+    //         printf("IMU Magnetometer Vector: %0.2f, %0.2f, %0.2f\n", magnetometer[0], magnetometer[1], magnetometer[2]);
+    //     } else {
+    //         printf("Failed to get magnetometer data\n");
+    //     }
+
+    //     printf("Timestamp: %u ms\n", timestamp);
+
 }
 
 void SonicSole::sendFlexSensorData(int flexSensorData, int port) {
