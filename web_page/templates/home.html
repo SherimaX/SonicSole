@@ -137,38 +137,36 @@
     <input type="text" name="name" id="name-input" placeholder="Enter Name" />
     <button type="submit">Submit</button>
   </form>
-  <div class="hidden-content" id="hidden-content">
     <a class="reset-button" id="reset-button">Edit Name</a>
     <div class="activities">
       <a href="/index" class="jumping">Jumping Activity</a>
       <a href="/balance" class="balancing">Balancing Activity</a>  
     </div>
-  </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const name = localStorage.getItem('name');
-      if (name) {
-        document.getElementById('hidden-content').style.display = 'flex';
-        document.getElementById('name-form').style.display = 'none';
-      }
+    // document.addEventListener('DOMContentLoaded', function() {
+    //   const name = localStorage.getItem('name');
+    //   if (name) {
+    //     document.getElementById('hidden-content').style.display = 'flex';
+    //     document.getElementById('name-form').style.display = 'none';
+    //   }
 
-      document.getElementById('name-form').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const nameInput = document.getElementById('name-input').value;
-        if (nameInput.trim() !== "") {
-          localStorage.setItem('name', nameInput);
-          document.getElementById('hidden-content').style.display = 'flex';
-          document.getElementById('name-form').style.display = 'none';
-        }
-      });
+    //   document.getElementById('name-form').addEventListener('submit', function(event) {
+    //     event.preventDefault();
+    //     const nameInput = document.getElementById('name-input').value;
+    //     if (nameInput.trim() !== "") {
+    //       localStorage.setItem('name', nameInput);
+    //       document.getElementById('hidden-content').style.display = 'flex';
+    //       document.getElementById('name-form').style.display = 'none';
+    //     }
+    //   });
 
-      document.getElementById('reset-button').addEventListener('click', function() {
-        localStorage.removeItem('name');
-        document.getElementById('hidden-content').style.display = 'none';
-        document.getElementById('name-form').style.display = 'flex';
-      });
-    });
+    //   document.getElementById('reset-button').addEventListener('click', function() {
+    //     localStorage.removeItem('name');
+    //     document.getElementById('hidden-content').style.display = 'none';
+    //     document.getElementById('name-form').style.display = 'flex';
+    //   });
+    // });
   </script>
 </body>
 </html>
