@@ -67,6 +67,7 @@ def balancing_pressure():
             print("Total time balanced: {} seconds".format(totalTime))
             if submitted_name and i == 0:
                 with open("SonicSole2.txt", "a") as f:
+                    print()
                     f.write(f"{submitted_name},{totalTime}\n")
                 i = 1
             time.sleep(0.01)
@@ -113,21 +114,33 @@ def balance():
     return render_template('balance.html')
 
 @app.route('/bScoreboard')
-def bScoreboard():
-    return render_template('bScoreboard.html')
-
-#new
-@app.route('/bScoreboard')
 def b_scoreboard():
     data = []
     with open('SonicSole2.txt', 'r') as f:
         reader = csv.reader(f)
         for row in reader:
             if row:  # Skip empty rows
-                data.append({'name': row[0], 'time': row[1]})
+                data.append({'name': row[0], 'time': float(row[1])})
+    
     # Sort data based on total time in descending order
-    data.sort(key=lambda x: float(x['time']), reverse=True)
-    return render_template('bScoreboard.html', data=data)
+    data.sort(key=lambda x: x['time'], reverse=True)
+    
+    # Remove the lowest time of any duplicate names
+    unique_data = {}
+    for entry in data:
+        name = entry['name']
+        time = entry['time']
+        if name not in unique_data:
+            unique_data[name] = time
+        else:
+            if time > unique_data[name]:
+                unique_data[name] = time
+
+    # Convert unique_data back to a list of dictionaries
+    sorted_data = [{'name': name, 'time': time} for name, time in unique_data.items()]
+    sorted_data.sort(key=lambda x: x['time'], reverse=True)
+    
+    return render_template('bScoreboard.html', data=sorted_data)
 
 
 @app.route('/button', methods=['POST'])
