@@ -135,6 +135,10 @@
         color: red;
       }
 
+      .content {
+            display: none;
+        }
+
       input[type="text"] {
         padding: 10px;
         font-size: 1.3em;
@@ -207,62 +211,66 @@
   <body>
     <h1>Balancing Activity</h1>
     <form id="name-form">
-      <input
-        type="text"
-        name="name"
-        id="name-input"
-        required
-        placeholder="Enter Name"
-      />
-      <input type="submit" style="display: none" />
+        <input
+            type="text"
+            name="name"
+            id="name-input"
+            required
+            placeholder="Enter Name"
+        />
+        <input type="submit" value="Submit" />
     </form>
-    <div class="buttons">
-      <button id="startButton" disabled>Start Balancing</button>
-      <button onclick="openModal()">Instructions</button>
-      <div id="instructionsModal" class="modal">
-        <div class="modal-content">
-          <span class="close" onclick="closeModal()">&times;</span>
-          <h2>Instructions</h2>
-          <p>
-            Press the "Start Balancing" button. Then, close your eyes and lift
-            one of your legs up and off the ground. Keep balancing on your one
-            leg for as long as you can. As soon as your foot touches the ground,
-            your SonicSole should detect the force and the timer should stop.
-          </p>
+    <div class="content">
+        <div class="buttons">
+            <button id="startButton" disabled>Start Balancing</button>
+            <button onclick="openModal()">Instructions</button>
+            <div id="instructionsModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h2>Instructions</h2>
+                    <p>
+                        Press the "Start Balancing" button. Then, close your eyes and lift
+                        one of your legs up and off the ground. Keep balancing on your one
+                        leg for as long as you can. As soon as your foot touches the ground,
+                        your SonicSole should detect the force and the timer should stop.
+                    </p>
+                </div>
+            </div>
         </div>
-      </div>
+        
+        <div id="balanceDataLocation">
+            <p class="information">Data</p>
+        </div>
+        
+        <a href="/bScoreboard">Balancing Scoreboard</a>
+        <a href="/">Home</a>
     </div>
-    
-    <div id="balanceDataLocation">
-      <p class="information">Data</p>
-    </div>
-    
-    <a href="/bScoreboard">Balancing Scoreboard</a>
-    <a href="/">Home</a>
-    
+
     <script>
-      const nameInput = document.getElementById("name-input");
-      const startButton = document.getElementById("startButton");
-      const nameForm = document.getElementById("name-form");
-    
-      // Handle form submission and enable the start button
-      nameForm.addEventListener("submit", function (event) {
-        if (nameInput.value.trim() === "") {
-          event.preventDefault();
-          nameInput.placeholder = "Please enter your name first";
-          nameInput.classList.add("error");
-        } else {
-          startButton.disabled = false;
-        }
-      });
-    
-      // Handle input changes to remove error state
-      nameInput.addEventListener("input", function () {
-        if (nameInput.classList.contains("error")) {
-          nameInput.classList.remove("error");
-          nameInput.placeholder = "Enter Name";
-        }
-      });
+        const nameInput = document.getElementById("name-input");
+        const startButton = document.getElementById("startButton");
+        const nameForm = document.getElementById("name-form");
+        const contentDiv = document.querySelector(".content");
+
+        nameForm.addEventListener("submit", function (event) {
+            if (nameInput.value.trim() === "") {
+                event.preventDefault();
+                nameInput.placeholder = "Please enter your name first";
+                nameInput.classList.add("error");
+            } else {
+                event.preventDefault(); // Prevent default form submission
+                contentDiv.style.display = "block"; // Show the content div
+                startButton.disabled = false; // Enable the start button
+                nameInput.classList.remove("error");
+                nameInput.placeholder = "Enter Name";
+            }
+        });
+
+        nameInput.addEventListener("input", function () {
+            if (nameInput.classList.contains("error")) {
+                nameInput.classList.remove("error");
+                nameInput.placeholder = "Enter Name";
+            }
+        });
     </script>
-  </body>
 </html>
