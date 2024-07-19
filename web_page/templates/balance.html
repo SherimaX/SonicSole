@@ -245,5 +245,13 @@
     <a href="/bScoreboard">Balancing Scoreboard</a>
     <a href="/">Home</a>
   </div>
+  <script>
+    let loginForm = document.getElementById("name-input");
+
+    loginForm.addEventListener("submit", (e) => {
+      let content = document.querySelector(".content");
+      content.style.display = "block"; // Show the content
+    });
+  </script>
   </body>
 </html>
