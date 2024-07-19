@@ -206,7 +206,7 @@
       <input type="text" name="name" id="name-input" required placeholder="Enter Name" />
     </form>
     <div class="buttons">
-      <button onclick="submitForm()" id="startButton">Start Balancing</button>
+      <button onclick="submitForm()" id="startButton" disabled>Start Balancing</button>
       <button onclick="openModal()">Instructions</button>
       <div id="instructionsModal" class="modal">
         <div class="modal-content">
@@ -221,12 +221,42 @@
         </div>
       </div>
     </div>
-
+  
     <div id="balanceDataLocation">
       <p class="information">Data</p>
     </div>
-
+  
     <a href="/bScoreboard">Balancing Scoreboard</a>
     <a href="/">Home</a>
+  
+    <script>
+      const nameInput = document.getElementById('name-input');
+      const startButton = document.getElementById('startButton');
+  
+      nameInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          if (nameInput.value.trim() !== '') {
+            startButton.disabled = false;
+          }
+        }
+      });
+  
+      startButton.addEventListener('click', function(event) {
+        if (nameInput.value.trim() === '') {
+          event.preventDefault();
+          nameInput.placeholder = 'Please enter your name first';
+          nameInput.classList.add('error');
+        }
+      });
+  
+      nameInput.addEventListener('input', function() {
+        if (nameInput.classList.contains('error')) {
+          nameInput.classList.remove('error');
+          nameInput.placeholder = 'Enter Name';
+        }
+      });
+    </script>
   </body>
+  
 </html>
