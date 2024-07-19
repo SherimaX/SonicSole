@@ -128,33 +128,32 @@ def b_scoreboard():
         with open('SonicSole2.txt', 'r') as f:
             reader = csv.reader(f)
             for row in reader:
-                if len(row) >= 2:  # Ensure the row has at least 2 elements
-                    data.append({'name': row[0], 'time': float(row[1])})
+                if len(row) == 2:  # Ensure each row has exactly 2 elements
+                    try:
+                        name, time_value = row
+                        data.append({'name': name, 'time': float(time_value)})
+                    except ValueError:
+                        print(f"Skipping invalid row: {row}")
     except FileNotFoundError:
         return "Error: SonicSole2.txt file not found."
-    except ValueError:
-        return "Error: Incorrect data format in SonicSole2.txt."
     except Exception as e:
         return f"Error: {e}"
 
     # Sort data based on total time in descending order
     data.sort(key=lambda x: x['time'], reverse=True)
-    
+
     # Remove the lowest time of any duplicate names
     unique_data = {}
     for entry in data:
         name = entry['name']
-        time = entry['time']
-        if name not in unique_data:
-            unique_data[name] = time
-        else:
-            if time > unique_data[name]:
-                unique_data[name] = time
+        time_value = entry['time']
+        if name not in unique_data or time_value > unique_data[name]:
+            unique_data[name] = time_value
 
     # Convert unique_data back to a list of dictionaries
     sorted_data = [{'name': name, 'time': time} for name, time in unique_data.items()]
     sorted_data.sort(key=lambda x: x['time'], reverse=True)
-    
+
     return render_template('bScoreboard.html', data=sorted_data)
 
 
