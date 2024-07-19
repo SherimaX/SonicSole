@@ -132,14 +132,15 @@
       }
 
       input[type="text"] {
-        padding: 10px;
-        font-size: 1.3em;
-        border: 2px solid #210000;
-        border-radius: 5px;
-        margin-bottom: 10px;
-        width: 250px;
-        font-family: Bradley Hand, cursive;
-      }
+      padding: 10px;
+      font-size: 1.3em;
+      border: 2px solid #210000;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      width: 250px;
+      font-family: Bradley Hand, cursive;
+    }
+
     </style>
     <script>
       function fetchData() {
@@ -167,21 +168,20 @@
       function submitForm() {
         var form = document.getElementById("name-form");
         var formData = new FormData(form);
-        fetch("/submit", {
-          method: "POST",
-          body: formData,
-        }).then((response) => response.json());
+        fetch('/submit', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json());
       }
-
-      document.addEventListener("DOMContentLoaded", function () {
-        document
-          .getElementById("startButton")
-          .addEventListener("click", function () {
-            fetch("/button_click", { method: "POST" })
-              .then((response) => response.json())
-              .then((data) => console.log(data.status))
-              .catch((error) => console.error("Error:", error));
-          });
+      
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('startButton').addEventListener('click', function() {
+          fetch('/button_click', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => console.log(data.status))
+            .catch(error => console.error('Error:', error));
+        });
       });
 
       //   $(document).ready(function () {
@@ -201,62 +201,38 @@
     </script>
   </head>
   <body>
-    You can achieve this by using JavaScript to toggle the visibility of the
-    elements based on whether the input field has text or not. Here’s how you
-    can modify your HTML and add JavaScript to accomplish this: HTML: html Copy
-    code
     <h1>Balancing Activity</h1>
     <form id="name-form">
-      <input
-        type="text"
-        name="name"
-        id="name-input"
-        placeholder="Enter Name"
-        oninput="toggleVisibility()"
-      />
+      <input type="text" name="name" id="name-input" placeholder="Enter Name" />
     </form>
     <div class="hidden-content" id="hidden-content">
-      <div class="buttons">
-        <button onclick="submitForm()" id="startButton">Start Balancing</button>
-        <button onclick="openModal()">Instructions</button>
-        <div id="instructionsModal" class="modal">
-          <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Instructions</h2>
-            <p>
-              Press the "Start Balancing" button. Then, close your eyes and lift
-              one of your legs up and off the ground. Keep balancing on your one
-              leg for as long as you can. As soon as your foot touches the
-              ground, your SonicSole should detect the force and the timer
-              should stop.
-            </p>
-          </div>
+    <div class="buttons">
+      <button onclick="submitForm()" id="startButton">Start Balancing</button>
+      <button onclick="openModal()">Instructions</button>
+      <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeModal()">&times;</span>
+          <h2>Instructions</h2>
+          <p>
+            Press the "Start Balancing" button. Then, close your eyes and lift
+            one of your legs up and off the ground. Keep balancing on your one
+            leg for as long as you can. As soon as your foot touches the ground,
+            your SonicSole should detect the force and the timer should stop.
+          </p>
         </div>
       </div>
-
-      <div id="balanceDataLocation">
-        <p class="information">Data</p>
-      </div>
-
-      <a href="/bScoreboard">Balancing Scoreboard</a>
-      <a href="/">Home</a>
     </div>
+
+    <div id="balanceDataLocation">
+      <p class="information">Data</p>
+    </div>
+
+    <a href="/bScoreboard">Balancing Scoreboard</a>
+    <a href="/">Home</a>
+  </div>
     <script>
-      function toggleVisibility() {
-        const nameInput = document.getElementById("name-input");
-        const hiddenContent = document.getElementById("hidden-content");
-
-        if (nameInput.value.trim() !== "") {
-          hiddenContent.style.display = "block";
-        } else {
-          hiddenContent.style.display = "none";
-        }
-      }
-
-      // Initially hide the hidden-content
-      document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("hidden-content").style.display = "none";
-      });
+      
     </script>
   </body>
+
 </html>
