@@ -242,11 +242,11 @@
       <a href="/">Home</a>
     </div>
     <script>
-
       document.addEventListener("DOMContentLoaded", () => {
         document
           .getElementById("name-input")
           .addEventListener("submit", (e) => {
+            e.preventDefault(); // Prevent the default form submission
             document.querySelector(".content").style.display = "block"; // Show the content
           });
       });
