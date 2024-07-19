@@ -236,34 +236,6 @@
       <a href="/bScoreboard">Balancing Scoreboard</a>
       <a href="/">Home</a>
     </div>
-    <script>
-              const nameInput = document.getElementById('name-input');
-        const hiddenContent = document.getElementById('hidden-content');
-
-        function updateVisibility() {
-            if (nameInput.value.trim() !== '') {
-                hiddenContent.classList.remove('hidden');
-            } else {
-                hiddenContent.classList.add('hidden');
-            }
-        }
-
-        nameInput.addEventListener('input', updateVisibility);
-
-        function submitForm() {
-            // Your form submission logic here
-            alert('Form submitted with name: ' + nameInput.value);
-        }
-
-        function openModal() {
-            document.getElementById('instructionsModal').style.display = 'block';
-        }
-
-        function closeModal() {
-            document.getElementById('instructionsModal').style.display = 'none';
-        }
-
-
-    </script>
+    <script></script>
   </body>
 </html>
