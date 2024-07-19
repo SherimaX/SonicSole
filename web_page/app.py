@@ -116,12 +116,17 @@ def balance():
 @app.route('/bScoreboard')
 def b_scoreboard():
     data = []
-    with open('SonicSole2.txt', 'r') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if row:  # Skip empty rows
-                data.append({'name': row[0], 'time': float(row[1])})
-    
+    try:
+        with open('SonicSole2.txt', 'r') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if row:  # Skip empty rows
+                    data.append({'name': row[0], 'time': float(row[1])})
+    except FileNotFoundError:
+        return "Error: SonicSole2.txt file not found."
+    except Exception as e:
+        return f"Error: {e}"
+
     # Sort data based on total time in descending order
     data.sort(key=lambda x: x['time'], reverse=True)
     
