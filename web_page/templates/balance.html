@@ -144,10 +144,6 @@
         width: 250px;
         font-family: Bradley Hand, cursive;
       }
-
-      .content {
-        display: none;
-      }
     </style>
     <script>
       function fetchData() {
@@ -206,16 +202,21 @@
       //       });
       //     });
       //   });
-
       document.addEventListener("DOMContentLoaded", () => {
+        let submitted = false;
+
         const form = document.getElementById("name-input");
         form.addEventListener("submit", (e) => {
-          const nameInput = document.getElementById("name").value;
-          if (nameInput.trim() !== "") {
-            document.querySelector(".content").style.display = "block";
+          submitted = true; // Set submitted to true when the form is submitted
+
+          if (submitted) {
+            document.querySelector(".content").style.display = "block"; // Show the content
+          } else {
+            document.querySelector(".content").style.display = "none"; // Hide the content
           }
         });
       });
+
     </script>
   </head>
   <body>
