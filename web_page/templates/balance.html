@@ -211,14 +211,12 @@
   <body>
     <h1>Balancing Activity</h1>
     <form id="name-form">
-      <input
-        type="text"
-        name="name"
-        id="name-input"
-        required
-        placeholder="Enter Name"
-      />
-      <input type="submit" style="display: none" />
+      <form id="name-input">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <button type="submit">Submit</button>
+    </form>
+
     </form>
     <div class="content">
     <div class="buttons">
@@ -246,12 +244,11 @@
     <a href="/">Home</a>
   </div>
   <script>
-    let loginForm = document.getElementById("name-input");
-
-    loginForm.addEventListener("submit", (e) => {
-      let content = document.querySelector(".content");
-      content.style.display = "block"; // Show the content
-    });
+        document.getElementById("name-input").addEventListener("submit", (e) => {
+            // Allow the form to submit normally
+            let content = document.querySelector(".content");
+            content.style.display = "block"; // Show the content
+        });
   </script>
   </body>
 </html>
