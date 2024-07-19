@@ -129,6 +129,22 @@
       .information {
         font-size: 1.3em;
       }
+
+      input[type="text"] {
+        padding: 10px;
+        font-size: 1.3em;
+        border: 2px solid #210000;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        width: 250px;
+        font-family: Bradley Hand, cursive;
+      }
+
+      .hidden-content {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+      }
     </style>
     <script>
       function fetchData() {
@@ -156,20 +172,21 @@
       function submitForm() {
         var form = document.getElementById("name-form");
         var formData = new FormData(form);
-        fetch('/submit', {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => response.json());
+        fetch("/submit", {
+          method: "POST",
+          body: formData,
+        }).then((response) => response.json());
       }
-      
-      document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('startButton').addEventListener('click', function() {
-          fetch('/button_click', { method: 'POST' })
-            .then(response => response.json())
-            .then(data => console.log(data.status))
-            .catch(error => console.error('Error:', error));
-        });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("startButton")
+          .addEventListener("click", function () {
+            fetch("/button_click", { method: "POST" })
+              .then((response) => response.json())
+              .then((data) => console.log(data.status))
+              .catch((error) => console.error("Error:", error));
+          });
       });
 
       //   $(document).ready(function () {
@@ -189,32 +206,64 @@
     </script>
   </head>
   <body>
-    <h1>Balancing Activity</h1>
-    <form id="name-form">
-      <input type="text" name="name" id="name-input" placeholder="Enter Name" />
-    </form>
-    <div class="buttons">
-      <button onclick="submitForm()" id="startButton">Start Balancing</button>
-      <button onclick="openModal()">Instructions</button>
-      <div id="instructionsModal" class="modal">
-        <div class="modal-content">
-          <span class="close" onclick="closeModal()">&times;</span>
-          <h2>Instructions</h2>
-          <p>
-            Press the "Start Balancing" button. Then, close your eyes and lift
-            one of your legs up and off the ground. Keep balancing on your one
-            leg for as long as you can. As soon as your foot touches the ground,
-            your SonicSole should detect the force and the timer should stop.
-          </p>
+    <body>
+      <h1>Balancing Activity</h1>
+      <form id="name-form">
+        <input type="text" name="name" id="name-input" placeholder="Enter Name" />
+      </form>
+      <div class="buttons">
+        <button onclick="submitForm()" id="startButton" class="hidden">Start Balancing</button>
+        <button onclick="openModal()">Instructions</button>
+        <div id="instructionsModal" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Instructions</h2>
+            <p>
+              Press the "Start Balancing" button. Then, close your eyes and lift
+              one of your legs up and off the ground. Keep balancing on your one
+              leg for as long as you can. As soon as your foot touches the ground,
+              your SonicSole should detect the force and the timer should stop.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div id="balanceDataLocation">
-      <p class="information">Data</p>
-    </div>
-
-    <a href="/bScoreboard">Balancing Scoreboard</a>
-    <a href="/">Home</a>
-  </body>
+  
+      <div id="balanceDataLocation" class="hidden">
+        <p class="information">Data</p>
+      </div>
+  
+      <a href="/bScoreboard">Balancing Scoreboard</a>
+      <a href="/">Home</a>
+  
+      <script>
+          const nameInput = document.getElementById('name-input');
+          const startButton = document.getElementById('startButton');
+          const balanceDataLocation = document.getElementById('balanceDataLocation');
+  
+          function updateVisibility() {
+              if (nameInput.value.trim() !== '') {
+                  startButton.classList.remove('hidden');
+                  balanceDataLocation.classList.remove('hidden');
+              } else {
+                  startButton.classList.add('hidden');
+                  balanceDataLocation.classList.add('hidden');
+              }
+          }
+  
+          nameInput.addEventListener('input', updateVisibility);
+  
+          function submitForm() {
+              // Your form submission logic here
+              alert('Form submitted with name: ' + nameInput.value);
+          }
+  
+          function openModal() {
+              document.getElementById('instructionsModal').style.display = 'block';
+          }
+  
+          function closeModal() {
+              document.getElementById('instructionsModal').style.display = 'none';
+          }
+      </script>
+  
 </html>
