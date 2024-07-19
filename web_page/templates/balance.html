@@ -248,41 +248,6 @@
       <a href="/">Home</a>
     </div>
     <script>
-      document
-        .getElementById("name-form")
-        .addEventListener("submit", function (event) {
-          event.preventDefault(); // Prevent the form from submitting normally
-
-          const nameInput = document.getElementById("name-input");
-          const hiddenContent = document.getElementById("hidden-content");
-
-          if (nameInput.value.trim() !== "") {
-            localStorage.setItem("name", nameInput.value.trim());
-            hiddenContent.style.display = "block";
-            document.getElementById("name-form").style.display = "none";
-          } else {
-            nameInput.classList.add("error");
-            nameInput.placeholder = "Please enter your name";
-          }
-        });
-
-      document
-        .getElementById("startButton")
-        .addEventListener("click", function () {
-          const nameInput = document.getElementById("name-input");
-          if (nameInput.value.trim() === "") {
-            nameInput.classList.add("error");
-            nameInput.placeholder = "Please enter your name";
-          }
-        });
-
-      function openModal() {
-        document.getElementById("instructionsModal").style.display = "block";
-      }
-
-      function closeModal() {
-        document.getElementById("instructionsModal").style.display = "none";
-      }
     </script>
   </body>
 </html>
