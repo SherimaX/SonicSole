@@ -132,29 +132,15 @@
       }
 
       input[type="text"] {
-        padding: 10px;
-        font-size: 1.3em;
-        border: 2px solid #210000;
-        border-radius: 5px;
-        margin-bottom: 10px;
-        width: 250px;
-        font-family: Bradley Hand, cursive;
-      }
+      padding: 10px;
+      font-size: 1.3em;
+      border: 2px solid #210000;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      width: 250px;
+      font-family: Bradley Hand, cursive;
+    }
 
-      .error {
-        border-color: red;
-      }
-      .error-placeholder::placeholder {
-        color: red;
-      }
-
-      .hidden-content {
-        border: 5px solid;
-        position: absolute;
-        top: 50%;
-        transform: translate(0, -50%);
-        padding: 10px;
-      }
     </style>
     <script>
       function fetchData() {
@@ -182,21 +168,20 @@
       function submitForm() {
         var form = document.getElementById("name-form");
         var formData = new FormData(form);
-        fetch("/submit", {
-          method: "POST",
-          body: formData,
-        }).then((response) => response.json());
+        fetch('/submit', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json());
       }
-
-      document.addEventListener("DOMContentLoaded", function () {
-        document
-          .getElementById("startButton")
-          .addEventListener("click", function () {
-            fetch("/button_click", { method: "POST" })
-              .then((response) => response.json())
-              .then((data) => console.log(data.status))
-              .catch((error) => console.error("Error:", error));
-          });
+      
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('startButton').addEventListener('click', function() {
+          fetch('/button_click', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => console.log(data.status))
+            .catch(error => console.error('Error:', error));
+        });
       });
 
       //   $(document).ready(function () {
@@ -219,35 +204,29 @@
     <h1>Balancing Activity</h1>
     <form id="name-form">
       <input type="text" name="name" id="name-input" placeholder="Enter Name" />
-      <button type="submit">Submit</button>
     </form>
-    <div class="hidden-content" id="hidden-content">
-      <div class="buttons">
-        <button onclick="submitForm()" id="startButton">Start Balancing</button>
-        <button onclick="openModal()">Instructions</button>
-        <div id="instructionsModal" class="modal">
-          <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Instructions</h2>
-            <p>
-              Press the "Start Balancing" button. Then, close your eyes and lift
-              one of your legs up and off the ground. Keep balancing on your one
-              leg for as long as you can. As soon as your foot touches the
-              ground, your SonicSole should detect the force and the timer
-              should stop.
-            </p>
-          </div>
+    <div class="buttons">
+      <button onclick="submitForm()" id="startButton">Start Balancing</button>
+      <button onclick="openModal()">Instructions</button>
+      <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeModal()">&times;</span>
+          <h2>Instructions</h2>
+          <p>
+            Press the "Start Balancing" button. Then, close your eyes and lift
+            one of your legs up and off the ground. Keep balancing on your one
+            leg for as long as you can. As soon as your foot touches the ground,
+            your SonicSole should detect the force and the timer should stop.
+          </p>
         </div>
       </div>
-
-      <div id="balanceDataLocation">
-        <p class="information">Data</p>
-      </div>
-
-      <a href="/bScoreboard">Balancing Scoreboard</a>
-      <a href="/">Home</a>
     </div>
-    <script>
-    </script>
+
+    <div id="balanceDataLocation">
+      <p class="information">Data</p>
+    </div>
+
+    <a href="/bScoreboard">Balancing Scoreboard</a>
+    <a href="/">Home</a>
   </body>
 </html>
