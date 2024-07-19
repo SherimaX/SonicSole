@@ -130,7 +130,7 @@
         font-size: 1.3em;
       }
 
-          input[type="text"] {
+      input[type="text"] {
       padding: 10px;
       font-size: 1.3em;
       border: 2px solid #210000;
@@ -139,6 +139,11 @@
       width: 250px;
       font-family: Bradley Hand, cursive;
     }
+
+    .error {
+            color: red;
+        }
+
 
     </style>
     <script>
@@ -227,5 +232,41 @@
 
     <a href="/bScoreboard">Balancing Scoreboard</a>
     <a href="/">Home</a>
+    <script>
+              const nameInput = document.getElementById('name-input');
+        const startButton = document.getElementById('startButton');
+
+        function updateButtonState() {
+            if (nameInput.value.trim() !== '') {
+                startButton.disabled = false;
+                nameInput.classList.remove('error');
+                nameInput.placeholder = 'Enter Name';
+            } else {
+                startButton.disabled = true;
+            }
+        }
+
+        function submitForm() {
+            if (nameInput.value.trim() === '') {
+                nameInput.classList.add('error');
+                nameInput.placeholder = 'Please enter a name before starting';
+            } else {
+                // Your form submission logic here
+                alert('Form submitted with name: ' + nameInput.value);
+            }
+        }
+
+        nameInput.addEventListener('input', updateButtonState);
+
+        function openModal() {
+            document.getElementById('instructionsModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('instructionsModal').style.display = 'none';
+        }
+    </script>
+
+    </script>
   </body>
 </html>
