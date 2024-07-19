@@ -53,24 +53,40 @@ def submit():
 
 def balancing_pressure():
     global totalTime, recording_time, submitted_name, i
-    start_time = time.time()
+    start_time = None  # Initialize start_time to None
+
     while True:
-        if recording_time and (int(received_heel_data) < 500 and int(received_fore_data) < 500):
-            i = 0
-            end_time = time.time()
-            totalTime = str(end_time - start_time)
-            print("Currently Balanced for {} seconds".format(totalTime))
-            time.sleep(0.01)
+        if recording_time:
+            if int(received_heel_data) < 500 and int(received_fore_data) < 500:
+                if start_time is None:
+                    start_time = time.time()  # Start timing when balance is first detected
+                end_time = time.time()
+                totalTime = str(end_time - start_time)
+                print("Currently Balanced for {} seconds".format(totalTime))
+            else:
+                # Balance is lost
+                if start_time is not None:
+                    end_time = time.time()
+                    totalTime = str(end_time - start_time)
+                    print("Total time balanced: {} seconds".format(totalTime))
+                    if submitted_name and i == 0:
+                        try:
+                            with open("SonicSole2.txt", "a") as f:
+                                f.write(f"{submitted_name},{totalTime}\n")
+                            print("Write successful")
+                        except Exception as e:
+                            print(f"Error writing to file: {e}")
+                        i = 1  # Ensure the data is written only once
+                    start_time = None  # Reset start_time for the next balance session
+                recording_time = False  # Stop recording
         else:
-            recording_time = False
-            start_time = time.time()
-            print("Total time balanced: {} seconds".format(totalTime))
-            if submitted_name and i == 0:
-                with open("SonicSole2.txt", "a") as f:
-                    f.write(f"{submitted_name},{totalTime}\n")
-                i = 1
-            time.sleep(0.01)
-            
+            # Check if balance is detected again
+            if int(received_heel_data) < 500 and int(received_fore_data) < 500:
+                recording_time = True
+                start_time = time.time()  # Start timing on balance detection
+                i = 0  # Allow writing on the next balance
+
+        time.sleep(0.01)            
 
 # For index.html
 
