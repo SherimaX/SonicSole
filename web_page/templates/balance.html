@@ -204,6 +204,7 @@
     <h1>Balancing Activity</h1>
     <form id="name-form">
       <input type="text" name="name" id="name-input" required placeholder="Enter Name" />
+      <input type="submit" style="display: none;" />
     </form>
     <div class="buttons">
       <button onclick="submitForm()" id="startButton" disabled>Start Balancing</button>
@@ -232,12 +233,14 @@
     <script>
       const nameInput = document.getElementById('name-input');
       const startButton = document.getElementById('startButton');
+      const nameForm = document.getElementById('name-form');
   
       nameInput.addEventListener('keypress', function(event) {
         if (event.key === 'Enter') {
           event.preventDefault();
           if (nameInput.value.trim() !== '') {
             startButton.disabled = false;
+            nameForm.submit();
           }
         }
       });
