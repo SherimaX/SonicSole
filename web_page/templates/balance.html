@@ -135,10 +135,6 @@
         color: red;
       }
 
-      .content {
-        display: none;
-      }
-
       input[type="text"] {
         padding: 10px;
         font-size: 1.3em;
@@ -242,13 +238,13 @@
       <a href="/">Home</a>
     </div>
     <script>
+      document.querySelector(".content").style.display = "None"
+
       document.addEventListener("DOMContentLoaded", () => {
-        document
-          .getElementById("name-input")
-          .addEventListener("submit", (e) => {
-            e.preventDefault(); // Prevent the default form submission
-            document.querySelector(".content").style.display = "block"; // Show the content
-          });
+        const form = document.getElementById("name-input");
+        form.addEventListener("submit", (e) => {
+          document.querySelector(".content").style.display = "block"; // Show the content
+        });
       });
     </script>
   </body>
