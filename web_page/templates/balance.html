@@ -190,6 +190,12 @@
               .then((data) => console.log(data.status))
               .catch((error) => console.error("Error:", error));
           });
+
+        const loginForm = document.getElementById("name-input");
+        loginForm.addEventListener("submit", (e) => {
+          // Show the content when the form is submitted
+          document.querySelector(".content").style.display = "block";
+        });
       });
 
       //   $(document).ready(function () {
@@ -206,16 +212,6 @@
       //       });
       //     });
       //   });
-      document.addEventListener("DOMContentLoaded", () => {
-            const loginForm = document.getElementById("name-input");
-            loginForm.addEventListener("submit", (e) => {
-                // Show the content when the form is submitted
-                document.querySelector(".content").style.display = "block";
-
-                // Allow the form to submit normally
-            });
-        });
-
     </script>
   </head>
   <body>
