@@ -66,7 +66,7 @@ def balancing_pressure():
             start_time = time.time()
             print("Total time balanced: {} seconds".format(totalTime))
             print(submitted_name)
-            if submitted_name and i == 0:
+            if i == 0:
                 f = open("SonicSole2.txt", "a")
                 f.write(submitted_name + ","+ totalTime)
                 f.close()
