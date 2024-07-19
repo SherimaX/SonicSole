@@ -152,6 +152,10 @@
       function closeModal() {
         document.getElementById("instructionsModal").style.display = "none";
       }
+
+      function submitForm() {
+        var form = document.getElementById("myForm");
+      }
       
       document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('startButton').addEventListener('click', function() {
@@ -182,10 +186,9 @@
     <h1>Balancing Activity</h1>
     <form id="name-form">
       <input type="text" name="name" id="name-input" placeholder="Enter Name" />
-      <button type="submit">Submit</button>
     </form>
     <div class="buttons">
-      <button id="startButton">Start Balancing</button>
+      <button onclick="submitForm()" id="startButton">Start Balancing</button>
       <button onclick="openModal()">Instructions</button>
       <div id="instructionsModal" class="modal">
         <div class="modal-content">
