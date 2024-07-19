@@ -63,6 +63,7 @@ def balancing_pressure():
             time.sleep(0.01)
         else:
             recording_time = False
+            start_time = time.time()
             print("Total time balanced: {} seconds".format(totalTime))
             if submitted_name and i == 0:
                 f = open("SonicSole2.txt", "a")
