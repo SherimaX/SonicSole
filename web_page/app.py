@@ -70,6 +70,7 @@ def balancing_pressure():
                 f.write(submitted_name + ","+ totalTime)
                 f.close()
                 i = 1
+                exit()
             time.sleep(0.01)
             
 
