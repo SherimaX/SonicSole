@@ -101,35 +101,6 @@
     </table>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const table = document.getElementById("leaderboard");
-        const rows = Array.from(table.querySelectorAll("tr:nth-child(n+2)"));
-
-        // Function to sort rows based on time
-        rows.sort((a, b) => {
-          const timeA = parseFloat(a.cells[1].textContent.split(" ")[0]);
-          const timeB = parseFloat(b.cells[1].textContent.split(" ")[0]);
-          return timeB - timeA; // Sort from greatest to least
-        });
-
-        // Reattach sorted rows
-        rows.forEach((row) => table.appendChild(row));
-
-        // Function to remove duplicate names
-        const removeDuplicates = (rows) => {
-          const namesSeen = new Set();
-          rows.forEach((row) => {
-            const name = row.cells[0].textContent;
-            if (namesSeen.has(name)) {
-              row.remove();
-            } else {
-              namesSeen.add(name);
-            }
-          });
-        };
-
-        removeDuplicates(rows); // Remove duplicate rows
-      });
     </script>
   </body>
 </html>
