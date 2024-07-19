@@ -43,7 +43,7 @@ def update_fore_color(pressure):
         G_fore = int(255 - ((pressure - 1000) / 1000) * 255)
 
 #For balance.html
-i = 0
+i = 1
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -68,6 +68,7 @@ def balancing_pressure():
             if submitted_name and i == 0:
                 f = open("SonicSole2.txt", "a")
                 f.write(submitted_name + ","+ totalTime)
+                f.close()
                 i = 1
             time.sleep(0.01)
             
