@@ -49,7 +49,7 @@ i = 1
 def submit():
     global submitted_name
     submitted_name = request.form['name']
-    return redirect(url_for('home'))
+    return jsonify({"status": "Name submitted successfully"})
 
 def balancing_pressure():
     global totalTime, recording_time, submitted_name, i
