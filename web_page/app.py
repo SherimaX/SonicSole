@@ -21,7 +21,7 @@ G_heel = 255
 R_fore = 0
 G_fore = 255
 
-submitted_name = ""
+submitted_name = "User1"
 
 
 def update_heel_color(pressure):
