@@ -132,8 +132,8 @@
       }
 
       .error {
-      color: red;
-    }
+        color: red;
+      }
 
       input[type="text"] {
         padding: 10px;
@@ -217,9 +217,7 @@
       <input type="submit" style="display: none" />
     </form>
     <div class="buttons">
-      <button onclick="submitForm()" id="startButton" disabled>
-        Start Balancing
-      </button>
+      <button id="startButton" disabled>Start Balancing</button>
       <button onclick="openModal()">Instructions</button>
       <div id="instructionsModal" class="modal">
         <div class="modal-content">
@@ -247,8 +245,6 @@
       const startButton = document.getElementById("startButton");
       const nameForm = document.getElementById("name-form");
       let enterPressed = false;
-
-      startButton.disabled = true;
 
       nameInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
