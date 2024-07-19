@@ -232,39 +232,31 @@
         </div>
       </div>
     </div>
-
+    
     <div id="balanceDataLocation">
       <p class="information">Data</p>
     </div>
-
+    
     <a href="/bScoreboard">Balancing Scoreboard</a>
     <a href="/">Home</a>
-
+    
     <script>
       const nameInput = document.getElementById("name-input");
       const startButton = document.getElementById("startButton");
       const nameForm = document.getElementById("name-form");
-      let enterPressed = false;
-
-      nameInput.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          if (nameInput.value.trim() !== "") {
-            enterPressed = true;
-            startButton.disabled = false;
-            nameForm.submit();
-          }
-        }
-      });
-
-      startButton.addEventListener("click", function (event) {
-        if (!enterPressed) {
+    
+      // Handle form submission and enable the start button
+      nameForm.addEventListener("submit", function (event) {
+        if (nameInput.value.trim() === "") {
           event.preventDefault();
           nameInput.placeholder = "Please enter your name first";
           nameInput.classList.add("error");
+        } else {
+          startButton.disabled = false;
         }
       });
-
+    
+      // Handle input changes to remove error state
       nameInput.addEventListener("input", function () {
         if (nameInput.classList.contains("error")) {
           nameInput.classList.remove("error");
