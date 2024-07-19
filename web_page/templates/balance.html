@@ -132,15 +132,21 @@
       }
 
       input[type="text"] {
-      padding: 10px;
-      font-size: 1.3em;
-      border: 2px solid #210000;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      width: 250px;
-      font-family: Bradley Hand, cursive;
-    }
+        padding: 10px;
+        font-size: 1.3em;
+        border: 2px solid #210000;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        width: 250px;
+        font-family: Bradley Hand, cursive;
+      }
 
+      .hidden-content {
+        display: none;
+      }
+      .error {
+        border-color: red;
+      }
     </style>
     <script>
       function fetchData() {
@@ -168,20 +174,21 @@
       function submitForm() {
         var form = document.getElementById("name-form");
         var formData = new FormData(form);
-        fetch('/submit', {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => response.json());
+        fetch("/submit", {
+          method: "POST",
+          body: formData,
+        }).then((response) => response.json());
       }
-      
-      document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('startButton').addEventListener('click', function() {
-          fetch('/button_click', { method: 'POST' })
-            .then(response => response.json())
-            .then(data => console.log(data.status))
-            .catch(error => console.error('Error:', error));
-        });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("startButton")
+          .addEventListener("click", function () {
+            fetch("/button_click", { method: "POST" })
+              .then((response) => response.json())
+              .then((data) => console.log(data.status))
+              .catch((error) => console.error("Error:", error));
+          });
       });
 
       //   $(document).ready(function () {
@@ -202,37 +209,70 @@
   </head>
   <body>
     <h1>Balancing Activity</h1>
-    <form id="name-form">
+    <form id="name-form" onsubmit="return submitForm();">
       <input type="text" name="name" id="name-input" placeholder="Enter Name" />
     </form>
     <div class="hidden-content" id="hidden-content">
-    <div class="buttons">
-      <button onclick="submitForm()" id="startButton">Start Balancing</button>
-      <button onclick="openModal()">Instructions</button>
-      <div id="instructionsModal" class="modal">
-        <div class="modal-content">
-          <span class="close" onclick="closeModal()">&times;</span>
-          <h2>Instructions</h2>
-          <p>
-            Press the "Start Balancing" button. Then, close your eyes and lift
-            one of your legs up and off the ground. Keep balancing on your one
-            leg for as long as you can. As soon as your foot touches the ground,
-            your SonicSole should detect the force and the timer should stop.
-          </p>
+      <div class="buttons">
+        <button id="startButton" disabled>Start Balancing</button>
+        <button onclick="openModal()">Instructions</button>
+        <div id="instructionsModal" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Instructions</h2>
+            <p>
+              Press the "Start Balancing" button. Then, close your eyes and lift
+              one of your legs up and off the ground. Keep balancing on your one
+              leg for as long as you can. As soon as your foot touches the
+              ground, your SonicSole should detect the force and the timer
+              should stop.
+            </p>
+          </div>
         </div>
       </div>
+      <div id="balanceDataLocation">
+        <p class="information">Data</p>
+      </div>
+      <a href="/bScoreboard">Balancing Scoreboard</a>
+      <a href="/">Home</a>
     </div>
 
-    <div id="balanceDataLocation">
-      <p class="information">Data</p>
-    </div>
-
-    <a href="/bScoreboard">Balancing Scoreboard</a>
-    <a href="/">Home</a>
-  </div>
     <script>
-      
+      document
+        .getElementById("name-input")
+        .addEventListener("input", function () {
+          const nameInput = document.getElementById("name-input").value.trim();
+          const startButton = document.getElementById("startButton");
+          const hiddenContent = document.getElementById("hidden-content");
+          const nameForm = document.getElementById("name-form");
+
+          if (nameInput.length > 0) {
+            hiddenContent.style.display = "block";
+            startButton.disabled = false;
+            nameInput.classList.remove("error");
+          } else {
+            hiddenContent.style.display = "none";
+            startButton.disabled = true;
+            nameInput.classList.add("error");
+          }
+        });
+
+      function submitForm() {
+        const nameInput = document.getElementById("name-input").value.trim();
+        if (nameInput.length === 0) {
+          alert("Please enter a name before starting.");
+          return false;
+        }
+        return true;
+      }
+
+      function openModal() {
+        document.getElementById("instructionsModal").style.display = "block";
+      }
+
+      function closeModal() {
+        document.getElementById("instructionsModal").style.display = "none";
+      }
     </script>
   </body>
-
 </html>
