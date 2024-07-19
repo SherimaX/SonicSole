@@ -120,10 +120,12 @@ def b_scoreboard():
         with open('SonicSole2.txt', 'r') as f:
             reader = csv.reader(f)
             for row in reader:
-                if row:  # Skip empty rows
+                if len(row) >= 2:  # Ensure the row has at least 2 elements
                     data.append({'name': row[0], 'time': float(row[1])})
     except FileNotFoundError:
         return "Error: SonicSole2.txt file not found."
+    except ValueError:
+        return "Error: Incorrect data format in SonicSole2.txt."
     except Exception as e:
         return f"Error: {e}"
 
