@@ -258,6 +258,22 @@
           }
         });
       }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("name-form")
+          .addEventListener("submit", submitForm);
+
+        document
+          .getElementById("startButton")
+          .addEventListener("click", function () {
+            fetch("/button_click", { method: "POST" })
+              .then((response) => response.json())
+              .then((data) => console.log(data.status))
+              .catch((error) => console.error("Error:", error));
+          });
+      });
+
     </script>
   </head>
   <body>
@@ -271,7 +287,7 @@
     </form>
     <div class="content">
     <form action="/button" method="post">
-      <button type="submit">Play</button>
+      <button type="submit" class="startButton">Play</button>
     </form>
     <button onclick="openModal()">Instructions</button>
 
