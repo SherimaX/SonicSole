@@ -20,6 +20,8 @@ G_heel = 255
 
 R_fore = 0
 G_fore = 255
+greatest_total = 0
+
 
 submitted_name = "User1"
 
@@ -41,6 +43,19 @@ def update_fore_color(pressure):
     elif pressure < 2000:
         R_fore = 255
         G_fore = int(255 - ((pressure - 1000) / 1000) * 255)
+
+def jumpingScoreInformation():
+    global received_fore_data, received_heel_data, submitted_name, greatest_total
+    greatest_total = 0
+    while True:
+            # print(submitted_name)
+            if received_heel_data + received_fore_data > greatest_total:
+                print(submitted_name)
+                greatest_heel = received_heel_data + received_fore_data
+                f = open("SonicSoleBalance.txt", "a")
+                f.write(submitted_name + "," + greatest_total + "\n")
+                f.close()
+
 
 #For balance.html
 i = 1
@@ -65,7 +80,7 @@ def balancing_pressure():
             recording_time = False
             start_time = time.time()
             print("Total time balanced: {} seconds".format(totalTime))
-            print(submitted_name)
+            # print(submitted_name)
             if i == 0:
                 f = open("SonicSole2.txt", "a")
                 f.write(submitted_name + ","+ totalTime + "\n")
@@ -152,7 +167,33 @@ def b_scoreboard():
 
 @app.route('/jScoreboard')
 def j_scoreboard():
-    return render_template('jScoreboard.html')
+    data = []
+    try:
+        with open('SonicSoleBalance.txt', 'r') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if len(row) >= 2:  # Ensure the row has at least 2 elements
+                    data.append({'name': row[0], 'total': float(row[1])})
+    except FileNotFoundError:
+        return "Error: SonicSoleBalance.txt file not found."
+    except ValueError:
+        return "Error: Incorrect data format in SonicSoleBalance.txt."
+    except Exception as e:
+        return f"Error: {e}"
+
+    # Sort data based on total time in descending order
+    data.sort(key=lambda x: x['total'], reverse=True)
+    
+    # Remove the lowest time of any duplicate names
+    unique_data = {}
+    for entry in data:
+        name = entry['name']
+        total = entry['total']
+        if name not in unique_data:
+            unique_data[name] = total
+        else:
+            if total > unique_data[name]:
+                unique_data[name] = total
 
 @app.route('/assemblyInstructions')
 def assembly_instructions():
