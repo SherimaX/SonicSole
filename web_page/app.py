@@ -150,6 +150,10 @@ def b_scoreboard():
     
     return render_template('bScoreboard.html', data=sorted_data)
 
+@app.route('/jScoreboard')
+def j_scoreboard():
+    return render_template('jScoreboard.html')
+
 
 @app.route('/button', methods=['POST'])
 def button():
