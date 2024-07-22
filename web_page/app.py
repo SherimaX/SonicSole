@@ -203,6 +203,13 @@ def button():
     send_udp_data()
     return redirect(url_for('index'))
 
+@app.route('/button', methods=['POST'])
+def button_pressed():
+    global greatest_total
+    greatest_total = 40
+    return redirect(url_for('index'))
+
+
 @app.route('/heel_data', methods=['GET'])
 def heel_data():
     global received_heel_data
