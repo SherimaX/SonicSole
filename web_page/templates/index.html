@@ -162,6 +162,10 @@
         font-family: Bradley Hand, cursive;
       }
 
+      .content {
+        display: none;
+      }
+
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -240,6 +244,20 @@
       function closeModal() {
         document.getElementById("instructionsModal").style.display = "none";
       }
+
+      function submitForm(event) {
+        event.preventDefault(); // Prevent form submission
+        var form = document.getElementById("name-form");
+        var formData = new FormData(form);
+        fetch("/submit", {
+          method: "POST",
+          body: formData,
+        }).then((response) => {
+          if (response.ok) {
+            document.querySelector(".content").style.display = "block";
+          }
+        });
+      }
     </script>
   </head>
   <body>
@@ -251,6 +269,7 @@
       <input type="submit" style="display: none" />
       <button type="submit">Submit</button>
     </form>
+    <div class="content">
     <form action="/button" method="post">
       <button type="submit">Play</button>
     </form>
@@ -281,6 +300,7 @@
       <canvas id="myChart"></canvas>
     </div> -->
     <a href="/jScoreboard">Jumping Scoreboard</a>
+  </div>
     <a href="/">Home</a>
   </body>
 </html>
