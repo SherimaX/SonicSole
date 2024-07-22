@@ -129,25 +129,6 @@
         margin-bottom: 9em;
       }
     </style>
-    <script>
-      function fetchData() {
-        fetch("/color_data")
-          .then((response) => response.json())
-          .then((data) => {
-            document.getElementById(
-              "data-window2"
-            ).style.backgroundColor = `rgb(${data.R_fore}, ${data.G_fore}, 0)`;
-            document.getElementById(
-              "data-window1"
-            ).style.backgroundColor = `rgb(${data.R_heel}, ${data.G_heel}, 0)`;
-          });
-      }
-
-      window.onload = function () {
-        // fetchData();
-        setInterval(fetchData, 200);
-      };
-    </script>
   </head>
   <body>
     <h1>SonicSole</h1>
