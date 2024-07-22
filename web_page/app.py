@@ -20,8 +20,6 @@ G_heel = 255
 
 R_fore = 0
 G_fore = 255
-greatest_total = 0
-
 
 submitted_name = "User1"
 greatest_total = 40
@@ -203,11 +201,10 @@ def button():
     send_udp_data()
     return redirect(url_for('index'))
 
-@app.route('/button', methods=['POST'])
 def button_pressed():
     global greatest_total
-    greatest_total = 40
-    return redirect(url_for('index'))
+    jumpingScoreInformation()
+    return redirect(url_for('index'))  # Redirect to the main page or another route
 
 
 @app.route('/heel_data', methods=['GET'])
