@@ -154,6 +154,9 @@ def b_scoreboard():
 def j_scoreboard():
     return render_template('jScoreboard.html')
 
+@app.route('/assemblyInstructions')
+def assembly_instructions():
+    return render_template('assemblyInstructions.html')
 
 @app.route('/button', methods=['POST'])
 def button():
