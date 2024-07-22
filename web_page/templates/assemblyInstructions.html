@@ -14,7 +14,6 @@
             margin: 0;
             font-family: Bradley Hand, cursive;
             background-color: #ffdada;
-            overflow: hidden;
         }
 
         h1 {
@@ -25,39 +24,32 @@
 
         .panel-container {
             display: flex;
-            flex-direction: row;
-            width: 70%;
-            overflow-x: scroll;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .panel {
-            flex: none;
-            width: 70%;
-            height: 95%;
-            background-color: #f9f9f9;
-            border: 2px solid #210000;
-            border-radius: 10px;
-            padding: 15%;
-            margin-left: 15%;
-            margin-right: 15%;
-            box-sizing: border-box;
-            scroll-snap-align: start;
-            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            width: 90%;
+            max-width: 800px;
+            height: 70vh;
+            overflow-y: scroll;
+            background-color: #fff;
+            border: 2px solid #8a0000;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .panel {
+            background-color: #f9f9f9;
+            border: 2px solid #210000;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            width: 100%;
         }
 
         .panel h3 {
             color: #8a0000;
-            margin-bottom: 20px;
-        }
-
-        .panel p {
-            color: #666;
-            font-size: 1.3em;
         }
     </style>
 </head>
