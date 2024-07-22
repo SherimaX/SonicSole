@@ -48,12 +48,11 @@ def jumpingScoreInformation():
     global received_fore_data, received_heel_data, submitted_name, greatest_total
     greatest_total = 0
     while True:
-            print("submitted_name")
             if int(received_heel_data) + int(received_fore_data) > greatest_total:
                 print(submitted_name)
                 greatest_heel = int(received_heel_data) + int(received_fore_data)
                 f = open("SonicSoleBalance.txt", "a")
-                f.write(submitted_name + "," + greatest_total + "\n")
+                f.write(submitted_name + "," + str(greatest_total) + "\n")
                 f.close()
 
 
