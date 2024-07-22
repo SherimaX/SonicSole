@@ -46,14 +46,14 @@ def update_fore_color(pressure):
 
 def jumpingScoreInformation():
     global received_fore_data, received_heel_data, submitted_name, greatest_total
-    greatest_total = 0
+    greatest_total = 40
     while True:
             if int(received_heel_data) + int(received_fore_data) > greatest_total:
                 print(submitted_name)
                 greatest_total = int(received_heel_data) + int(received_fore_data)
-                f = open("SonicSoleBalance.txt", "a")
-                f.write(submitted_name + "," + str(greatest_total) + "\n")
-                f.close()
+                g = open("SonicSoleBalance.txt", "a")
+                g.write(submitted_name + "," + str(greatest_total) + "\n")
+                g.close()
 
 
 #For balance.html
@@ -168,8 +168,8 @@ def b_scoreboard():
 def j_scoreboard():
     data = []
     try:
-        with open('SonicSoleBalance.txt', 'r') as f:
-            reader = csv.reader(f)
+        with open('SonicSoleBalance.txt', 'r') as g:
+            reader = csv.reader(g)
             for row in reader:
                 if len(row) >= 2:  # Ensure the row has at least 2 elements
                     data.append({'name': row[0], 'total': float(row[1])})
