@@ -27,12 +27,10 @@
             display: flex;
             flex-direction: row;
             width: 100%;
-            height: 70vh;
-            overflow-x: auto;
+            height: 70%;
+            overflow-x: scroll;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
-            padding: 0 15%; /* Add padding to center the panels */
-            box-sizing: border-box;
         }
 
         .panel {
@@ -42,10 +40,11 @@
             background-color: #f9f9f9;
             border: 2px solid #210000;
             border-radius: 10px;
-            padding: 20px;
-            margin: 0 15px;
+            padding: 15%;
+            margin-left: 15%;
+            margin-right: 15%;
             box-sizing: border-box;
-            scroll-snap-align: center; /* Align the panels at the center */
+            scroll-snap-align: start;
             display: flex;
             flex-direction: column;
             align-items: center;
