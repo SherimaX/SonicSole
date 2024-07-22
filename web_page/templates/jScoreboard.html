@@ -90,15 +90,13 @@
     <table id="leaderboard">
       <tr>
         <th>Name</th>
-        <th>Fore Pressure</th>
-        <th>Heel Pressure</th>
+        <th>Fore & Heel Pressure</th>
 
     </tr>
     {% for entry in data %}
     <tr>
         <td>{{ entry.name }}</td>
-        <td>{{ entry.time }} Seconds</td>
-        <td>{{ entry.time }} Seconds</td>
+        <td>{{ entry.total }} Seconds</td>
     </tr>
     {% endfor %}
     </table>
