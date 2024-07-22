@@ -45,7 +45,12 @@ def update_fore_color(pressure):
 
 def jumpingScoreInformation():
     global received_fore_data, received_heel_data, submitted_name, greatest_total
+    curr_submitted_name = submitted_name
+    greatest_total = 40
     while True:
+            if(submitted_name != curr_submitted_name):
+                greatest_total = 40
+                curr_submitted_name = submitted_name
             if int(received_heel_data) + int(received_fore_data) > greatest_total:
                 print(submitted_name)
                 greatest_total = int(received_heel_data) + int(received_fore_data)
@@ -200,12 +205,6 @@ def assembly_instructions():
 def button():
     send_udp_data()
     return redirect(url_for('index'))
-
-def button_pressed():
-    global greatest_total
-    jumpingScoreInformation()
-    return redirect(url_for('index'))  # Redirect to the main page or another route
-
 
 @app.route('/heel_data', methods=['GET'])
 def heel_data():
