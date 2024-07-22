@@ -175,18 +175,19 @@ def j_scoreboard():
             reader = csv.reader(g)
             for row in reader:
                 if len(row) >= 2:  # Ensure the row has at least 2 elements
-                    data.append({'name': row[0], 'total': float(row[1])})
+                    try:
+                        data.append({'name': row[0], 'total': float(row[1])})
+                    except ValueError:
+                        print(f"Invalid data format in row: {row}")
+                        continue
     except FileNotFoundError:
+        print("Error: SonicSoleBalance.txt file not found.")
         return "Error: SonicSoleBalance.txt file not found."
-    except ValueError:
-        return "Error: Incorrect data format in SonicSoleBalance.txt."
     except Exception as e:
+        print(f"Unexpected error: {e}")
         return f"Error: {e}"
 
-    # Sort data based on total time in descending order
-    data.sort(key=lambda x: x['total'], reverse=True)
-    
-    # Remove the lowest time of any duplicate names
+    # Process data to remove duplicates and keep highest total
     unique_data = {}
     for entry in data:
         name = entry['name']
@@ -196,6 +197,14 @@ def j_scoreboard():
         else:
             if total > unique_data[name]:
                 unique_data[name] = total
+
+    # Convert to list and sort
+    leaderboard_data = [{'name': name, 'total': total} for name, total in unique_data.items()]
+    leaderboard_data.sort(key=lambda x: x['total'], reverse=True)
+    
+    return render_template('jScoreboard.html', data=leaderboard_data)
+
+
 
 @app.route('/assemblyInstructions')
 def assembly_instructions():
