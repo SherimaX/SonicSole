@@ -44,19 +44,6 @@ def update_fore_color(pressure):
         R_fore = 255
         G_fore = int(255 - ((pressure - 1000) / 1000) * 255)
 
-def jumpingScoreInformation():
-    global received_fore_data, received_heel_data, submitted_name, greatest_total
-    greatest_total = 0
-    while True:
-            # print(submitted_name)
-            if received_heel_data + received_fore_data > greatest_total:
-                print(submitted_name)
-                greatest_heel = received_heel_data + received_fore_data
-                f = open("SonicSoleBalance.txt", "a")
-                f.write(submitted_name + "," + greatest_total + "\n")
-                f.close()
-
-
 #For balance.html
 i = 1
 
