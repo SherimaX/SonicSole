@@ -86,6 +86,22 @@
 </style>
 <body>
     <h1>Balancing Scoreboard</h1>
-    
+    <a href="/index" class="homebutton">Go Back</a>
+    <table id="leaderboard">
+      <tr>
+        <th>Name</th>
+        <th>Fore Pressure</th>
+        <th>Heel Pressure</th>
+
+    </tr>
+    {% for entry in data %}
+    <tr>
+        <td>{{ entry.name }}</td>
+        <td>{{ entry.time }} Seconds</td>
+        <td>{{ entry.time }} Seconds</td>
+    </tr>
+    {% endfor %}
+    </table>
+ 
 </body>
 </html>
