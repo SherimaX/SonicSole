@@ -48,7 +48,7 @@ def jumpingScoreInformation():
     global received_fore_data, received_heel_data, submitted_name, greatest_total
     greatest_total = 0
     while True:
-            print(submitted_name)
+            print("submitted_name")
             if received_heel_data + received_fore_data > greatest_total:
                 print(submitted_name)
                 greatest_heel = received_heel_data + received_fore_data
