@@ -22,6 +22,7 @@ R_fore = 0
 G_fore = 255
 
 submitted_name = "User1"
+eyes_open = False
 greatest_total = 50
 
 
@@ -64,8 +65,11 @@ i = 1
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    global submitted_name
+    global submitted_name, eyes_open
     submitted_name = request.form['name']
+    eyes_open = request.form['eyesOpen']
+    if eyes_open:
+        submitted_name += "_T"
     return jsonify({"status": "Name submitted successfully"})
 
 def balancing_pressure():
