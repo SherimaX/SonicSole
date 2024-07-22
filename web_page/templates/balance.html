@@ -172,16 +172,25 @@
         document.getElementById("instructionsModal").style.display = "none";
       }
 
-      function submitForm() {
+      function submitForm(event) {
+        event.preventDefault(); // Prevent form submission
         var form = document.getElementById("name-form");
         var formData = new FormData(form);
         fetch("/submit", {
           method: "POST",
           body: formData,
-        }).then((response) => response.json());
+        }).then((response) => {
+          if (response.ok) {
+            document.querySelector(".content").style.display = "block";
+          }
+        });
       }
 
       document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("name-form")
+          .addEventListener("submit", submitForm);
+
         document
           .getElementById("startButton")
           .addEventListener("click", function () {
@@ -190,28 +199,7 @@
               .then((data) => console.log(data.status))
               .catch((error) => console.error("Error:", error));
           });
-
-        const loginForm = document.getElementById("name-input");
-        loginForm.addEventListener("submit", (e) => {
-          // Show the content when the form is submitted
-          document.querySelector(".content").style.display = "block";
-        });
       });
-
-      //   $(document).ready(function () {
-      //     $("#startBtn").click(function () {
-      //       $.ajax({
-      //         url: "/start-balance",
-      //         type: "POST",
-      //         success: function (response) {
-      //           console.log("Started balancing");
-      //         },
-      //         error: function (error) {
-      //           console.error("Error starting balancing");
-      //         },
-      //       });
-      //     });
-      //   });
     </script>
   </head>
   <body>
