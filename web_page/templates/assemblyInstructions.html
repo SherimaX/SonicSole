@@ -84,6 +84,23 @@
         text-align: center;
         border: 1px solid #ddd;
       }
+
+      a {
+        display: inline-block;
+        margin-top: 20px;
+        font-size: 1.3em;
+        color: #310000;
+        text-decoration: none;
+        border: 2px solid #310000;
+        padding: 10px 20px;
+        border-radius: 5px;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      a:hover {
+        background-color: #310000;
+        color: #fff;
+      }
     </style>
     <script>
       function fetchData() {
@@ -131,7 +148,7 @@
           <div id="data-window2">
             <p></p>
           </div>
-          <a href="/home"> I'm Ready! </a>
+          <a href="/"> I'm Ready! </a>
         </div>
         <!-- Add more panels as needed -->
       </div>
