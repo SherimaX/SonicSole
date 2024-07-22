@@ -67,7 +67,7 @@ i = 1
 def submit():
     global submitted_name, eyes_open
     submitted_name = request.form['name']
-    eyes_open = request.form['eyesOpened']
+    eyes_open = request.form['eyes']
     if eyes_open:
         submitted_name += "_T"
     return jsonify({"status": "Name submitted successfully"})
