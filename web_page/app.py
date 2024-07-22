@@ -22,7 +22,7 @@ R_fore = 0
 G_fore = 255
 
 submitted_name = "User1"
-greatest_total = 40
+greatest_total = 50
 
 
 def update_heel_color(pressure):
@@ -46,10 +46,10 @@ def update_fore_color(pressure):
 def jumpingScoreInformation():
     global received_fore_data, received_heel_data, submitted_name, greatest_total
     curr_submitted_name = submitted_name
-    greatest_total = 40
+    greatest_total = 50
     while True:
             if(submitted_name != curr_submitted_name):
-                greatest_total = 40
+                greatest_total = 50
                 curr_submitted_name = submitted_name
             if int(received_heel_data) + int(received_fore_data) > greatest_total:
                 print(submitted_name)
