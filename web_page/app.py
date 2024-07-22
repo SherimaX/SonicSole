@@ -67,7 +67,7 @@ i = 1
 def submit():
     global submitted_name, eyes_open
     submitted_name = request.form['name']
-    if "eyes" in request.data:
+    if "eyes" in request.form:
         eyes_open = request.form['eyes']
         submitted_name += "_" + eyes_open
     else:
