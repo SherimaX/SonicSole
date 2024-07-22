@@ -67,8 +67,12 @@ i = 1
 def submit():
     global submitted_name, eyes_open
     submitted_name = request.form['name']
-    eyes_open = request.form['eyes']
-    submitted_name += "_" + eyes_open
+    if "eyes" in request.data:
+        eyes_open = request.form['eyes']
+        submitted_name += "_" + eyes_open
+    else:
+        pass
+
     return jsonify({"status": "Name submitted successfully"})
 
 def balancing_pressure():
