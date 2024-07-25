@@ -56,7 +56,7 @@ using namespace std;
 
 static int SPI_CHANNEL = 0;
 static int CS = 17; 
-static uint8_t IMU_PACKET_LENGTH = 52;
+static int IMU_PACKET_LENGTH = 52;
 
 
 // mutex dataMutex[3];
