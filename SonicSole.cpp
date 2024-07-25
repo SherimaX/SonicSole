@@ -95,6 +95,9 @@ SonicSole::SonicSole() {
     }
 
 	bool recordState = true;
+    vector<float> axData; 
+    vector<float> ayData; 
+    vector<float> azData;
 }
 
 void SonicSole::toCSV() {
@@ -308,7 +311,7 @@ float accelVectorIntegral(vector<float> ay)
   sumOfPoints += ay[ay.size()-1];
 
   float integAccel = 0.5 * deltaX * (sumOfPoints)
-  return integAccel
+  return integAccel;
 }
 
 void SonicSole::sendFlexSensorData(int flexSensorData) {

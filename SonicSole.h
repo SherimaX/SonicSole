@@ -101,10 +101,6 @@ public:
     uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
     bool recordState = true;
 
-    vector<float> axData; 
-    vector<float> ayData; 
-    vector<float> azData;
-
     // tss_device_id sensor_id;
 
     //vector<int> timeArr;
