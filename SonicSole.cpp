@@ -243,57 +243,37 @@ void SonicSole::readIMU() {
     // https://yostlabs.com/product/3-space-embedded-lx/ 
     // look at documentation later, has some useful code
     // ADC - MCP3221
-    // #define ADCAddress 0x4D
+    // #define ADCAddress 0x4D   
 
-    structComponentQuaternion dataQuat;
-    structComponentLinearAcceleration dataAcce;
-    structComponentRawGyro dataGyro;
-    structComponentRawAcceleration dataRAcc;
-    uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
-    uint64_t timeRead = getMicrosTimeStamp();
-    
-    YEIgetStreamingBatch(uStreamingDataIMU);
-    // YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH); // didnt really do anything
-    // read(IMU, dataIMUPacket, IMU_PACKET_LENGTH); // slows down everything, only allows reading every 10 seconds
-    reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc); // important
+    for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00;
 
-    // printf("Raw IMU packet: \n");
-    // for(int i=0; i<MAX_YEI_DATA_PACKET; i++) {
-    //     printf("%02X ", YEIdataPacket[i]);
-    // }
+      // {lock_guard<mutex> lck(dataMutex[currBuff]);
 
-    // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
-    // printf("\nIMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
-    // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
-    // printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
-    // return;
+      // cout << "Get sensor data...\n\n";
 
-    // some old code that might be useful later
-    // check out YEIgetStreamingBatch later
-    YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
-    // if(serialDataAvail(IMU))
-    // {
-    while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
+      // FILL UP BUFFER BLOCK
+      for (int i = 0; i < NUMBER_BUFFER_PACKET; i++)
+      {
+        // GET IMU DATA
+        YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
+        while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
         {
           // std::cout << serialDataAvail(IMU) << std::endl;
           // If no IMU data received, do nothing
         }
-        read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
+      	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
         reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
-    // }
 
-    // reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce);
-    reconstructBinaryPacketBinary_test(dataIMUPacket, dataAcce.ax, dataAcce.ay, dataAcce.az);
-    //printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
+        // uint64_t currentTime = getMicrosTimeStamp() - timestampStart;
+        currentTime = (getMicrosTimeStamp() - timestampStart) / 1000;
+      }
 
-    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
-
-    float deltaTime = (float)(getMicrosTimeStamp() - timeRead) / 1000000.0f;
-    float freq = 1/deltaTime;
-    float currenttime_micros = (float)getMicrosTimeStamp();
-
-    // printf("Time obtained!\n");
+    // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
+    // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
     // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
+    // printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
+    // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
+    // printf("Time obtained!\n");
     // printf("Time: %0.3f secs \n", deltaTime);
 }
 
