@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
       sole->updateCurrentTime();
       sole->updatePressure();
 
-      sole->getAccelVectorData(axData, ayData, azData);
+      sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, );
 
     // {
     //   if (sole->detectHeelThreshold()) {
