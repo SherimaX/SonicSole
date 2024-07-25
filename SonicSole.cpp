@@ -309,8 +309,8 @@ float SonicSole::vectorIntegral(vector<float> v) {
   }
   sumOfPoints += v[v.size()-1];
 
-  float integAccel = 0.5 * deltaX * (sumOfPoints);
-  return integAccel;
+  float vectInt = 0.5 * deltaX * (sumOfPoints);
+  return vectInt;
 }
 
 void SonicSole::sendFlexSensorData(int flexSensorData, int port) {

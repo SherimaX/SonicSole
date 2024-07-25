@@ -29,7 +29,6 @@ int main(int argc, char* argv[])
     structComponentRawGyro dataGyro;
     structComponentRawAcceleration dataRAcc;
 
-
     int cycle = 0;
     vector<int> thresholdTimes; 
     vector<float> axData; 
@@ -48,6 +47,8 @@ int main(int argc, char* argv[])
       sole->updatePressure();
 
       sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData);
+
+      cout << "velocity: " << sole->vectorIntegral(ayData) << endl;
 
     // {
     //   if (sole->detectHeelThreshold()) {
