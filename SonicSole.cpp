@@ -284,6 +284,33 @@ void SonicSole::readIMU() {
     // printf("Time: %0.3f secs \n", deltaTime);
 }
 
+void getAccelVectorData(float ax, float ay, float az) // vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector)
+{
+  axData.push_back(ax);
+  ayData.push_back(ay);
+  azData.push_back(az);
+}
+
+float accelVectorIntegral(vector<float> ay) 
+{
+
+  if (ay.size() < 2) {
+    return 0; 
+  }
+
+  int deltaX =  ay.size() / 20;
+  int sumOfPoints = ay[0];
+
+  for (int i = 1; i < ay.size()-1; i++) {
+    sumOfPoints += (2*ay[i]);
+  }
+
+  sumOfPoints += ay[ay.size()-1];
+
+  float integAccel = 0.5 * deltaX * (sumOfPoints)
+  return integAccel
+}
+
 void SonicSole::sendFlexSensorData(int flexSensorData) {
     int sockfd;
     struct sockaddr_in serverAddr;
