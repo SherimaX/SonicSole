@@ -18,6 +18,10 @@ using namespace std;
 //   JSON::StreamWriterBuilder writer;
 //   return Json::writeString(writer, root);
 // }
+structComponentQuaternion dataQuat;
+structComponentLinearAcceleration dataAcce;
+structComponentRawGyro dataGyro;
+structComponentRawAcceleration dataRAcc;
 
 int main(int argc, char* argv[])
 {
