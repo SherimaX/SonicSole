@@ -246,18 +246,17 @@ void SonicSole::motorVibrate() {
     digitalWrite(20, LOW);
 }
 
-void SonicSole::readIMU(structComponentQuaternion& datQuat, structComponentLinearAcceleration& datAcc, 
-                        structComponentRawGyro& datGyro, structComponentRawAcceleration& datRAcc) {
+void SonicSole::readIMU() {
     // https://www.telesens.co/2017/03/11/imu-sampling-using-the-raspberry-pi/
     // https://yostlabs.com/product/3-space-embedded-lx/ 
     // look at documentation later, has some useful code
     // ADC - MCP3221
     // #define ADCAddress 0x4D   
 
-    // structComponentQuaternion dataQuat;
-    // structComponentLinearAcceleration dataAcce;
-    // structComponentRawGyro dataGyro;
-    // structComponentRawAcceleration dataRAcc;
+    structComponentQuaternion dataQuat;
+    structComponentLinearAcceleration dataAcce;
+    structComponentRawGyro dataGyro;
+    structComponentRawAcceleration dataRAcc;
 
     for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00; 
 
@@ -280,6 +279,9 @@ void SonicSole::readIMU(structComponentQuaternion& datQuat, structComponentLinea
       }
 
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
+    ax = datAcc.ax;
+    ay = datAcc.ay;
+    az = datAcc.az;
     printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", datAcc.ax, datAcc.ay, datAcc.az);
     // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
     // printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);

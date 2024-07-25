@@ -24,10 +24,10 @@ int main(int argc, char* argv[])
     SonicSole* sole = new SonicSole();
     cout << "SonicSole Class Initialized" << endl;
 
-    structComponentQuaternion dataQuat;
-    structComponentLinearAcceleration dataAcce;
-    structComponentRawGyro dataGyro;
-    structComponentRawAcceleration dataRAcc;
+    structComponentQuaternion *dataQuat;
+    structComponentLinearAcceleration *dataAcce;
+    structComponentRawGyro *dataGyro;
+    structComponentRawAcceleration *dataRAcc;
 
     int cycle = 0;
     vector<int> thresholdTimes; 
@@ -45,12 +45,12 @@ int main(int argc, char* argv[])
 
       sole->updateCurrentTime();
       sole->updatePressure();
-      sole->readIMU(dataQuat, dataAcce, dataGyro, dataRAcc);
+      sole->readIMU();
 
-      sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData);
+      sole->getAccelVectorData( sole->ax, sole->ay, sole->az, axData, ayData, azData);
 
       // debugging
-      cout << "DEBUG /// dataAcce.ay: " << dataAcce.ay << endl;
+      cout << "DEBUG /// dataAcce.ay: " << sole->ax << endl;
       cout << "DEBUG /// axData size: " << axData.size() << ", ayData size: " << ayData.size() << ", azData size: " << azData.size() << endl;
       if (!axData.empty()) {
             cout << "DEBUG /// Latest axData: " << axData.back() << endl;
