@@ -288,7 +288,7 @@ void SonicSole::readIMU() {
 }
 
 void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, 
-                        vector<float>& ayVector, vector<float>& azVector)
+                        vector<float>& ayVector, vector<float>& azVector);
 {
   axVector.push_back(ax);
   ayVector.push_back(ay);
