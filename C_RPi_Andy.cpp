@@ -46,12 +46,11 @@ int main(int argc, char* argv[])
       sole->updateCurrentTime();
       sole->updatePressure();
       sole->readIMU(dataQuat, dataAcce, dataGyro, dataRAcc);
-      printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
 
-      // sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData);
+      sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData);
 
       // debugging
-      // cout << "DEBUG /// dataAcce.ay: " << dataAcce.ay << endl;
+      cout << "DEBUG /// dataAcce.ay: " << dataAcce.ay << endl;
       cout << "DEBUG /// axData size: " << axData.size() << ", ayData size: " << ayData.size() << ", azData size: " << azData.size() << endl;
       if (!axData.empty()) {
             cout << "DEBUG /// Latest axData: " << axData.back() << endl;
