@@ -708,7 +708,9 @@ uint64_t getMicrosTimeStamp()
 //   return ((uint16_t) pressVal);
 // }
 
-
+vector<float> axData; 
+vector<float> ayData; 
+vector<float> azData; 
 
 void getAccelVectorData(float ax, float ay, float az)
 {
@@ -892,10 +894,6 @@ int main(int argc, char* argv[])
   // {
   //   p[j] = 0x00;
   // }
-
-  vector<float> axData; 
-  vector<float> ayData; 
-  vector<float> azData; 
 
 
   
