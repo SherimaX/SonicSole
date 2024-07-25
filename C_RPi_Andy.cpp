@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
       sole->updateCurrentTime();
       sole->updatePressure();
       sole->readIMU(dataQuat, dataAcce, dataGyro, dataRAcc);
-      printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", datAcc.ax, datAcc.ay, datAcc.az);
+      printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
 
       // sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData);
 
