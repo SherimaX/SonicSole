@@ -112,7 +112,8 @@ public:
     void runSoundMode();
     void runVibrateMode();
     void toCSV();
-    void readIMU();
+    //void readIMU();
+    void readIMU(structComponentQuaternion datQuat, structComponentLinearAcceleration datAcc, structComponentRawGyro atGyro, structComponentRawAcceleration datRAcc);
     uint64_t getRunningTime();
     void updateCurrentTime();
     void updatePressure();
