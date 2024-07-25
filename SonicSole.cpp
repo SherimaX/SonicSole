@@ -89,7 +89,10 @@ SonicSole::SonicSole() {
         printf("IMU not configured successfully: Error. \n\n");
     }
 
-	bool recordState = true;
+    structComponentQuaternion dataQuat;
+    structComponentLinearAcceleration dataAcce;
+    structComponentRawGyro dataGyro;
+    structComponentRawAcceleration dataRAcc;
 }
 
 void SonicSole::toCSV() {
