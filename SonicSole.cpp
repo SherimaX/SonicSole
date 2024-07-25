@@ -246,8 +246,8 @@ void SonicSole::motorVibrate() {
     digitalWrite(20, LOW);
 }
 
-void SonicSole::readIMU(structComponentQuaternion datQuat, structComponentLinearAcceleration datAcc, 
-                        structComponentRawGyro datGyro, structComponentRawAcceleration datRAcc) {
+void SonicSole::readIMU(structComponentQuaternion& datQuat, structComponentLinearAcceleration& datAcc, 
+                        structComponentRawGyro& datGyro, structComponentRawAcceleration& datRAcc) {
     // https://www.telesens.co/2017/03/11/imu-sampling-using-the-raspberry-pi/
     // https://yostlabs.com/product/3-space-embedded-lx/ 
     // look at documentation later, has some useful code
