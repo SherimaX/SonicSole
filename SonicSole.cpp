@@ -274,8 +274,6 @@ void SonicSole::readIMU(structComponentQuaternion datQuat, structComponentLinear
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
         reconstructIMUPacket(dataIMUPacket, datQuat, datAcc, datGyro, datRAcc);
 
-        printf("DEBUG /// IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", datAcc.ax, datAcc.ay, datAcc.az);
-
         // uint64_t currentTime = getMicrosTimeStamp() - timestampStart;
         // currentTime = (getMicrosTimeStamp() - timestampStart) / 1000;
         // currentTime = getMicrosTimeStamp() / 1000;
