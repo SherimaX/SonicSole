@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
       cout << "\nFore Pressure: " << sole->currForePressure << endl;
       cout << "Heel Pressure: " << sole->currHeelPressure << endl;
 
-      sole->readIMU();
+      // sole->readIMU();
 
       sole->sendFlexSensorData((int)sole->currForePressure, 20000);      
       sole->sendFlexSensorData((int)sole->currHeelPressure, 21000);
