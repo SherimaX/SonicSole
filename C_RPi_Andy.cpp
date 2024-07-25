@@ -49,9 +49,10 @@ int main(int argc, char* argv[])
       sole->updatePressure();
       sole->readIMU();
 
-      sole->getAccelVectorData( sole->ax, sole->ay, sole->az, axData, ayData, azData);
+      // sole->getAccelVectorData(sole->ax, sole->ay, sole->az, axData, ayData, azData);
+      sole->getAccelVectorData(sole->az, azData);
 
-      sole->writeAccelDataToCSV(sole->az);
+      sole->toCSV(sole->az);
 
       // debugging
       // cout << "DEBUG /// dataAcce.ay: " << sole->az << endl;
