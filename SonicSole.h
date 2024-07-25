@@ -138,7 +138,7 @@ public:
     void updateThresholdCounter();
 
     // void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector);
-    getAccelVectorData(float az, std::vector<float>& azVector);
+    void getAccelVectorData(float az, vector<float>& azVector);
     float vectorIntegral(vector<float> v);
 
 private: 
