@@ -288,7 +288,7 @@ void SonicSole::readIMU() {
 }
 
 void SonicSole::getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, 
-                        vector<float>& ayVector, vector<float>& azVector);
+                                        vector<float>& ayVector, vector<float>& azVector) 
 {
   axVector.push_back(ax);
   ayVector.push_back(ay);
@@ -300,7 +300,7 @@ float SonicSole::accelVectorIntegral(vector<float> ay) {
     return 0; 
   }
 
-  int deltaX =  ay.size() / 20;
+  int deltaX = ay.size() / 20;
   int sumOfPoints = ay[0];
 
   for (int i = 1; i < ay.size()-1; i++) {
@@ -310,65 +310,6 @@ float SonicSole::accelVectorIntegral(vector<float> ay) {
 
   float integAccel = 0.5 * deltaX * (sumOfPoints)
   return integAccel;
-}
-
-void SonicSole::sendFlexSensorData(int flexSensorData) {
-    int sockfd;
-    struct sockaddr_in serverAddr;
-
-    // UDP Socket
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-        std::cerr << "Error creating socket" << std::endl;
-        return;
-    }
-
-    memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(PORT);
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
-
-    /*
-    if (sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
-        std::cerr << "Error sending data" << std::endl;
-    } else {
-        std::cout << "Flex sensor data sent successfully!" << std::endl;
-    }
-    */
-
-    try {
-        UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
-        // sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
-    }
-    catch (...) {
-        std:cout << "Error: UDPSend cannot send data" << endl;
-    }
-
-    std::cout << "Data sent to UDP" << endl;
-    close(sockfd);
-
-    // float gyroscope[3], accelerometer[3], magnetometer[3];
-    //     U32 timestamp;
-
-    //     if (tss_sensor_getNormalizedGyroscope(sensor_id, gyroscope, &timestamp) == TSS_NO_ERROR) {
-    //         printf("IMU Gyroscope Vector: %0.2f, %0.2f, %0.2f\n", gyroscope[0], gyroscope[1], gyroscope[2]);
-    //     } else {
-    //         printf("Failed to get gyroscope data\n");
-    //     }
-
-    //     if (tss_sensor_getNormalizedAccelerometer(sensor_id, accelerometer, &timestamp) == TSS_NO_ERROR) {
-    //         printf("IMU Accelerometer Vector: %0.2f, %0.2f, %0.2f\n", accelerometer[0], accelerometer[1], accelerometer[2]);
-    //     } else {
-    //         printf("Failed to get accelerometer data\n");
-    //     }
-
-    //     if (tss_sensor_getNormalizedMagnetometer(sensor_id, magnetometer, &timestamp) == TSS_NO_ERROR) {
-    //         printf("IMU Magnetometer Vector: %0.2f, %0.2f, %0.2f\n", magnetometer[0], magnetometer[1], magnetometer[2]);
-    //     } else {
-    //         printf("Failed to get magnetometer data\n");
-    //     }
-
-    //     printf("Timestamp: %u ms\n", timestamp);
-
 }
 
 void SonicSole::sendFlexSensorData(int flexSensorData, int port) {
