@@ -95,9 +95,9 @@ SonicSole::SonicSole() {
     }
 
 	bool recordState = true;
-    vector<float> axData; 
-    vector<float> ayData; 
-    vector<float> azData;
+    // vector<float> axData; 
+    // vector<float> ayData; 
+    // vector<float> azData;
 }
 
 void SonicSole::toCSV() {
@@ -287,15 +287,15 @@ void SonicSole::readIMU() {
     // printf("Time: %0.3f secs \n", deltaTime);
 }
 
-void getAccelVectorData(float ax, float ay, float az) // vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector)
+void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, 
+                        vector<float>& ayVector, vector<float>& azVector)
 {
-  axData.push_back(ax);
-  ayData.push_back(ay);
-  azData.push_back(az);
+  axVector.push_back(ax);
+  ayVector.push_back(ay);
+  azVector.push_back(az);
 }
 
-float accelVectorIntegral(vector<float> ay) 
-{
+float accelVectorIntegral(vector<float> ay) {
 
   if (ay.size() < 2) {
     return 0; 
