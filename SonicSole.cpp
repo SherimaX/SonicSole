@@ -247,7 +247,7 @@ void SonicSole::motorVibrate() {
 }
 
 void SonicSole::readIMU(structComponentQuaternion datQuat, structComponentLinearAcceleration datAcc, 
-                        structComponentRawGyro atGyro, structComponentRawAcceleration datRAcc) {
+                        structComponentRawGyro datGyro, structComponentRawAcceleration datRAcc) {
     // https://www.telesens.co/2017/03/11/imu-sampling-using-the-raspberry-pi/
     // https://yostlabs.com/product/3-space-embedded-lx/ 
     // look at documentation later, has some useful code
@@ -280,7 +280,7 @@ void SonicSole::readIMU(structComponentQuaternion datQuat, structComponentLinear
       }
 
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
-    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", datAcce.ax, datAcc.ay, datAcc.az);
+    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", datAcc.ax, datAcc.ay, datAcc.az);
     // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
     // printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
