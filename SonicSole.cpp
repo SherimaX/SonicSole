@@ -308,7 +308,7 @@ float SonicSole::accelVectorIntegral(vector<float> ay) {
   }
   sumOfPoints += ay[ay.size()-1];
 
-  float integAccel = 0.5 * deltaX * (sumOfPoints)
+  float integAccel = 0.5 * deltaX * (sumOfPoints);
   return integAccel;
 }
 
