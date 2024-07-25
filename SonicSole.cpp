@@ -271,7 +271,7 @@ void SonicSole::readIMU() {
           // If no IMU data received, do nothing
         }
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
-        reconstructIMUPacket(dataIMUPacket, datQuat, datAcc, datGyro, datRAcc);
+        reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
 
         // uint64_t currentTime = getMicrosTimeStamp() - timestampStart;
         // currentTime = (getMicrosTimeStamp() - timestampStart) / 1000;
@@ -279,10 +279,10 @@ void SonicSole::readIMU() {
       }
 
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
-    ax = datAcc.ax;
-    ay = datAcc.ay;
-    az = datAcc.az;
-    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", datAcc.ax, datAcc.ay, datAcc.az);
+    ax = dataAcce.ax;
+    ay = dataAcce.ay;
+    az = dataAcce.az;
+    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
     // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
     // printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
