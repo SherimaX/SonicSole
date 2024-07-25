@@ -287,7 +287,7 @@ void SonicSole::readIMU() {
     // printf("Time: %0.3f secs \n", deltaTime);
 }
 
-void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, 
+void SonicSole::getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, 
                         vector<float>& ayVector, vector<float>& azVector);
 {
   axVector.push_back(ax);
@@ -295,8 +295,7 @@ void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector,
   azVector.push_back(az);
 }
 
-float accelVectorIntegral(vector<float> ay) {
-
+float SonicSole::accelVectorIntegral(vector<float> ay) {
   if (ay.size() < 2) {
     return 0; 
   }
@@ -307,7 +306,6 @@ float accelVectorIntegral(vector<float> ay) {
   for (int i = 1; i < ay.size()-1; i++) {
     sumOfPoints += (2*ay[i]);
   }
-
   sumOfPoints += ay[ay.size()-1];
 
   float integAccel = 0.5 * deltaX * (sumOfPoints)
