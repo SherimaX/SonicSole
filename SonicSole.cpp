@@ -272,7 +272,6 @@ void SonicSole::readIMU() {
 
         // uint64_t currentTime = getMicrosTimeStamp() - timestampStart;
         // currentTime = (getMicrosTimeStamp() - timestampStart) / 1000;
-        currentTime = getMicrosTimeStamp() / 1000;
       }
 
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
