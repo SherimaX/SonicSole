@@ -902,6 +902,11 @@ int main(int argc, char* argv[])
 	// INIFINITE LOOP
 	while(recordState)
 	{
+    int count = 0;
+    cout << "Y axis: " << endl; 
+    cout << ayData[count] << endl;
+    count++;
+
     // ADC channels
     // Channel 0
 		digitalWrite(CS,LOW);
