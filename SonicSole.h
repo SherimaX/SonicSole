@@ -93,6 +93,10 @@ public:
     double prevForePressure = 0;
     double prevCombinedPressure = 0;
 
+    double ax = 0;
+    double ay = 0;
+    double az = 0;
+
     uint64_t startTime = 0;
     uint64_t currentTime = 0;
     // uint64_t startInterval = 0;
