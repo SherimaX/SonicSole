@@ -24,6 +24,8 @@ int main(int argc, char* argv[])
     SonicSole* sole = new SonicSole();
     cout << "SonicSole Class Initialized" << endl;
 
+    sole->openCSVFile("accel_data.csv");
+
     structComponentQuaternion *dataQuat;
     structComponentLinearAcceleration *dataAcce;
     structComponentRawGyro *dataGyro;
@@ -49,14 +51,14 @@ int main(int argc, char* argv[])
 
       sole->getAccelVectorData( sole->ax, sole->ay, sole->az, axData, ayData, azData);
 
-      // debugging
-      cout << "DEBUG /// dataAcce.ay: " << sole->ax << endl;
-      cout << "DEBUG /// axData size: " << axData.size() << ", ayData size: " << ayData.size() << ", azData size: " << azData.size() << endl;
-      if (!axData.empty()) {
-            cout << "DEBUG /// Latest axData: " << axData.back() << endl;
-      }
+      sole->writeAccelDataToCSV(sole->az);
 
-      //cout << "velocity: " << sole->vectorIntegral(ayData) << endl;
+      // debugging
+      // cout << "DEBUG /// dataAcce.ay: " << sole->az << endl;
+      // cout << "DEBUG /// axData size: " << axData.size() << ", ayData size: " << ayData.size() << ", azData size: " << azData.size() << endl;
+      // if (!axData.empty()) {
+      //       cout << "DEBUG /// Latest axData: " << axData.back() << endl;
+      // }
 
     // {
     //   if (sole->detectHeelThreshold()) {

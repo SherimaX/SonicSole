@@ -111,12 +111,17 @@ public:
     //int timeArr[200];
 
     SonicSole();
+    ~SonicSole();
     void motorVibrate();
     // void detectModeChange();
     void runSoundMode();
     void runVibrateMode();
-    void toCSV();
-    //void readIMU();
+
+    // void toCSV();
+    void toCSV(float az);
+    void openCSVFile(const string& filename);
+    void closeCSVFile();
+
     void readIMU();
     uint64_t getRunningTime();
     void updateCurrentTime();
@@ -132,7 +137,8 @@ public:
     bool detectHeelThreshold();
     void updateThresholdCounter();
 
-    void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector);
+    // void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector);
+    getAccelVectorData(float az, std::vector<float>& azVector) ;
     float vectorIntegral(vector<float> v);
 
 private: 
@@ -142,6 +148,7 @@ private:
     unsigned char SPIbuff[3];
 
     // void updateHeelThresholdInterval();
+    ofstream outFile;
     bool detectThreshold(int prevReading, int currReading, int minReading, int maxReading);
     bool detectCombinedThreshold();
     void playSound();
