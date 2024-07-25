@@ -1018,6 +1018,17 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+vector<float> axData; 
+vector<float> ayData; 
+vector<float> azData; 
+
+int getAccelVectorData(float ax, float ay, float az)
+{
+  axData.push_back(ax);
+  ayData.push_back(ay);
+  azData.push_back(az);
+}
+
 
 //   YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
 	// if(serialDataAvail(IMU))
@@ -1044,26 +1055,3 @@ int main(int argc, char* argv[])
 // printf("Time obtained!\n");
 // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
 // printf("Time: %0.3f secs \n", deltaTime);
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
