@@ -902,11 +902,6 @@ int main(int argc, char* argv[])
 	// INIFINITE LOOP
 	while(recordState)
 	{
-    int count = 0;
-    cout << "Y axis: " << endl; 
-    cout << ayData[count] << endl;
-    count++;
-
     // ADC channels
     // Channel 0
 		digitalWrite(CS,LOW);
@@ -1028,6 +1023,12 @@ int main(int argc, char* argv[])
     
     // SLEEP FOR 4 MS (250 Hz)
     // this_thread::sleep_for(chrono::milliseconds(4));
+    getAccelVectorData(dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
+    
+    int count = 0;
+    cout << "Y axis: " << endl; 
+    cout << ayData[count] << endl;
+    count++;
 	}
 	cout << "End of code!"; // Although we will never get here...
 	return 0;
