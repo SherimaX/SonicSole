@@ -710,7 +710,12 @@ uint64_t getMicrosTimeStamp()
 
 
 
-
+void getAccelVectorData(float ax, float ay, float az)
+{
+  axData.push_back(ax);
+  ayData.push_back(ay);
+  azData.push_back(az);
+}
 
 
 ////////////////////////////////////////////////////
@@ -892,12 +897,7 @@ int main(int argc, char* argv[])
   vector<float> ayData; 
   vector<float> azData; 
 
-  void getAccelVectorData(float ax, float ay, float az)
-  {
-    axData.push_back(ax);
-    ayData.push_back(ay);
-    azData.push_back(az);
-  }
+
   
 	cout << "Start infinite loop...\n\n\n" ;
 
