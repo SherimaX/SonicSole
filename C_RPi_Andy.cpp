@@ -27,6 +27,9 @@ int main(int argc, char* argv[])
 
     int cycle = 0;
     vector<int> thresholdTimes; 
+    vector<float> axData; 
+    vector<float> ayData; 
+    vector<float> azData;
 
     while (true) {
       int time = sole->getRunningTime();
@@ -38,6 +41,8 @@ int main(int argc, char* argv[])
 
       sole->updateCurrentTime();
       sole->updatePressure();
+
+      getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData)
 
     // {
     //   if (sole->detectHeelThreshold()) {
