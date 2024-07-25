@@ -62,10 +62,10 @@ SonicSole::SonicSole() {
         printf("GPIO initialized successfully!\n\n"); 
     }
 
-    structComponentQuaternion dataQuat;
-    structComponentLinearAcceleration dataAcce;
-    structComponentRawGyro dataGyro;
-    structComponentRawAcceleration dataRAcc;
+    // structComponentQuaternion dataQuat;
+    // structComponentLinearAcceleration dataAcce;
+    // structComponentRawGyro dataGyro;
+    // structComponentRawAcceleration dataRAcc;
 
 	// CONFIGURING IMU
     try {
@@ -249,6 +249,11 @@ void SonicSole::readIMU() {
     // look at documentation later, has some useful code
     // ADC - MCP3221
     // #define ADCAddress 0x4D   
+
+    structComponentQuaternion dataQuat;
+    structComponentLinearAcceleration dataAcce;
+    structComponentRawGyro dataGyro;
+    structComponentRawAcceleration dataRAcc;
 
     for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00; 
 
