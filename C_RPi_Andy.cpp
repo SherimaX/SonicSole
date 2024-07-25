@@ -47,8 +47,9 @@ int main(int argc, char* argv[])
       sole->updatePressure();
 
       sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData);
-
-      cout << "velocity: " << sole->vectorIntegral(ayData) << endl;
+      
+      cout << "test: " << ayData[cycle] << endl;
+      //cout << "velocity: " << sole->vectorIntegral(ayData) << endl;
 
     // {
     //   if (sole->detectHeelThreshold()) {
