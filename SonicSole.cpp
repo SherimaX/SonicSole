@@ -62,6 +62,11 @@ SonicSole::SonicSole() {
         printf("GPIO initialized successfully!\n\n"); 
     }
 
+    structComponentQuaternion dataQuat;
+    structComponentLinearAcceleration dataAcce;
+    structComponentRawGyro dataGyro;
+    structComponentRawAcceleration dataRAcc;
+
 	// CONFIGURING IMU
     try {
         printf("Configuring IMU...\n\n");
@@ -89,10 +94,7 @@ SonicSole::SonicSole() {
         printf("IMU not configured successfully: Error. \n\n");
     }
 
-    structComponentQuaternion dataQuat;
-    structComponentLinearAcceleration dataAcce;
-    structComponentRawGyro dataGyro;
-    structComponentRawAcceleration dataRAcc;
+	bool recordState = true;
 }
 
 void SonicSole::toCSV() {
@@ -248,11 +250,7 @@ void SonicSole::readIMU() {
     // ADC - MCP3221
     // #define ADCAddress 0x4D   
 
-    for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00;
-
-      // {lock_guard<mutex> lck(dataMutex[currBuff]);
-
-      // cout << "Get sensor data...\n\n";
+    for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00; 
 
       // FILL UP BUFFER BLOCK
       for (int i = 0; i < NUMBER_BUFFER_PACKET; i++)
@@ -268,7 +266,8 @@ void SonicSole::readIMU() {
         reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
 
         // uint64_t currentTime = getMicrosTimeStamp() - timestampStart;
-        currentTime = (getMicrosTimeStamp() - timestampStart) / 1000;
+        // currentTime = (getMicrosTimeStamp() - timestampStart) / 1000;
+        currentTime = getMicrosTimeStamp() / 1000;
       }
 
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);

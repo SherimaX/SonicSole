@@ -768,14 +768,14 @@ int main(int argc, char* argv[])
 	// int fd = wiringPiSPISetup(SPI_CHANNEL, 500000);
 
 
-    int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
-    if (fd == -1) {
-        std::cout << "Failed to init SPI communication.\n";
-        return -1;
-    }
-    std::cout << "SPI communication successfully setup.\n";	
+  int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
+  if (fd == -1) {
+      std::cout << "Failed to init SPI communication.\n";
+      return -1;
+  }
+  std::cout << "SPI communication successfully setup.\n";	
 
-    this_thread::sleep_for(chrono::milliseconds(500));
+  this_thread::sleep_for(chrono::milliseconds(500));
   
   char strSession[N_STR];
 
