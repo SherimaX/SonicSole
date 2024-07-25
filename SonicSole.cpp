@@ -100,8 +100,36 @@ SonicSole::SonicSole() {
     // vector<float> azData;
 }
 
-void SonicSole::toCSV() {
-    return;
+SonicSole::~SonicSole() {
+    closeCSVFile();
+}
+
+void SonicSole::openCSVFile(const string& filename) {
+    outFile.open(filename, ios::out | ios::app); // Append mode
+    if (!outFile.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return;
+    }
+    // Write CSV headers if the file is empty
+    if (outFile.tellp() == 0) {
+        outFile << "az" << std::endl;
+    }
+}
+
+void SonicSole::closeCSVFile() {
+    if (outFile.is_open()) {
+        outFile.close();
+    }
+}
+
+void SonicSole::toCSV(float az) {
+    if (!outFile.is_open()) {
+        std::cerr << "File stream is not open!" << std::endl;
+        return;
+    }
+
+    // Write the latest data to the CSV file
+    outFile << az << endl;
 }
 
 uint64_t SonicSole::getRunningTime() {
@@ -290,11 +318,16 @@ void SonicSole::readIMU() {
     // printf("Time: %0.3f secs \n", deltaTime);
 }
 
-void SonicSole::getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, 
-                                        vector<float>& ayVector, vector<float>& azVector) 
+// void SonicSole::getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, 
+//                                         vector<float>& ayVector, vector<float>& azVector) 
+// {
+//   axVector.push_back(ax);
+//   ayVector.push_back(ay);
+//   azVector.push_back(az);
+// }
+
+void SonicSole::getAccelVectorData(float az, vector<float>& azVector) 
 {
-  axVector.push_back(ax);
-  ayVector.push_back(ay);
   azVector.push_back(az);
 }
 
