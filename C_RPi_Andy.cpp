@@ -50,6 +50,7 @@ int main(int argc, char* argv[])
       sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData);
 
       // debugging
+      cout << "DEBUG /// dataAcce.ay: " << dataAcce.ay << endl;
       cout << "DEBUG /// axData size: " << axData.size() << ", ayData size: " << ayData.size() << ", azData size: " << azData.size() << endl;
       if (!axData.empty()) {
             cout << "DEBUG /// Latest axData: " << axData.back() << endl;
