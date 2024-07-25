@@ -56,6 +56,8 @@ using namespace std;
 
 static int SPI_CHANNEL = 0;
 static int CS = 17; 
+static uint8_t IMU_PACKET_LENGTH = 52;
+
 
 // mutex dataMutex[3];
 // mutex writeMutex;
@@ -96,7 +98,6 @@ public:
     // uint64_t startInterval = 0;
     // uint64_t endInterval = 0;
     
-    uint8_t IMU_PACKET_LENGTH = 52;
     uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
     bool recordState = true;
 
