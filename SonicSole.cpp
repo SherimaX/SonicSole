@@ -110,7 +110,7 @@ void SonicSole::openCSVFile(const string& filename) {
         std::cerr << "Error opening file: " << filename << std::endl;
         return;
     }
-    // Write CSV headers if the file is empty
+
     if (outFile.tellp() == 0) {
         outFile << "az" << std::endl;
     }
