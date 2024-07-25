@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
     //   }
       
       
-    //   if (sole->getMode()) {    // when getMode is true, soundMode is active, if false than vibMode
+    //   if (sole->getMode()) {
     //     sole->runSoundMode();
     //   } else {
     //     sole->runVibrateMode();
