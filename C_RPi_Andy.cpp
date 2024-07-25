@@ -47,7 +47,8 @@ int main(int argc, char* argv[])
       sole->updatePressure();
       sole->readIMU(dataQuat, dataAcce, dataGyro, dataRAcc);
 
-      sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData);
+
+      // sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData);
 
       // debugging
       cout << "DEBUG /// dataAcce.ay: " << dataAcce.ay << endl;
