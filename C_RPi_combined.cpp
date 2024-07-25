@@ -888,9 +888,9 @@ int main(int argc, char* argv[])
   //   p[j] = 0x00;
   // }
 
-  std::vector<float> axData; 
-  std::vector<float> ayData; 
-  std::vector<float> azData; 
+  vector<float> axData; 
+  vector<float> ayData; 
+  vector<float> azData; 
 
   void getAccelVectorData(float ax, float ay, float az)
   {
@@ -975,7 +975,7 @@ int main(int argc, char* argv[])
         // printf("Pressure values: %i , %i , %i , %i , %i , %i , %i , %i \n", p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
 
         // COPY TO BUFFER BLOCK         
-    	// {lock_guard<mutex> lck(dataMutex[currBuff]);
+    	  // {lock_guard<mutex> lck(dataMutex[currBuff]);
         // if (currBuff==0)
         // {
         //   memcpy(&bufferBlock0[i * LENGTH_SINGLE_PACKET], &singleLogPacket,LENGTH_SINGLE_PACKET); 
