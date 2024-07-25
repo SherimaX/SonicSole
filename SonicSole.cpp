@@ -105,7 +105,7 @@ SonicSole::~SonicSole() {
 }
 
 void SonicSole::openCSVFile(const string& filename) {
-    outFile.open(filename, ios::out | ios::app); // Append mode
+    outFile.open(filename, ios::out | ios::app); 
     if (!outFile.is_open()) {
         std::cerr << "Error opening file: " << filename << std::endl;
         return;
@@ -128,7 +128,6 @@ void SonicSole::toCSV(float az) {
         return;
     }
 
-    // Write the latest data to the CSV file
     outFile << az << endl;
 }
 
