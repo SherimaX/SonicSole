@@ -128,7 +128,7 @@ public:
     void updateThresholdCounter();
 
     void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector);
-    float accelVectorIntegral(vector<float> ay);
+    float vectorIntegral(vector<float> v);
 
 private: 
     double heelThresholdInterval = 0;

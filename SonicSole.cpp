@@ -295,18 +295,18 @@ void SonicSole::getAccelVectorData(float ax, float ay, float az, vector<float>& 
   azVector.push_back(az);
 }
 
-float SonicSole::accelVectorIntegral(vector<float> ay) {
-  if (ay.size() < 2) {
+float SonicSole::vectorIntegral(vector<float> v) {
+  if (v.size() < 2) {
     return 0; 
   }
 
-  int deltaX = ay.size() / 20;
-  int sumOfPoints = ay[0];
+  int deltaX = v.size() / 20;
+  int sumOfPoints = v[0];
 
-  for (int i = 1; i < ay.size()-1; i++) {
-    sumOfPoints += (2*ay[i]);
+  for (int i = 1; i < v.size()-1; i++) {
+    sumOfPoints += (2*v[i]);
   }
-  sumOfPoints += ay[ay.size()-1];
+  sumOfPoints += v[v.size()-1];
 
   float integAccel = 0.5 * deltaX * (sumOfPoints);
   return integAccel;
