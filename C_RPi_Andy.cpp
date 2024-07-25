@@ -45,12 +45,16 @@ int main(int argc, char* argv[])
 
       sole->updateCurrentTime();
       sole->updatePressure();
+      sole->readIMU(dataQuat, dataAcce, dataGyro, dataRAcc);
 
       sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData);
-      
-      if (cycle > 100) {
-        cout << "test: " << ayData[cycle-100] << endl;
+
+      // debugging
+      cout << "DEBUG /// axData size: " << axData.size() << ", ayData size: " << ayData.size() << ", azData size: " << azData.size() << endl;
+      if (!axData.empty()) {
+            cout << "DEBUG /// Latest axData: " << axData.back() << endl;
       }
+
       //cout << "velocity: " << sole->vectorIntegral(ayData) << endl;
 
     // {
@@ -99,18 +103,8 @@ int main(int argc, char* argv[])
       cout << "\nFore Pressure: " << sole->currForePressure << endl;
       cout << "Heel Pressure: " << sole->currHeelPressure << endl;
 
-      sole->readIMU(dataQuat, dataAcce, dataGyro, dataRAcc);
-
       sole->sendFlexSensorData((int)sole->currForePressure, 20000);      
       sole->sendFlexSensorData((int)sole->currHeelPressure, 21000);
-
-
-
-      // sole->readIMU();
-      // sole->toCSV();
-      // cout << "\n";
-
-
 
       delay(100);
       // if (sole->getRunningTime() > MAX_RUN_TIME) { 
