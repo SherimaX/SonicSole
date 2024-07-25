@@ -101,6 +101,10 @@ public:
     uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
     bool recordState = true;
 
+    vector<float> axData; 
+    vector<float> ayData; 
+    vector<float> azData;
+
     // tss_device_id sensor_id;
 
     //vector<int> timeArr;
@@ -126,6 +130,9 @@ public:
     void sendFlexSensorData(int flexSensorData, int port);
     bool detectHeelThreshold();
     void updateThresholdCounter();
+
+    void getAccelVectorData(float ax, float ay, float az);
+    float accelVectorIntegral(vector<float> ay);
 
 private: 
     double heelThresholdInterval = 0;
