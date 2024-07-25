@@ -888,6 +888,17 @@ int main(int argc, char* argv[])
   //   p[j] = 0x00;
   // }
 
+  vector<float> axData; 
+  vector<float> ayData; 
+  vector<float> azData; 
+
+  void getAccelVectorData(float ax, float ay, float az)
+  {
+    axData.push_back(ax);
+    ayData.push_back(ay);
+    azData.push_back(az);
+  }
+  
 	cout << "Start infinite loop...\n\n\n" ;
 
 	// INIFINITE LOOP
@@ -1017,17 +1028,6 @@ int main(int argc, char* argv[])
 	}
 	cout << "End of code!"; // Although we will never get here...
 	return 0;
-}
-
-vector<float> axData; 
-vector<float> ayData; 
-vector<float> azData; 
-
-void getAccelVectorData(float ax, float ay, float az)
-{
-  axData.push_back(ax);
-  ayData.push_back(ay);
-  azData.push_back(az);
 }
 
 
