@@ -19,6 +19,7 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <time.h>
+#include <vector>
 
 // WiringPi libraries
 #include <wiringPi.h>
@@ -1022,7 +1023,7 @@ vector<float> axData;
 vector<float> ayData; 
 vector<float> azData; 
 
-int getAccelVectorData(float ax, float ay, float az)
+void getAccelVectorData(float ax, float ay, float az)
 {
   axData.push_back(ax);
   ayData.push_back(ay);
