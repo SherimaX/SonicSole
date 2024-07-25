@@ -48,7 +48,9 @@ int main(int argc, char* argv[])
 
       sole->getAccelVectorData(dataAcce.ax, dataAcce.ay, dataAcce.az, axData, ayData, azData);
       
-      cout << "test: " << ayData[cycle] << endl;
+      if (cycle > 100) {
+        cout << "test: " << ayData[cycle-100] << endl;
+      }
       //cout << "velocity: " << sole->vectorIntegral(ayData) << endl;
 
     // {
