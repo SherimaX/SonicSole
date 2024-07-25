@@ -711,6 +711,7 @@ uint64_t getMicrosTimeStamp()
 vector<float> axData; 
 vector<float> ayData; 
 vector<float> azData; 
+int count = 0;
 
 void getAccelVectorData(float ax, float ay, float az)
 {
@@ -1025,7 +1026,6 @@ int main(int argc, char* argv[])
     // this_thread::sleep_for(chrono::milliseconds(4));
     getAccelVectorData(dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
     
-    int count = 0;
     cout << "Y axis: " << endl; 
     cout << ayData[count] << endl;
     count++;
