@@ -18,15 +18,16 @@ using namespace std;
 //   JSON::StreamWriterBuilder writer;
 //   return Json::writeString(writer, root);
 // }
-structComponentQuaternion dataQuat;
-structComponentLinearAcceleration dataAcce;
-structComponentRawGyro dataGyro;
-structComponentRawAcceleration dataRAcc;
 
 int main(int argc, char* argv[])
 {
     SonicSole* sole = new SonicSole();
     cout << "SonicSole Class Initialized" << endl;
+
+    structComponentQuaternion dataQuat;
+    structComponentLinearAcceleration dataAcce;
+    structComponentRawGyro dataGyro;
+    structComponentRawAcceleration dataRAcc;
 
 
     int cycle = 0;
@@ -94,7 +95,7 @@ int main(int argc, char* argv[])
       cout << "\nFore Pressure: " << sole->currForePressure << endl;
       cout << "Heel Pressure: " << sole->currHeelPressure << endl;
 
-      sole->readIMU();
+      sole->readIMU(dataQuat, dataAcce, dataGyro, dataRAcc);
 
       sole->sendFlexSensorData((int)sole->currForePressure, 20000);      
       sole->sendFlexSensorData((int)sole->currHeelPressure, 21000);

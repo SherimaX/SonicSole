@@ -246,17 +246,18 @@ void SonicSole::motorVibrate() {
     digitalWrite(20, LOW);
 }
 
-void SonicSole::readIMU() {
+void SonicSole::readIMU(structComponentQuaternion datQuat, structComponentLinearAcceleration datAcc, 
+                        structComponentRawGyro atGyro, structComponentRawAcceleration datRAcc) {
     // https://www.telesens.co/2017/03/11/imu-sampling-using-the-raspberry-pi/
     // https://yostlabs.com/product/3-space-embedded-lx/ 
     // look at documentation later, has some useful code
     // ADC - MCP3221
     // #define ADCAddress 0x4D   
 
-    structComponentQuaternion dataQuat;
-    structComponentLinearAcceleration dataAcce;
-    structComponentRawGyro dataGyro;
-    structComponentRawAcceleration dataRAcc;
+    // structComponentQuaternion dataQuat;
+    // structComponentLinearAcceleration dataAcce;
+    // structComponentRawGyro dataGyro;
+    // structComponentRawAcceleration dataRAcc;
 
     for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00; 
 
@@ -271,7 +272,7 @@ void SonicSole::readIMU() {
           // If no IMU data received, do nothing
         }
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
-        reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
+        reconstructIMUPacket(dataIMUPacket, datQuat, datAcc, datGyro, datRAcc);
 
         // uint64_t currentTime = getMicrosTimeStamp() - timestampStart;
         // currentTime = (getMicrosTimeStamp() - timestampStart) / 1000;
@@ -279,7 +280,7 @@ void SonicSole::readIMU() {
       }
 
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
-    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
+    printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", datAcce.ax, datAcc.ay, datAcc.az);
     // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
     // printf("IMU Quaternion Vector: %0.2f , %0.2f , %0.2f, %0.2f \n", dataQuat.qw, dataQuat.qx, dataQuat.qy, dataQuat.qz);
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", ax, ay,az);
@@ -290,9 +291,9 @@ void SonicSole::readIMU() {
 void SonicSole::getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, 
                                         vector<float>& ayVector, vector<float>& azVector) 
 {
-  axVector.push_back(dataAcce.ax);
-  ayVector.push_back(dataAcce.ay);
-  azVector.push_back(dataAcce.az);
+  axVector.push_back(ax);
+  ayVector.push_back(ay);
+  azVector.push_back(az);
 }
 
 float SonicSole::vectorIntegral(vector<float> v) {

@@ -127,8 +127,7 @@ public:
     bool detectHeelThreshold();
     void updateThresholdCounter();
 
-    //void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector);
-    void getAccelVectorData(vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector);
+    void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector);
     float vectorIntegral(vector<float> v);
 
 private: 
