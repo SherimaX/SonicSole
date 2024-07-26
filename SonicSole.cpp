@@ -124,7 +124,7 @@ void SonicSole::closeCSVFile() {
 
 void SonicSole::toCSV(float az) {
     if (!outFile.is_open()) {
-        std::cerr << "File stream is not open!" << std::endl;
+        cerr << "File stream is not open!" << endl;
         return;
     }
 
