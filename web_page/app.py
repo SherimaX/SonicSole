@@ -149,11 +149,11 @@ def b_scoreboard():
                     splitted_name = row[0].split("_")
                     if len(splitted_name) > 1:
                         if splitted_name[1] == "0":
-                            data.append({'name': splitted_name[0]+" (Eyes Opened)", 'time': int(float(row[1])*100)*0.01})
+                            data.append({'name': splitted_name[0]+" (Eyes Opened)", 'time':  float(row[1])})
                         else:
-                            data.append({'name': splitted_name[0]+" (Eyes Closed)", 'time': int(float(row[1])*100)*0.01})
+                            data.append({'name': splitted_name[0]+" (Eyes Closed)", 'time': float(row[1])})
                     else:
-                        data.append({'name': row[0], 'time': float(row[1])})
+                        data.append({'name': row[0], 'time':  float(row[1])})
     except FileNotFoundError:
         return "Error: SonicSole2.txt file not found."
     except ValueError:
