@@ -153,8 +153,9 @@
         text-align: center;
       }
 
-      label {
+      .eye {
         text-align: center;
+        justify-content: center;
       }
     </style>
     <script>
@@ -214,11 +215,12 @@
     <h1>Balancing Activity</h1>
     <form id="name-form">
       <input type="text" name="name" id="name-input" placeholder="Enter Name" />
-      <br>
+      <div class="eye">
         <input type="radio" id="eyesClosed" name="eyes" value="0" />
         <label for="eyesClosed">Eyes Closed</label><br />
         <input type="radio" id="eyesOpened" name="eyes" value="1" />
         <label for="eyesOpened">Eyes Opened</label><br />
+      </div>
       <input type="submit" style="display: none" />
       <button type="submit">Submit</button>
     </form>
