@@ -95,7 +95,7 @@
     {% for entry in data %}
     <tr>
         <td>{{ entry.name }}</td>
-        <td>{{ entry.time }} Seconds</td>
+        <td>{{ "%.2f" | format(entry.time) }} Seconds</td>
     </tr>
     {% endfor %}
     </table>
