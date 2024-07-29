@@ -56,6 +56,8 @@ using namespace std;
 
 static int SPI_CHANNEL = 0;
 static int CS = 17; 
+static const int IMU_PACKET_LENGTH = 52;
+
 
 // mutex dataMutex[3];
 // mutex writeMutex;
@@ -91,12 +93,17 @@ public:
     double prevForePressure = 0;
     double prevCombinedPressure = 0;
 
+    double ax = 0;
+    double ay = 0;
+    double az = 0;
+
     uint64_t startTime = 0;
     uint64_t currentTime = 0;
     // uint64_t startInterval = 0;
     // uint64_t endInterval = 0;
     
-    uint8_t IMU_PACKET_LENGTH = 52;
+    uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
+    bool recordState = true;
 
     // tss_device_id sensor_id;
 
@@ -104,11 +111,17 @@ public:
     //int timeArr[200];
 
     SonicSole();
+    ~SonicSole();
     void motorVibrate();
     // void detectModeChange();
     void runSoundMode();
     void runVibrateMode();
-    void toCSV();
+
+    // void toCSV();
+    void toCSV(float az);
+    void openCSVFile(const string& filename);
+    void closeCSVFile();
+
     void readIMU();
     uint64_t getRunningTime();
     void updateCurrentTime();
@@ -124,6 +137,10 @@ public:
     bool detectHeelThreshold();
     void updateThresholdCounter();
 
+    // void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector);
+    void getAccelVectorData(float az, vector<float>& azVector);
+    float vectorIntegral(vector<float> v);
+
 private: 
     double heelThresholdInterval = 0;
     double previousHeelThresholdTime = 0;
@@ -131,6 +148,7 @@ private:
     unsigned char SPIbuff[3];
 
     // void updateHeelThresholdInterval();
+    ofstream outFile;
     bool detectThreshold(int prevReading, int currReading, int minReading, int maxReading);
     bool detectCombinedThreshold();
     void playSound();

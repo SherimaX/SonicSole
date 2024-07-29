@@ -19,6 +19,7 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <time.h>
+#include <vector>
 
 // WiringPi libraries
 #include <wiringPi.h>
@@ -707,9 +708,36 @@ uint64_t getMicrosTimeStamp()
 //   return ((uint16_t) pressVal);
 // }
 
+vector<float> axData; 
+vector<float> ayData; 
+vector<float> azData; 
 
+void getAccelVectorData(float ax, float ay, float az) // vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector)
+{
+  axData.push_back(ax);
+  ayData.push_back(ay);
+  azData.push_back(az);
+}
 
+float accelVectorIntegral(vector<float> ay) 
+{
 
+  if (ay.size() < 2) {
+    return 0; 
+  }
+
+  int deltaX =  ay.size() / 20;
+  int sumOfPoints = ay[0];
+
+  for (int i = 1; i < ay.size()-1; i++) {
+    sumOfPoints += (2*ay[i]);
+  }
+
+  sumOfPoints += ay[ay.size()-1];
+
+  float integAccel = 0.5 * deltaX * (sumOfPoints);
+  return integAccel
+}
 
 
 ////////////////////////////////////////////////////
@@ -740,14 +768,14 @@ int main(int argc, char* argv[])
 	// int fd = wiringPiSPISetup(SPI_CHANNEL, 500000);
 
 
-    int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
-    if (fd == -1) {
-        std::cout << "Failed to init SPI communication.\n";
-        return -1;
-    }
-    std::cout << "SPI communication successfully setup.\n";	
+  int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
+  if (fd == -1) {
+      std::cout << "Failed to init SPI communication.\n";
+      return -1;
+  }
+  std::cout << "SPI communication successfully setup.\n";	
 
-    this_thread::sleep_for(chrono::milliseconds(500));
+  this_thread::sleep_for(chrono::milliseconds(500));
   
   char strSession[N_STR];
 
@@ -887,6 +915,8 @@ int main(int argc, char* argv[])
   //   p[j] = 0x00;
   // }
 
+
+  
 	cout << "Start infinite loop...\n\n\n" ;
 
 	// INIFINITE LOOP
@@ -963,7 +993,7 @@ int main(int argc, char* argv[])
         // printf("Pressure values: %i , %i , %i , %i , %i , %i , %i , %i \n", p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
 
         // COPY TO BUFFER BLOCK         
-    	// {lock_guard<mutex> lck(dataMutex[currBuff]);
+    	  // {lock_guard<mutex> lck(dataMutex[currBuff]);
         // if (currBuff==0)
         // {
         //   memcpy(&bufferBlock0[i * LENGTH_SINGLE_PACKET], &singleLogPacket,LENGTH_SINGLE_PACKET); 
@@ -1013,6 +1043,7 @@ int main(int argc, char* argv[])
     
     // SLEEP FOR 4 MS (250 Hz)
     // this_thread::sleep_for(chrono::milliseconds(4));
+    getAccelVectorData(dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
 	}
 	cout << "End of code!"; // Although we will never get here...
 	return 0;
@@ -1044,26 +1075,3 @@ int main(int argc, char* argv[])
 // printf("Time obtained!\n");
 // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);
 // printf("Time: %0.3f secs \n", deltaTime);
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

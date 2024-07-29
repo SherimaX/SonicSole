@@ -24,9 +24,18 @@ int main(int argc, char* argv[])
     SonicSole* sole = new SonicSole();
     cout << "SonicSole Class Initialized" << endl;
 
+    sole->openCSVFile("accel_data.csv");
+
+    structComponentQuaternion *dataQuat;
+    structComponentLinearAcceleration *dataAcce;
+    structComponentRawGyro *dataGyro;
+    structComponentRawAcceleration *dataRAcc;
 
     int cycle = 0;
     vector<int> thresholdTimes; 
+    vector<float> axData; 
+    vector<float> ayData; 
+    vector<float> azData;
 
     while (true) {
       int time = sole->getRunningTime();
@@ -38,6 +47,19 @@ int main(int argc, char* argv[])
 
       sole->updateCurrentTime();
       sole->updatePressure();
+      sole->readIMU();
+
+      // sole->getAccelVectorData(sole->ax, sole->ay, sole->az, axData, ayData, azData);
+      sole->getAccelVectorData(sole->az, azData);
+
+      sole->toCSV(sole->az);
+
+      // debugging
+      // cout << "DEBUG /// dataAcce.ay: " << sole->az << endl;
+      // cout << "DEBUG /// axData size: " << axData.size() << ", ayData size: " << ayData.size() << ", azData size: " << azData.size() << endl;
+      // if (!axData.empty()) {
+      //       cout << "DEBUG /// Latest axData: " << axData.back() << endl;
+      // }
 
     // {
     //   if (sole->detectHeelThreshold()) {
@@ -67,7 +89,7 @@ int main(int argc, char* argv[])
     //   }
       
       
-    //   if (sole->getMode()) {    // when getMode is true, soundMode is active, if false than vibMode
+    //   if (sole->getMode()) {
     //     sole->runSoundMode();
     //   } else {
     //     sole->runVibrateMode();
@@ -85,18 +107,8 @@ int main(int argc, char* argv[])
       cout << "\nFore Pressure: " << sole->currForePressure << endl;
       cout << "Heel Pressure: " << sole->currHeelPressure << endl;
 
-      sole->readIMU();
-
       sole->sendFlexSensorData((int)sole->currForePressure, 20000);      
       sole->sendFlexSensorData((int)sole->currHeelPressure, 21000);
-
-
-
-      // sole->readIMU();
-      // sole->toCSV();
-      // cout << "\n";
-
-
 
       delay(100);
       // if (sole->getRunningTime() > MAX_RUN_TIME) { 
