@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 
       sole->updateCurrentTime();
       sole->updatePressure();
-      // sole->readIMU();
+      sole->readIMU();
 
       // // sole->getAccelVectorData(sole->ax, sole->ay, sole->az, axData, ayData, azData);
       sole->getAccelVectorData(sole->az, azData);
