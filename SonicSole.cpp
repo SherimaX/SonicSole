@@ -294,7 +294,7 @@ void SonicSole::readIMU() {
         YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
         while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
         {
-          // std::cout << serialDataAvail(IMU) << std::endl;
+          std::cout << serialDataAvail(IMU) << std::endl;
           // If no IMU data received, do nothing
         }
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
