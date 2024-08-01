@@ -50,12 +50,12 @@ int main(int argc, char* argv[])
       // sole->readIMU();
 
       // // sole->getAccelVectorData(sole->ax, sole->ay, sole->az, axData, ayData, azData);
-      // sole->getAccelVectorData(sole->az, azData);
+      sole->getAccelVectorData(sole->az, azData);
 
-      // sole->toCSV(sole->az);
+      sole->toCSV(sole->az);
 
       // debugging
-      // cout << "DEBUG /// dataAcce.ay: " << sole->az << endl;
+      cout << "DEBUG /// dataAcce.ay: " << sole->az << endl;
       // cout << "DEBUG /// axData size: " << axData.size() << ", ayData size: " << ayData.size() << ", azData size: " << azData.size() << endl;
       // if (!axData.empty()) {
       //       cout << "DEBUG /// Latest axData: " << axData.back() << endl;
