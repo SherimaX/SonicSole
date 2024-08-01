@@ -105,14 +105,14 @@ SonicSole::~SonicSole() {
 }
 
 void SonicSole::openCSVFile(const string& filename) {
-    outFile.open(filename, ios::out | ios::app); 
+    outFile.open(filename);//, ios::out | ios::app); 
     if (!outFile.is_open()) {
-        std::cerr << "Error opening file: " << filename << std::endl;
+        cerr << "Error opening file: " << filename << endl;
         return;
     }
 
     if (outFile.tellp() == 0) {
-        outFile << "az" << std::endl;
+        outFile << "az" << endl;
     }
 }
 
