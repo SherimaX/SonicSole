@@ -105,7 +105,7 @@ SonicSole::~SonicSole() {
 }
 
 void SonicSole::openCSVFile(const string& filename) {
-    outFile.open(filename);//, ios::out | ios::app); 
+    outFile.open(filename, ios::out | ios::app); 
     if (!outFile.is_open()) {
         cerr << "Error opening file: " << filename << endl;
         return;
