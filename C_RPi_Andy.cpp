@@ -45,14 +45,25 @@ int main(int argc, char* argv[])
       cout << "Cycle: " << cycle << endl;
       cycle++;
 
+      cout << "checkpoint 1" << endl;
+
       sole->updateCurrentTime();
       sole->updatePressure();
+
+      cout << "checkpoint 2" << endl;
       sole->readIMU();
+
+      cout << "checkpoint 3" << endl;
 
       // // sole->getAccelVectorData(sole->ax, sole->ay, sole->az, axData, ayData, azData);
       sole->getAccelVectorData(sole->az, azData);
 
+      cout << "checkpoint 4" << endl;
+
       sole->toCSV(sole->az);
+
+      cout << "checkpoint 5" << endl;
+
 
       // debugging
       cout << "DEBUG /// dataAcce.ay: " << sole->az << endl;
