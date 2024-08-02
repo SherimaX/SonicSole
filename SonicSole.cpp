@@ -126,7 +126,8 @@ void SonicSole::toCSV(double time, double heelpresh, double forepresh, float az)
 }
 
 double SonicSole::getRunningTime() {
-    return static_cast<double>(currentTime - startTime) / 1000000.0;
+    // return static_cast<double>(currentTime - startTime) / 1000000.0;
+    return ((double) currentTime - (double) startTime) / 1000000.0;
 }
 
 void SonicSole::updateCurrentTime() {
