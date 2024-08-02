@@ -24,6 +24,7 @@ SonicSole::SonicSole() {
     // startTime = getSecondsTimeStamp();
     // previousHeelThresholdTime = getSecondsTimeStamp();
     startTime = getMicrosTimeStamp();
+    currentTime = startTime; 
     previousHeelThresholdTime = getMicrosTimeStamp();
     wiringPiSetupGpio() ;
     pinMode(CS, OUTPUT) ;
@@ -125,7 +126,7 @@ void SonicSole::toCSV(double time, double heelpresh, double forepresh, float az)
 }
 
 double SonicSole::getRunningTime() {
-    return ((double) currentTime - (double) startTime) / 1000000.0;
+    return static_cast<double>(currentTime - startTime) / 1000000.0;
 }
 
 void SonicSole::updateCurrentTime() {
