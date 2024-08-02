@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
       sole->updatePressure();
 
       // double time = sole->getRunningTime();
+      double time = 10.23;
       cout << "\ntime: " << time << endl;
       // printf("time: %0.3f seconds \n", time);
       cout << "Cycle: " << cycle << endl;
