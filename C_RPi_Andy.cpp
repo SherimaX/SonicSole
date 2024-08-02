@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
       sole->sendFlexSensorData((int)sole->currForePressure, 20000);      
       sole->sendFlexSensorData((int)sole->currHeelPressure, 21000);
 
-      delay(100);
+      // delay(100);
       // if (sole->getRunningTime() > MAX_RUN_TIME) { 
       //    cout << sole->getRunningTime() << endl;
       //    cout << MAX_RUN_TIME << endl;
