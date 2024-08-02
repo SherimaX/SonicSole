@@ -123,7 +123,7 @@ public:
     void closeCSVFile();
 
     void readIMU();
-    uint64_t getRunningTime();
+    double getRunningTime();
     void updateCurrentTime();
     void updatePressure();
     int getSensorReadings(unsigned char signal);
