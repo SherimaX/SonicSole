@@ -38,14 +38,14 @@ int main(int argc, char* argv[])
     vector<float> azData;
 
     while (true) {
-     double time = sole->getRunningTime();
+      sole->updateCurrentTime();
+      sole->updatePressure();
+      
+      double time = sole->getRunningTime();
       cout << "\ntime: " << time << endl;
       // printf("time: %0.3f seconds \n", time);
       cout << "Cycle: " << cycle << endl;
       cycle++;
-
-      sole->updateCurrentTime();
-      sole->updatePressure();
       
       sole->readIMU();
       sole->getAccelVectorData(sole->az, azData);
