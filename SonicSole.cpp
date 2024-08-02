@@ -115,13 +115,13 @@ void SonicSole::closeCSVFile() {
     }
 }
 
-void SonicSole::toCSV(float az) {
+void SonicSole::toCSV(int time, double heelpresh, double forepresh, float az) {
     if (!outFile.is_open()) {
         cerr << "File stream is not open" << endl;
         return;
     }
 
-    outFile << az << endl;
+    outFile << time << ", " << heelpresh << ", " << forepresh << ", " << az << endl;
 }
 
 uint64_t SonicSole::getRunningTime() {
