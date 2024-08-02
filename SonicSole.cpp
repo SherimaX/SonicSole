@@ -61,12 +61,7 @@ SonicSole::SonicSole() {
     }
     else {
         printf("GPIO initialized successfully!\n\n"); 
-    }
-
-    // structComponentQuaternion dataQuat;
-    // structComponentLinearAcceleration dataAcce;
-    // structComponentRawGyro dataGyro;
-    // structComponentRawAcceleration dataRAcc;
+    } 
 
 	// CONFIGURING IMU
     try {
@@ -95,10 +90,7 @@ SonicSole::SonicSole() {
         printf("IMU not configured successfully: Error. \n\n");
     }
 
-	bool recordState = true;
-    // vector<float> axData; 
-    // vector<float> ayData; 
-    // vector<float> azData;
+	bool recordState = true; 
 }
 
 SonicSole::~SonicSole() {
@@ -125,7 +117,7 @@ void SonicSole::closeCSVFile() {
 
 void SonicSole::toCSV(float az) {
     if (!outFile.is_open()) {
-        cerr << "File stream is not open!" << endl;
+        cerr << "File stream is not open" << endl;
         return;
     }
 
