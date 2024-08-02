@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
       
       sole->readIMU();
       sole->getAccelVectorData(sole->az, azData);
-      sole->toCSV(sole->az);
+      sole->toCSV(time, sole->currForePressure, sole->currHeelPressure, sole->az);
 
 
       // debugging 
