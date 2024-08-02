@@ -21,10 +21,10 @@ void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in s
 }
 
 SonicSole::SonicSole() {
-    startTime = getSecondsTimeStamp();
-    previousHeelThresholdTime = getSecondsTimeStamp();
-    // startTime = getMicrosTimeStamp();
-    // previousHeelThresholdTime = getMicrosTimeStamp();
+    // startTime = getSecondsTimeStamp();
+    // previousHeelThresholdTime = getSecondsTimeStamp();
+    startTime = getMicrosTimeStamp();
+    previousHeelThresholdTime = getMicrosTimeStamp();
     wiringPiSetupGpio() ;
     pinMode(CS, OUTPUT) ;
     digitalWrite(CS,HIGH);
@@ -115,7 +115,7 @@ void SonicSole::closeCSVFile() {
     }
 }
 
-void SonicSole::toCSV(int time, double heelpresh, double forepresh, float az) {
+void SonicSole::toCSV(double time, double heelpresh, double forepresh, float az) {
     if (!outFile.is_open()) {
         cerr << "File stream is not open" << endl;
         return;
@@ -124,8 +124,8 @@ void SonicSole::toCSV(int time, double heelpresh, double forepresh, float az) {
     outFile << time << ", " << heelpresh << ", " << forepresh << ", " << az << endl;
 }
 
-uint64_t SonicSole::getRunningTime() {
-    return currentTime - startTime;
+double SonicSole::getRunningTime() {
+    return (currentTime - startTime) / 1000000.0;
 }
 
 void SonicSole::updateCurrentTime() {
