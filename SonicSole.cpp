@@ -105,7 +105,7 @@ void SonicSole::openCSVFile(const string& filename) {
     }
 
     if (outFile.tellp() == 0) {
-        outFile << "az" << endl;
+        outFile << "time, " << "heel pressure, " << "forefoot pressure, " << "az" << endl;
     }
 }
 
