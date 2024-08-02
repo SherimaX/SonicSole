@@ -130,8 +130,8 @@ double SonicSole::getRunningTime() {
 }
 
 void SonicSole::updateCurrentTime() {
-    currentTime = getSecondsTimeStamp();
-    // currentTime = getMicrosTimeStamp();
+    // currentTime = getSecondsTimeStamp();
+    currentTime = getMicrosTimeStamp();
 }
 
 void SonicSole::updatePressure() {
