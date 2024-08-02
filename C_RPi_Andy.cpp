@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
       sole->toCSV(sole->az);
 
 
-      // debugging
+      // debugging 
       cout << "DEBUG /// dataAcce.ay: " << sole->az << endl;
       // cout << "DEBUG /// axData size: " << axData.size() << ", ayData size: " << ayData.size() << ", azData size: " << azData.size() << endl;
       // if (!axData.empty()) {
