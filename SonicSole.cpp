@@ -44,7 +44,7 @@ SonicSole::SonicSole() {
 
     // INITIALIZING UART1
     printf("Initializing UART0...\n\n");
-    if ((IMU = serialOpen ("/dev/ttyS0", 115200)) < 0) {
+    if ((IMU = serialOpen ("/dev/ttyS0", 921600)) < 0) {
   		fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
   	}
     else {
