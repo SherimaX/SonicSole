@@ -38,8 +38,7 @@ int main(int argc, char* argv[])
     vector<float> azData;
 
     while (true) {
-      long double time = (sole->getRunningTime()) / 1000000;
-      // int time = 0;
+     int time = sole->getRunningTime();
       cout << "\ntime: " << time << endl;
       // printf("time: %0.3f seconds \n", time);
       cout << "Cycle: " << cycle << endl;
