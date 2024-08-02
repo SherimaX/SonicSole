@@ -21,8 +21,8 @@ void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in s
 }
 
 SonicSole::SonicSole() {
-    startTime = getSecondsTimeStamp();
-    previousHeelThresholdTime = getSecondsTimeStamp();
+    startTime = getMicrosTimeStamp();
+    previousHeelThresholdTime = getMicrosTimeStamp();
     // startTime = getMicrosTimeStamp();
     // previousHeelThresholdTime = getMicrosTimeStamp();
     wiringPiSetupGpio() ;
