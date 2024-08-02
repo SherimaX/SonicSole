@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     SonicSole* sole = new SonicSole();
     cout << "SonicSole Class Initialized" << endl;
 
-    sole->openCSVFile("accel_data.csv");
+    sole->openCSVFile("sole_data.csv");
 
     structComponentQuaternion *dataQuat;
     structComponentLinearAcceleration *dataAcce;
