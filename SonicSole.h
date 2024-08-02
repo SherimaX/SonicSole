@@ -118,7 +118,7 @@ public:
     void runVibrateMode();
 
     // void toCSV();
-    void toCSV(int time, double heelpresh, double forepresh, float az);
+    void toCSV(double time, double heelpresh, double forepresh, float az);
     void openCSVFile(const string& filename);
     void closeCSVFile();
 
