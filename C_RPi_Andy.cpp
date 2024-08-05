@@ -30,12 +30,18 @@ int main(int argc, char* argv[])
     structComponentLinearAcceleration *dataAcce;
     structComponentRawGyro *dataGyro;
     structComponentRawAcceleration *dataRAcc;
-    sole->motorVibrate();
     int cycle = 0;
     vector<int> thresholdTimes; 
     vector<float> axData; 
     vector<float> ayData; 
     vector<float> azData;
+
+    while (true)
+    {
+      sole->motorVibrate();
+      delay(1000);
+    }
+    
 
     while (true) {
       sole->updateCurrentTime();
