@@ -27,8 +27,13 @@ SonicSole::SonicSole() {
     currentTime = startTime; 
     previousHeelThresholdTime = getMicrosTimeStamp();
     wiringPiSetupGpio() ;
-    pinMode(CS, OUTPUT) ;
+    pinMode(CS, OUTPUT);
     digitalWrite(CS,HIGH);
+
+    pinMode(20, OUTPUT);
+    pinMode(23, OUTPUT);
+
+    
 
     // INITIALIZING SPI
     printf("Initializing SPI...\n\n");
