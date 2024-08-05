@@ -36,23 +36,6 @@ int main(int argc, char* argv[])
     vector<float> ayData; 
     vector<float> azData;
 
-
-
-    while (true)
-    {
-
-      digitalWrite(3, HIGH); //Turn motors on and off to show device is on
-      digitalWrite(20, HIGH);
-
-      sole->motorVibrate();
-      delay(1000);
-      digitalWrite(3, LOW); //Turn motors on and off to show device is on
-      digitalWrite(20, LOW);
-      delay(1000);
-    }
-    
-
-
     while (true) {
       sole->updateCurrentTime();
       sole->updatePressure();
@@ -64,7 +47,7 @@ int main(int argc, char* argv[])
       cout << "Cycle: " << cycle << endl;
       cycle++;
       
-      sole->readIMU();
+      // sole->readIMU();
       sole->getAccelVectorData(sole->az, azData);
       sole->toCSV(time, sole->currForePressure, sole->currHeelPressure, sole->az);
 
