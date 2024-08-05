@@ -95,37 +95,39 @@
     <a href="/balance" class="homebutton">Go Back</a>
     <div class="leaderboards">
       <!-- Table for entries without "(Eyes Closed)" -->
-      <table class="leaderboard">
-          <tr>
-              <th>Name</th>
-              <th>Total Time (Eyes Opened)</th>
-          </tr>
-          {% for entry in data %}
-          {% if "(Eyes Closed)" not in entry.name %}
-          <tr>
-              <td>{{ entry.name }}</td>
-              <td>{{ "%.2f" | format(entry.time) }} Seconds</td>
-          </tr>
-          {% endif %}
-          {% endfor %}
-      </table>
+      <div class="leaderboards">
+        <!-- Table for entries without "(Eyes Closed)" -->
+        <table class="leaderboard">
+            <tr>
+                <th>Name</th>
+                <th>Total Time (Eyes Opened)</th>
+            </tr>
+            {% for entry in data %}
+            {% if "(Eyes Closed)" not in entry.name %}
+            <tr>
+                <td>{{ entry.name | replace('(Eyes Opened)', '') | replace('(Eyes Closed)', '') }}</td>
+                <td>{{ "%.2f" | format(entry.time) }} Seconds</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </table>
 
-      <!-- Table for entries with "(Eyes Closed)" -->
-      <table class="leaderboard">
-          <tr>
-              <th>Name</th>
-              <th>Total Time (Eyes Closed)</th>
-          </tr>
-          {% for entry in data %}
-          {% if "(Eyes Closed)" in entry.name %}
-          <tr>
-              <td>{{ entry.name }}</td>
-              <td>{{ "%.2f" | format(entry.time) }} Seconds</td>
-          </tr>
-          {% endif %}
-          {% endfor %}
-      </table>
-  </div>
+        <!-- Table for entries with "(Eyes Closed)" -->
+        <table class="leaderboard">
+            <tr>
+                <th>Name</th>
+                <th>Total Time (Eyes Closed)</th>
+            </tr>
+            {% for entry in data %}
+            {% if "(Eyes Closed)" in entry.name %}
+            <tr>
+                <td>{{ entry.name | replace('(Eyes Opened)', '') | replace('(Eyes Closed)', '') }}</td>
+                <td>{{ "%.2f" | format(entry.time) }} Seconds</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </table>
+    </div>
 
 
   </body>
