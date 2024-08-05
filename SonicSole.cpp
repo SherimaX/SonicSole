@@ -269,8 +269,8 @@ void SonicSole::motorVibrate() {
     
     pinMode(20, OUTPUT);
     pinMode(3, OUTPUT);
-    digitalWrite(3, HIGH); //Turn motors on and off to show device is on
-    digitalWrite(20, HIGH);
+    digitalWrite(3, LOW); //Turn motors on and off to show device is on
+    digitalWrite(20, LOW);
     delay(1000);
 }
 
