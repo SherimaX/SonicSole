@@ -46,6 +46,9 @@ int main(int argc, char* argv[])
 
       // sole->motorVibrate();
       delay(1000);
+      digitalWrite(3, LOW); //Turn motors on and off to show device is on
+      digitalWrite(20, LOW);
+      delay(1000);
     }
     
 
