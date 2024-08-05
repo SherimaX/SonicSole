@@ -87,6 +87,7 @@
   <body>
     <h1>Balancing Scoreboard</h1>
     <a href="/balance" class="homebutton">Go Back</a>
+    <div>
     <table id="leaderboard">
       <tr>
         <th>Name</th>
@@ -99,6 +100,20 @@
     </tr>
     {% endfor %}
     </table>
+    <table id="leaderboard">
+      <tr>
+        <th>Name</th>
+        <th>Total Time</th>
+    </tr>
+    {% for entry in data %}
+    <tr>
+        <td>{{ entry.name }}</td>
+        <td>{{ "%.2f" | format(entry.time) }} Seconds</td>
+    </tr>
+    {% endfor %}
+    </table>
+  </div>
+
 
   </body>
 </html>
