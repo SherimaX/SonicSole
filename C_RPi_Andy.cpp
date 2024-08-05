@@ -36,12 +36,19 @@ int main(int argc, char* argv[])
     vector<float> ayData; 
     vector<float> azData;
 
+
+
     while (true)
     {
-      sole->motorVibrate();
+
+      digitalWrite(3, HIGH); //Turn motors on and off to show device is on
+      digitalWrite(20, HIGH);
+
+      // sole->motorVibrate();
       delay(1000);
     }
     
+
 
     while (true) {
       sole->updateCurrentTime();
