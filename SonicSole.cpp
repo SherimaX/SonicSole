@@ -26,7 +26,7 @@ SonicSole::SonicSole() {
     startTime = getMicrosTimeStamp();
     currentTime = startTime; 
     previousHeelThresholdTime = getMicrosTimeStamp();
-    wiringPiSetupGpio() ;
+    wiringPiSetupGpio();
     pinMode(CS, OUTPUT);
     digitalWrite(CS,HIGH);
 
@@ -266,11 +266,12 @@ void SonicSole::runVibrateMode() {
 }
 
 void SonicSole::motorVibrate() {
+    
+    pinMode(20, OUTPUT);
+    pinMode(3, OUTPUT);
     digitalWrite(3, HIGH); //Turn motors on and off to show device is on
     digitalWrite(20, HIGH);
     delay(1000);
-    digitalWrite(3, LOW);
-    digitalWrite(20, LOW);
 }
 
 
