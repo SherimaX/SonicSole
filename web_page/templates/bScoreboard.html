@@ -98,7 +98,7 @@
       <table class="leaderboard">
           <tr>
               <th>Name</th>
-              <th>Total Time</th>
+              <th>Total Time (Eyes Opened)</th>
           </tr>
           {% for entry in data %}
           {% if "(Eyes Closed)" not in entry.name %}
@@ -114,7 +114,7 @@
       <table class="leaderboard">
           <tr>
               <th>Name</th>
-              <th>Total Time</th>
+              <th>Total Time (Eyes Closed)</th>
           </tr>
           {% for entry in data %}
           {% if "(Eyes Closed)" in entry.name %}
