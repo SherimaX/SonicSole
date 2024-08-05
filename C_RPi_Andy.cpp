@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
     while (true) {
       sole->updateCurrentTime();
       sole->updatePressure();
+      sole->motorVibrate();
 
       double time = sole->getRunningTime();
       // double time = 10.23;
