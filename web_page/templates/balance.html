@@ -157,6 +157,17 @@
         text-align: center;
         justify-content: center;
       }
+
+      .countdown {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 100px;
+        color: #000;
+        z-index: 1000;
+      }
     </style>
     <script>
       function fetchData() {
@@ -207,28 +218,57 @@
               .then((response) => response.json())
               .then((data) => console.log(data.status))
               .catch((error) => console.error("Error:", error));
+
+            // Start the countdown
+            startCountdown();
           });
       });
+
+      function startCountdown() {
+        const countdownElement = document.getElementById("countdown");
+        countdownElement.style.display = "block";
+
+        let countdownValue = 3;
+        countdownElement.innerHTML = countdownValue;
+
+        const countdownInterval = setInterval(() => {
+          countdownValue -= 1;
+          if (countdownValue > 0) {
+            countdownElement.innerHTML = countdownValue;
+          } else if (countdownValue === 0) {
+            countdownElement.innerHTML = "Go!";
+          } else {
+            clearInterval(countdownInterval);
+            countdownElement.style.display = "none";
+          }
+        }, 1000);
+      }
+
+      function submitForm(event) {
+        event.preventDefault();
+        // Your form submission logic here
+      }
     </script>
   </head>
   <body>
     <h1>Balancing Activity</h1>
     <form id="name-form">
-      <br>
+      <br />
       <input type="text" name="name" id="name-input" placeholder="Enter Name" />
-      <br>
+      <br />
       <div class="eye">
         <input type="radio" id="eyesClosed" name="eyes" value="0" />
         <label for="eyesClosed">Eyes Closed</label><br />
         <input type="radio" id="eyesOpened" name="eyes" value="1" />
         <label for="eyesOpened">Eyes Opened</label><br />
 
-        <br>
+        <br />
         <input type="submit" style="display: none" />
-      <button type="submit">Submit</button>
-    </div>
+        <button type="submit">Submit</button>
+      </div>
     </form>
     <div class="content">
+      <div id="countdown" class="countdown"></div>
       <div class="buttons">
         <button id="startButton">Start Balancing</button>
         <button onclick="openModal()">Instructions</button>
