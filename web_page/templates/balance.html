@@ -165,8 +165,9 @@
         left: 50%;
         transform: translate(-50%, -50%);
         font-size: 100px;
-        color: #000;
+        color: #ffffff;
         z-index: 1000;
+        font-weight: bold;
       }
     </style>
     <script>
@@ -214,13 +215,15 @@
         document
           .getElementById("startButton")
           .addEventListener("click", function () {
-            fetch("/button_click", { method: "POST" })
-              .then((response) => response.json())
-              .then((data) => console.log(data.status))
-              .catch((error) => console.error("Error:", error));
-
-            // Start the countdown
             startCountdown();
+
+            // Assuming startCountdown takes some time, let's say 3 seconds
+            setTimeout(function () {
+              fetch("/button_click", { method: "POST" })
+                .then((response) => response.json())
+                .then((data) => console.log(data.status))
+                .catch((error) => console.error("Error:", error));
+            }, 3000); // Adjust the delay time (3000 ms = 3 seconds)
           });
       });
 
@@ -243,7 +246,6 @@
           }
         }, 1000);
       }
-
     </script>
   </head>
   <body>
