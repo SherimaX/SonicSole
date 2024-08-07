@@ -80,7 +80,7 @@ def balancing_pressure():
     start_time = time.time()
     while True:
         if recording_time and (int(received_heel_data) < 500 and int(received_fore_data) < 500):
-            i = -3
+            i = 0
             end_time = time.time()
             totalTime = str(end_time - start_time)
             print("Currently Balanced for {} seconds".format(totalTime))
