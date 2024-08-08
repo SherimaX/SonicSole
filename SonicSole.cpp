@@ -121,7 +121,7 @@ string generateFileName() {
                    << (localTime->tm_mon + 1) << "_"
                    << localTime->tm_mday << "_"
                    << localTime->tm_hour << "_"
-                   << localTime->tm_min << "_"
+                   << localTime->tm_min << ":"
                    << localTime->tm_sec
                    << ".csv";
 
