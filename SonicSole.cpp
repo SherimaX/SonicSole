@@ -104,8 +104,8 @@ SonicSole::~SonicSole() {
 }
 
 string generateFileName() {
-    time_t now = std::time(nullptr);
-    tm* localTime = std::localtime(&now);
+    time_t now = time(nullptr);
+    tm* localTime = localtime(&now);
 
     ostringstream filenameStream;
     filenameStream << "sole_data_"
