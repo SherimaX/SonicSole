@@ -104,11 +104,19 @@ SonicSole::~SonicSole() {
 }
 
 string generateFileName() {
+    string directory = "SOLE_DATA";
+
+    // Create the directory if it doesn't exist
+    struct stat info;
+    if (stat(directory.c_str(), &info) != 0) {
+        mkdir(directory.c_str(), 0777);
+    }
+
     time_t now = time(nullptr);
     tm* localTime = localtime(&now);
 
     ostringstream filenameStream;
-    filenameStream << "sole_data_"
+    filenameStream << "/sole_data_"
                    << (localTime->tm_year + 1900) << "_"
                    << (localTime->tm_mon + 1) << "_"
                    << localTime->tm_mday << "_"
