@@ -324,7 +324,7 @@ void SonicSole::readIMU() {
         while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
         {
           // If no IMU data received, do nothing (print 0 infinitely)
-          cout << serialDataAvail(IMU) << endl; 
+        //   cout << serialDataAvail(IMU) << endl; 
         }
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
         reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
