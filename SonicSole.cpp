@@ -112,7 +112,7 @@ string generateFileName() {
         mkdir(directory.c_str(), 0777);
     }
 
-    time_t now = time(nullptr);
+    time_t now = time(0);
     tm* localTime = localtime(&now);
 
     ostringstream filenameStream;
