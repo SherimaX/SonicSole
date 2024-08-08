@@ -103,7 +103,25 @@ SonicSole::~SonicSole() {
     closeCSVFile();
 }
 
-void SonicSole::openCSVFile(const string& filename) {
+string generateFileName() {
+    time_t now = std::time(nullptr);
+    tm* localTime = std::localtime(&now);
+
+    ostringstream filenameStream;
+    filenameStream << "sole_data_"
+                   << (localTime->tm_year + 1900) << "_"
+                   << (localTime->tm_mon + 1) << "_"
+                   << localTime->tm_mday << "_"
+                   << localTime->tm_hour << "_"
+                   << localTime->tm_min << "_"
+                   << localTime->tm_sec
+                   << ".csv";
+
+    return filenameStream.str();
+}
+
+void SonicSole::openCSVFile() {
+    string filename = generateFileName();
     outFile.open(filename, ios::out | ios::app); 
     if (!outFile.is_open()) {
         cerr << "Error opening file: " << filename << endl;
