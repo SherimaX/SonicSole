@@ -24,6 +24,8 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <time.h>
+#include <ctime>
+#include <sstream>
 
 // WiringPi libraries
 #include <wiringPi.h>
