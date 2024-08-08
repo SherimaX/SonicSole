@@ -122,7 +122,7 @@ public:
 
     // void toCSV();
     void toCSV(double time, double heelpresh, double forepresh, float az);
-    void openCSVFile(const string& filename);
+    void openCSVFile();
     void closeCSVFile();
 
     void readIMU();
