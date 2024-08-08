@@ -27,6 +27,9 @@
 #include <ctime>
 #include <sstream>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 // WiringPi libraries
 #include <wiringPi.h>
 #include <wiringSerial.h>
