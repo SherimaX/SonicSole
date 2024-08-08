@@ -120,7 +120,7 @@ string generateFileName() {
                    << (localTime->tm_year + 1900) << "_"
                    << (localTime->tm_mon + 1) << "_"
                    << localTime->tm_mday << "_"
-                   << localTime->tm_hour << "_"
+                   << localTime->tm_hour << ":"
                    << localTime->tm_min << ":"
                    << localTime->tm_sec
                    << ".csv";
