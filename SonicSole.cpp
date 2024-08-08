@@ -122,7 +122,7 @@ string generateFileName() {
                    << localTime->tm_mday << "_"
                    << localTime->tm_hour << ":"
                    << setw (2) << setfill ('0') << localTime->tm_min << ":"
-                   << localTime->tm_sec
+                   << setw (2) << setfill ('0') << localTime->tm_sec
                    << ".csv";
 
     return filenameStream.str();
