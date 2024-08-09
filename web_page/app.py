@@ -78,7 +78,7 @@ def submit():
     return jsonify({"status": "Name submitted successfully"})
 
 def balancing_pressure():
-    global totalTime, recording_time, first_name, i
+    global totalTime, recording_time, first_name, last_name, i
     start_time = time.time()
     while True:
         if recording_time and (int(received_heel_data) < 500 and int(received_fore_data) < 500):
