@@ -90,45 +90,66 @@
       color: #320000;
     }
   </style>
+  <script>
+    // Function to sort the table
+    function sortTable(columnIndex, isNumeric = false) {
+        var table = document.getElementById("combinedLeaderboard");
+        var rows = Array.from(table.rows).slice(1);
+        var isAscending = table.getAttribute("data-sort-order") === "asc";
+    
+        rows.sort(function (a, b) {
+            var cellA = a.cells[columnIndex].textContent.trim();
+            var cellB = b.cells[columnIndex].textContent.trim();
+    
+            if (isNumeric) {
+                cellA = parseFloat(cellA) || 0;
+                cellB = parseFloat(cellB) || 0;
+            }
+    
+            if (isAscending) {
+                return cellA > cellB ? 1 : -1;
+            } else {
+                return cellA < cellB ? 1 : -1;
+            }
+        });
+    
+        table.tBodies[0].append(...rows);
+        table.setAttribute("data-sort-order", isAscending ? "desc" : "asc");
+    }
+    </script>    
   <body>
     <h1>Balancing Scoreboard</h1>
     <a href="/balance" class="homebutton">Go Back</a>
     <div class="leaderboards">
-      <!-- Table for entries without "(Eyes Closed)" -->
-      <div class="leaderboards">
-        <!-- Table for entries without "(Eyes Closed)" -->
-        <table class="leaderboard">
-            <tr>
-                <th>Name</th>
-                <th>Total Time (Eyes Opened)</th>
-            </tr>
-            {% for entry in data %}
-            {% if "(Eyes Closed)" not in entry.name %}
-            <tr>
-                <td>{{ entry.name | replace('(Eyes Opened)', '') | replace('(Eyes Closed)', '') }}</td>
-                <td>{{ "%.2f" | format(entry.time) }} Seconds</td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </table>
-
-        <!-- Table for entries with "(Eyes Closed)" -->
-        <table class="leaderboard">
-            <tr>
-                <th>Name</th>
-                <th>Total Time (Eyes Closed)</th>
-            </tr>
-            {% for entry in data %}
-            {% if "(Eyes Closed)" in entry.name %}
-            <tr>
-                <td>{{ entry.name | replace('(Eyes Opened)', '') | replace('(Eyes Closed)', '') }}</td>
-                <td>{{ "%.2f" | format(entry.time) }} Seconds</td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </table>
-    </div>
-
+      <!-- Combined Table -->
+      <table class="leaderboard" id="combinedLeaderboard">
+          <thead>
+              <tr>
+                  <th onclick="sortTable(0)">Name</th>
+                  <th onclick="sortTable(1, true)">Eyes Opened Time</th>
+                  <th onclick="sortTable(2, true)">Eyes Closed Time</th>
+              </tr>
+          </thead>
+          <tbody>
+              {% for entry in data %}
+              <tr>
+                  <td>{{ entry.name | replace('(Eyes Opened)', '') | replace('(Eyes Closed)', '') }}</td>
+                  <td>
+                      {% if "(Eyes Opened)" in entry.name %}
+                      {{ "%.2f" | format(entry.time) }} Seconds
+                      {% endif %}
+                  </td>
+                  <td>
+                      {% if "(Eyes Closed)" in entry.name %}
+                      {{ "%.2f" | format(entry.time) }} Seconds
+                      {% endif %}
+                  </td>
+              </tr>
+              {% endfor %}
+          </tbody>
+      </table>
+  </div>
+  
 
   </body>
 </html>
