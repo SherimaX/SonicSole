@@ -103,7 +103,33 @@ SonicSole::~SonicSole() {
     closeCSVFile();
 }
 
-void SonicSole::openCSVFile(const string& filename) {
+string generateFileName() {
+    string directory = "SoleData";
+
+    // Create the directory if it doesn't exist
+    struct stat info;
+    if (stat(directory.c_str(), &info) != 0) {
+        mkdir(directory.c_str(), 0777);
+    }
+
+    time_t now = time(0);
+    tm* localTime = localtime(&now);
+
+    ostringstream filenameStream;
+    filenameStream << directory << "/sole_data_"
+                   << (localTime->tm_year + 1900) << "_"
+                   << (localTime->tm_mon + 1) << "_"
+                   << localTime->tm_mday << "_"
+                   << localTime->tm_hour << ":"
+                   << setw (2) << setfill ('0') << localTime->tm_min << ":"
+                   << setw (2) << setfill ('0') << localTime->tm_sec
+                   << ".csv";
+
+    return filenameStream.str();
+}
+
+void SonicSole::openCSVFile() {
+    string filename = generateFileName();
     outFile.open(filename, ios::out | ios::app); 
     if (!outFile.is_open()) {
         cerr << "Error opening file: " << filename << endl;
@@ -298,7 +324,7 @@ void SonicSole::readIMU() {
         while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
         {
           // If no IMU data received, do nothing (print 0 infinitely)
-          // cout << serialDataAvail(IMU) << endl; 
+        //   cout << serialDataAvail(IMU) << endl; 
         }
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
         reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
