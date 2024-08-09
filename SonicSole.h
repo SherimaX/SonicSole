@@ -24,6 +24,11 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <time.h>
+#include <ctime>
+#include <sstream>
+
+#include <sys/stat.h>
+#include <sys/types.h>
 
 // WiringPi libraries
 #include <wiringPi.h>
@@ -75,8 +80,8 @@ public:
     int thresholdCounter = 0;
     int thresholdCross = 0;
 
-    int heelSensorAddr = 224;
-    int foreSensorAddr = 160;
+    int heelSensorAddr = 160;
+    int foreSensorAddr = 224;
 
     double minHeelPressure = 0;
     double minForePressure = 0;
@@ -120,7 +125,7 @@ public:
 
     // void toCSV();
     void toCSV(double time, double heelpresh, double forepresh, float az);
-    void openCSVFile(const string& filename);
+    void openCSVFile();
     void closeCSVFile();
 
     void readIMU();

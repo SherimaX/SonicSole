@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     SonicSole* sole = new SonicSole();
     cout << "SonicSole Class Initialized" << endl;
 
-    sole->openCSVFile("sole_data.csv");
+    sole->openCSVFile();
 
     structComponentQuaternion *dataQuat;
     structComponentLinearAcceleration *dataAcce;
@@ -41,13 +41,11 @@ int main(int argc, char* argv[])
       sole->updatePressure();
 
       double time = sole->getRunningTime();
-      // double time = 10.23;
       cout << "\ntime: " << time << endl;
-      // printf("time: %0.3f seconds \n", time);
       cout << "Cycle: " << cycle << endl;
       cycle++;
       
-      // sole->readIMU();
+      sole->readIMU();
       sole->getAccelVectorData(sole->az, azData);
       sole->toCSV(time, sole->currForePressure, sole->currHeelPressure, sole->az);
 
@@ -106,10 +104,10 @@ int main(int argc, char* argv[])
       cout << "\nFore Pressure: " << sole->currForePressure << endl;
       cout << "Heel Pressure: " << sole->currHeelPressure << endl;
 
-      sole->sendFlexSensorData((int)sole->currForePressure, 20000);      
-      sole->sendFlexSensorData((int)sole->currHeelPressure, 21000);
+      sole->sendFlexSensorData((int)sole->currForePressure, 20000); 
+      sole->sendFlexSensorData((int)sole->currHeelPressure, 21000); 
 
-      delay(100);
+      // delay(100);
       // if (sole->getRunningTime() > MAX_RUN_TIME) { 
       //    cout << sole->getRunningTime() << endl;
       //    cout << MAX_RUN_TIME << endl;
