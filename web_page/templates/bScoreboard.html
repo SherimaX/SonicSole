@@ -161,6 +161,56 @@ function updateSortIndicators(table, columnIndex, isAscending) {
         }
     });
 }
+
+function mergeLeaderboardRows() {
+    const table = document.getElementById('combinedLeaderboard');
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+    const data = rows.reduce((acc, row) => {
+        const nameCell = row.cells[0].textContent.trim();
+        const eoTime = row.cells[1].textContent.trim();
+        const ecTime = row.cells[2].textContent.trim();
+
+        // Normalize EO and EC times
+        const eoTimeValue = eoTime === '--' ? null : parseFloat(eoTime);
+        const ecTimeValue = ecTime === '--' ? null : parseFloat(ecTime);
+
+        if (!acc[nameCell]) {
+            acc[nameCell] = { eoTime: eoTimeValue, ecTime: ecTimeValue };
+        } else {
+            // Merge rows: if eoTime or ecTime is higher, update it
+            if (eoTimeValue !== null) {
+                acc[nameCell].eoTime = acc[nameCell].eoTime === null ? eoTimeValue : Math.max(acc[nameCell].eoTime, eoTimeValue);
+            }
+            if (ecTimeValue !== null) {
+                acc[nameCell].ecTime = acc[nameCell].ecTime === null ? ecTimeValue : Math.max(acc[nameCell].ecTime, ecTimeValue);
+            }
+        }
+
+        return acc;
+    }, {});
+
+    // Clear existing rows
+    table.querySelector('tbody').innerHTML = '';
+
+    // Append merged rows
+    Object.keys(data).forEach(name => {
+        const eoTime = data[name].eoTime === null ? '--' : data[name].eoTime.toFixed(2) + ' s';
+        const ecTime = data[name].ecTime === null ? '--' : data[name].ecTime.toFixed(2) + ' s';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${name}</td>
+            <td>${eoTime}</td>
+            <td>${ecTime}</td>
+        `;
+        table.querySelector('tbody').appendChild(row);
+    });
+}
+
+// Call the function to merge the rows
+mergeLeaderboardRows();
+
   </script>
    
   <body>
