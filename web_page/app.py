@@ -21,10 +21,10 @@ G_heel = 255
 R_fore = 0
 G_fore = 255
 
-submitted_name = "User1"
+first_name = "FirstName"
+last_name = "LastName"
 eyes_open = False
 greatest_total = 50
-
 
 def update_heel_color(pressure):
     global R_heel, G_heel
@@ -45,38 +45,37 @@ def update_fore_color(pressure):
         G_fore = int(255 - ((pressure - 1000) / 1000) * 255)
 
 def jumpingScoreInformation():
-    global received_fore_data, received_heel_data, submitted_name, greatest_total
-    curr_submitted_name = submitted_name
+    global received_fore_data, received_heel_data, first_name, last_name, greatest_total
+    curr_full_name = f"{first_name} {last_name}"
     greatest_total = 50
     while True:
-            if(submitted_name != curr_submitted_name):
-                greatest_total = 50
-                curr_submitted_name = submitted_name
-            if int(received_heel_data) + int(received_fore_data) > greatest_total:
-                print(submitted_name)
-                greatest_total = int(received_heel_data) + int(received_fore_data)
-                g = open("SonicSoleBalance.txt", "a")
-                g.write(submitted_name + "," + str(greatest_total) + "\n")
-                g.close()
+        full_name = f"{first_name} {last_name}"
+        if full_name != curr_full_name:
+            greatest_total = 50
+            curr_full_name = full_name
+        if int(received_heel_data) + int(received_fore_data) > greatest_total:
+            print(full_name)
+            greatest_total = int(received_heel_data) + int(received_fore_data)
+            g = open("SonicSoleBalance.txt", "a")
+            g.write(full_name + "," + str(greatest_total) + "\n")
+            g.close()
 
-
-#For balance.html
+# For balance.html
 i = 1
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    global submitted_name, eyes_open
-    submitted_name = request.form['name']
+    global first_name, last_name, eyes_open
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    full_name = f"{first_name} {last_name}"
     if "eyes" in request.form:
         eyes_open = request.form['eyes']
-        submitted_name += "_" + eyes_open
-    else:
-        pass
-
+        full_name += "_" + eyes_open
     return jsonify({"status": "Name submitted successfully"})
 
 def balancing_pressure():
-    global totalTime, recording_time, submitted_name, i
+    global totalTime, recording_time, first_name, last_name, i
     start_time = time.time()
     while True:
         if recording_time and (int(received_heel_data) < 500 and int(received_fore_data) < 500):
@@ -89,14 +88,12 @@ def balancing_pressure():
             recording_time = False
             start_time = time.time()
             print("Total time balanced: {} seconds".format(totalTime))
-            # print(submitted_name)
             if i == 0:
                 f = open("SonicSole2.txt", "a")
-                f.write(submitted_name + ","+ totalTime + "\n")
+                f.write(f"{first_name} {last_name}," + totalTime + "\n")
                 f.close()
                 i = 1
             time.sleep(0.01)
-            
 
 # For index.html
 
@@ -109,7 +106,6 @@ def read_heel_pressure():
         received_heel_data = int.from_bytes(data, byteorder='little')
         update_heel_color(received_heel_data)
         # time.sleep(0.1)
-        
 
 def read_fore_pressure():
     global received_fore_data
@@ -217,8 +213,6 @@ def j_scoreboard():
     leaderboard_data.sort(key=lambda x: x['total'], reverse=True)
     
     return render_template('jScoreboard.html', data=leaderboard_data)
-
-
 
 @app.route('/assemblyInstructions')
 def assembly_instructions():
