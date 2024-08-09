@@ -27,6 +27,8 @@ greatest_total = 50
 first_name = "FirstName"
 last_name = "LastName"
 
+
+
 def update_heel_color(pressure):
     global R_heel, G_heel
     if pressure < 1000:
@@ -66,19 +68,20 @@ i = 1
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    global first_name, last_name, eyes_open
+    global submitted_name, first_name, last_name, eyes_open
     first_name = request.form['first_name']
     last_name = request.form['last_name']
+    submitted_name = first_name + last_name
     if "eyes" in request.form:
         eyes_open = request.form['eyes']
-        first_name += "_" + eyes_open
+        submitted_name += "_" + eyes_open
     else:
         pass
 
     return jsonify({"status": "Name submitted successfully"})
 
 def balancing_pressure():
-    global totalTime, recording_time, first_name, last_name, i
+    global totalTime, recording_time, submitted_name, i
     start_time = time.time()
     while True:
         if recording_time and (int(received_heel_data) < 500 and int(received_fore_data) < 500):
@@ -94,7 +97,7 @@ def balancing_pressure():
             # print(submitted_name)
             if i == 0:
                 f = open("SonicSole2.txt", "a")
-                f.write(first_name + ","+ last_name + "," + totalTime + "\n")
+                f.write(submitted_name + ","+ totalTime + "\n")
                 f.close()
                 i = 1
             time.sleep(0.01)
@@ -148,12 +151,12 @@ def b_scoreboard():
             reader = csv.reader(f)
             for row in reader:
                 if len(row) >= 2:  # Ensure the row has at least 2 elements
-                    splitted_name = row[0].split(" ")
+                    splitted_name = row[0].split("_")
                     if len(splitted_name) > 1:
                         if splitted_name[1] == "0":
-                            data.append({'first_name': splitted_name[0] + " (Eyes Closed)", 'last_name': row[1], 'time':  float(row[1])})
+                            data.append({'name': splitted_name[0]+" (Eyes Closed)", 'time':  float(row[1])})
                         else:
-                            data.append({'name': splitted_name[0]+" (Eyes Opened)", 'last_name': row[1], 'time': float(row[2])})
+                            data.append({'name': splitted_name[0]+" (Eyes Opened)", 'time': float(row[1])})
                     else:
                         data.append({'name': row[0], 'time':  float(row[1])})
     except FileNotFoundError:
@@ -169,17 +172,16 @@ def b_scoreboard():
     # Remove the lowest time of any duplicate names
     unique_data = {}
     for entry in data:
-        first_name = entry['first_name']
-        last_name = entry['last_name']
+        name = entry['name']
         time = entry['time']
-        if first_name and last_name not in unique_data:
-            unique_data[first_name, last_name] = time
+        if name not in unique_data:
+            unique_data[name] = time
         else:
-            if time > unique_data[first_name, last_name]:
-                unique_data[first_name, last_name] = time
+            if time > unique_data[name]:
+                unique_data[name] = time
 
     # Convert unique_data back to a list of dictionaries
-    sorted_data = [{'first_name': first_name, 'last_name': last_name, 'time': time} for first_name, last_name, time in unique_data.items()]
+    sorted_data = [{'name': name, 'time': time} for name, time in unique_data.items()]
     sorted_data.sort(key=lambda x: x['time'], reverse=True)
     
     return render_template('bScoreboard.html', data=sorted_data)
@@ -193,7 +195,7 @@ def j_scoreboard():
             for row in reader:
                 if len(row) >= 2:  # Ensure the row has at least 2 elements
                     try:
-                        data.append({'first_name': row[0], 'last_name': row[1],'total': float(row[2])})
+                        data.append({'name': row[0], 'total': float(row[1])})
                     except ValueError:
                         print(f"Invalid data format in row: {row}")
                         continue
@@ -207,17 +209,16 @@ def j_scoreboard():
     # Process data to remove duplicates and keep highest total
     unique_data = {}
     for entry in data:
-        first_name = entry['first_name']
-        last_name = entry['last_name']
+        name = entry['name']
         total = entry['total']
-        if first_name and last_name not in unique_data:
-            unique_data[first_name, last_name] = total
+        if name not in unique_data:
+            unique_data[name] = total
         else:
-            if total > unique_data[first_name, last_name]:
-                unique_data[first_name, last_name] = total
+            if total > unique_data[name]:
+                unique_data[name] = total
 
     # Convert to list and sort
-    leaderboard_data = [{'first_name': first_name, 'last_name': last_name, 'total': total} for first_name, last_name, total in unique_data.items()]
+    leaderboard_data = [{'name': name, 'total': total} for name, total in unique_data.items()]
     leaderboard_data.sort(key=lambda x: x['total'], reverse=True)
     
     return render_template('jScoreboard.html', data=leaderboard_data)
