@@ -91,11 +91,11 @@ def balancing_pressure():
             recording_time = False
             start_time = time.time()
             print("Total time balanced: {} seconds".format(totalTime))
+            # print(submitted_name)
             if i == 0:
-                # Remove "_0" or "_1" suffix from first_name
-                base_first_name = first_name.split('_')[0]
-                with open("SonicSole2.txt", "a") as f:
-                    f.write(f"{base_first_name},{last_name},{totalTime}\n")
+                f = open("SonicSole2.txt", "a")
+                f.write(first_name + ","+ last_name + "," + totalTime + "\n")
+                f.close()
                 i = 1
             time.sleep(0.01)
             
@@ -147,12 +147,15 @@ def b_scoreboard():
         with open('SonicSole2.txt', 'r') as f:
             reader = csv.reader(f)
             for row in reader:
-                if len(row) >= 3:  # Ensure the row has at least 3 elements
-                    first_name, last_name, time, eyes_open = row[0].split("_")
-                    if eyes_open == "0":
-                        data.append({'first_name': first_name, 'last_name': last_name, 'time': float(time), 'eyes_open': False})
+                if len(row) >= 2:  # Ensure the row has at least 2 elements
+                    splitted_name = row[0].split(" ")
+                    if len(splitted_name) > 1:
+                        if splitted_name[1] == "0":
+                            data.append({'first_name': splitted_name[0] + " (Eyes Closed)", 'last_name': row[1], 'time':  float(row[1])})
+                        else:
+                            data.append({'name': splitted_name[0]+" (Eyes Opened)", 'last_name': row[1], 'time': float(row[2])})
                     else:
-                        data.append({'first_name': first_name, 'last_name': last_name, 'time': float(time), 'eyes_open': True})
+                        data.append({'name': row[0], 'time':  float(row[1])})
     except FileNotFoundError:
         return "Error: SonicSole2.txt file not found."
     except ValueError:
@@ -160,21 +163,23 @@ def b_scoreboard():
     except Exception as e:
         return f"Error: {e}"
 
-    # Sort data based on time in descending order
+    # Sort data based on total time in descending order
     data.sort(key=lambda x: x['time'], reverse=True)
     
     # Remove the lowest time of any duplicate names
     unique_data = {}
     for entry in data:
-        name = f"{entry['first_name']} {entry['last_name']}"
-        if name not in unique_data:
-            unique_data[name] = entry
+        first_name = entry['first_name']
+        last_name = entry['last_name']
+        time = entry['time']
+        if first_name and last_name not in unique_data:
+            unique_data[first_name, last_name] = time
         else:
-            if entry['time'] > unique_data[name]['time']:
-                unique_data[name] = entry
+            if time > unique_data[first_name, last_name]:
+                unique_data[first_name, last_name] = time
 
     # Convert unique_data back to a list of dictionaries
-    sorted_data = list(unique_data.values())
+    sorted_data = [{'first_name': first_name, 'last_name': last_name, 'time': time} for first_name, last_name, time in unique_data.items()]
     sorted_data.sort(key=lambda x: x['time'], reverse=True)
     
     return render_template('bScoreboard.html', data=sorted_data)
