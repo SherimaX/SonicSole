@@ -148,20 +148,24 @@ def b_scoreboard():
             reader = csv.reader(f)
             for row in reader:
                 if len(row) >= 3:  # Ensure the row has at least 3 elements
-                    first_name, last_name, time_str = row
-                    try:
-                        time = float(time_str)
-                        name = f"{first_name} {last_name}"
-                        if "Eyes Opened" in name:
-                            data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'name': name})
-                        elif "Eyes Closed" in name:
-                            data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'name': name})
-                        else:
-                            data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'name': name})
-                    except ValueError:
-                        continue
+                    name_parts = row[0].split('_')
+                    first_name = name_parts[0]
+                    suffix = name_parts[1] if len(name_parts) > 1 else ''
+                    last_name = row[1]
+                    time = float(row[2])
+                    
+                    # Determine the type of time based on suffix
+                    if suffix == "0":
+                        data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'type': 'Eyes Closed'})
+                    elif suffix == "1":
+                        data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'type': 'Eyes Opened'})
+                    else:
+                        # Handle cases with no suffix or other suffixes
+                        data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'type': 'Unknown'})
     except FileNotFoundError:
         return "Error: SonicSole2.txt file not found."
+    except ValueError:
+        return "Error: Incorrect data format in SonicSole2.txt."
     except Exception as e:
         return f"Error: {e}"
 
@@ -171,16 +175,12 @@ def b_scoreboard():
     # Remove the lowest time of any duplicate names
     unique_data = {}
     for entry in data:
-        name = f"{entry['first_name']} {entry['last_name']}"
-        time = entry['time']
-        if name not in unique_data:
-            unique_data[name] = time
-        else:
-            if time > unique_data[name]:
-                unique_data[name] = time
+        name_key = (entry['first_name'], entry['last_name'])
+        if name_key not in unique_data or entry['time'] > unique_data[name_key]['time']:
+            unique_data[name_key] = entry
 
     # Convert unique_data back to a list of dictionaries
-    sorted_data = [{'first_name': name.split()[0], 'last_name': name.split()[1], 'time': time} for name, time in unique_data.items()]
+    sorted_data = list(unique_data.values())
     sorted_data.sort(key=lambda x: x['time'], reverse=True)
     
     return render_template('bScoreboard.html', data=sorted_data)
