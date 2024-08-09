@@ -118,6 +118,7 @@ td:empty::after {
 window.onload = function() {
     // Default sort by Eyes Opened Time (column index 1)
     sortTable(1, true);
+    mergeLeaderboardRows();
 };
 
 function sortTable(columnIndex, isNumeric = false) {
@@ -166,25 +167,22 @@ function mergeLeaderboardRows() {
     const table = document.getElementById('combinedLeaderboard');
     const rows = Array.from(table.querySelectorAll('tbody tr'));
 
+    // Object to store the highest times for each name
     const data = rows.reduce((acc, row) => {
         const nameCell = row.cells[0].textContent.trim();
         const eoTime = row.cells[1].textContent.trim();
         const ecTime = row.cells[2].textContent.trim();
 
-        // Normalize EO and EC times
-        const eoTimeValue = eoTime === '--' ? null : parseFloat(eoTime);
-        const ecTimeValue = ecTime === '--' ? null : parseFloat(ecTime);
+        // Convert "--" to 0 and parse times
+        const eoTimeValue = eoTime === '--' ? 0 : parseFloat(eoTime);
+        const ecTimeValue = ecTime === '--' ? 0 : parseFloat(ecTime);
 
         if (!acc[nameCell]) {
             acc[nameCell] = { eoTime: eoTimeValue, ecTime: ecTimeValue };
         } else {
-            // Merge rows: if eoTime or ecTime is higher, update it
-            if (eoTimeValue !== null) {
-                acc[nameCell].eoTime = acc[nameCell].eoTime === null ? eoTimeValue : Math.max(acc[nameCell].eoTime, eoTimeValue);
-            }
-            if (ecTimeValue !== null) {
-                acc[nameCell].ecTime = acc[nameCell].ecTime === null ? ecTimeValue : Math.max(acc[nameCell].ecTime, ecTimeValue);
-            }
+            // Merge rows: keep the highest times
+            acc[nameCell].eoTime = Math.max(acc[nameCell].eoTime, eoTimeValue);
+            acc[nameCell].ecTime = Math.max(acc[nameCell].ecTime, ecTimeValue);
         }
 
         return acc;
@@ -195,8 +193,8 @@ function mergeLeaderboardRows() {
 
     // Append merged rows
     Object.keys(data).forEach(name => {
-        const eoTime = data[name].eoTime === null ? '--' : data[name].eoTime.toFixed(2) + ' s';
-        const ecTime = data[name].ecTime === null ? '--' : data[name].ecTime.toFixed(2) + ' s';
+        const eoTime = data[name].eoTime === 0 ? '--' : data[name].eoTime.toFixed(2) + ' s';
+        const ecTime = data[name].ecTime === 0 ? '--' : data[name].ecTime.toFixed(2) + ' s';
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -207,9 +205,6 @@ function mergeLeaderboardRows() {
         table.querySelector('tbody').appendChild(row);
     });
 }
-
-// Call the function to merge the rows
-mergeLeaderboardRows();
 
   </script>
    
