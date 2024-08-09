@@ -70,7 +70,7 @@ def submit():
     global submitted_name, first_name, last_name, eyes_open
     first_name = request.form['first_name']
     last_name = request.form['last_name']
-    submitted_name = first_name + " " + "last_name"
+    submitted_name = first_name + " " + last_name
     if "eyes" in request.form:
         eyes_open = request.form['eyes']
         submitted_name += "_" + eyes_open
