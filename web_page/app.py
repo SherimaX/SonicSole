@@ -147,19 +147,21 @@ def b_scoreboard():
         with open('SonicSole2.txt', 'r') as f:
             reader = csv.reader(f)
             for row in reader:
-                if len(row) >= 2:  # Ensure the row has at least 2 elements
-                    splitted_name = row[0].split(" ")
-                    if len(splitted_name) > 1:
-                        if splitted_name[1] == "0":
-                            data.append({'first_name': splitted_name[0]+" (Eyes Closed)", 'last_name': row[1], 'time':  float(row[1])})
+                if len(row) >= 3:  # Ensure the row has at least 3 elements
+                    first_name, last_name, time_str = row
+                    try:
+                        time = float(time_str)
+                        name = f"{first_name} {last_name}"
+                        if "Eyes Opened" in name:
+                            data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'name': name})
+                        elif "Eyes Closed" in name:
+                            data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'name': name})
                         else:
-                            data.append({'name': splitted_name[0]+" (Eyes Opened)", 'last_name': row[1], 'time': float(row[2])})
-                    else:
-                        data.append({'name': row[0], 'time':  float(row[1])})
+                            data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'name': name})
+                    except ValueError:
+                        continue
     except FileNotFoundError:
         return "Error: SonicSole2.txt file not found."
-    except ValueError:
-        return "Error: Incorrect data format in SonicSole2.txt."
     except Exception as e:
         return f"Error: {e}"
 
@@ -169,17 +171,16 @@ def b_scoreboard():
     # Remove the lowest time of any duplicate names
     unique_data = {}
     for entry in data:
-        first_name = entry['first_name']
-        last_name = entry['last_name']
+        name = f"{entry['first_name']} {entry['last_name']}"
         time = entry['time']
-        if first_name and last_name not in unique_data:
-            unique_data[first_name, last_name] = time
+        if name not in unique_data:
+            unique_data[name] = time
         else:
-            if time > unique_data[first_name, last_name]:
-                unique_data[first_name, last_name] = time
+            if time > unique_data[name]:
+                unique_data[name] = time
 
     # Convert unique_data back to a list of dictionaries
-    sorted_data = [{'first_name': first_name, 'last_name': last_name, 'time': time} for first_name, last_name, time in unique_data.items()]
+    sorted_data = [{'first_name': name.split()[0], 'last_name': name.split()[1], 'time': time} for name, time in unique_data.items()]
     sorted_data.sort(key=lambda x: x['time'], reverse=True)
     
     return render_template('bScoreboard.html', data=sorted_data)
