@@ -148,20 +148,11 @@ def b_scoreboard():
             reader = csv.reader(f)
             for row in reader:
                 if len(row) >= 3:  # Ensure the row has at least 3 elements
-                    name_parts = row[0].split('_')
-                    first_name = name_parts[0]
-                    suffix = name_parts[1] if len(name_parts) > 1 else ''
-                    last_name = row[1]
-                    time = float(row[2])
-                    
-                    # Determine the type of time based on suffix
-                    if suffix == "0":
-                        data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'type': 'Eyes Closed'})
-                    elif suffix == "1":
-                        data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'type': 'Eyes Opened'})
+                    first_name, last_name, time, eyes_open = row[0].split("_")
+                    if eyes_open == "0":
+                        data.append({'first_name': first_name, 'last_name': last_name, 'time': float(time), 'eyes_open': False})
                     else:
-                        # Handle cases with no suffix or other suffixes
-                        data.append({'first_name': first_name, 'last_name': last_name, 'time': time, 'type': 'Unknown'})
+                        data.append({'first_name': first_name, 'last_name': last_name, 'time': float(time), 'eyes_open': True})
     except FileNotFoundError:
         return "Error: SonicSole2.txt file not found."
     except ValueError:
@@ -169,15 +160,18 @@ def b_scoreboard():
     except Exception as e:
         return f"Error: {e}"
 
-    # Sort data based on total time in descending order
+    # Sort data based on time in descending order
     data.sort(key=lambda x: x['time'], reverse=True)
     
     # Remove the lowest time of any duplicate names
     unique_data = {}
     for entry in data:
-        name_key = (entry['first_name'], entry['last_name'])
-        if name_key not in unique_data or entry['time'] > unique_data[name_key]['time']:
-            unique_data[name_key] = entry
+        name = f"{entry['first_name']} {entry['last_name']}"
+        if name not in unique_data:
+            unique_data[name] = entry
+        else:
+            if entry['time'] > unique_data[name]['time']:
+                unique_data[name] = entry
 
     # Convert unique_data back to a list of dictionaries
     sorted_data = list(unique_data.values())
