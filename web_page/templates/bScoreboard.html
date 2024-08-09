@@ -86,7 +86,8 @@ th {
     transition: background-color 0.3s;
 }
 
-th:hover {
+th:hover,
+th.sorted {
     background-color: #5e0000;
 }
 
@@ -114,42 +115,52 @@ td:empty::after {
 
   </style>
 <script>
-  // Function to sort the table
-  function sortTable(columnIndex, isNumeric = false) {
-      var table = document.getElementById("combinedLeaderboard");
-      var rows = Array.from(table.rows).slice(1);
-      var isAscending = table.getAttribute("data-sort-order") === "asc";
-  
-      rows.sort(function (a, b) {
-          var cellA = a.cells[columnIndex].textContent.trim();
-          var cellB = b.cells[columnIndex].textContent.trim();
-  
-          if (isNumeric) {
-              cellA = parseFloat(cellA) || 0;
-              cellB = parseFloat(cellB) || 0;
-          }
-  
-          if (isAscending) {
-              return cellA > cellB ? 1 : -1;
-          } else {
-              return cellA < cellB ? 1 : -1;
-          }
-      });
-  
-      table.tBodies[0].append(...rows);
-      table.setAttribute("data-sort-order", isAscending ? "desc" : "asc");
-  
-      // Update sort indicators
-      updateSortIndicators(table, columnIndex, isAscending);
-  }
-  
-  function updateSortIndicators(table, columnIndex, isAscending) {
-      var headers = table.querySelectorAll("th");
-      headers.forEach(function(header, index) {
-          var indicator = header.querySelector(".sort-indicator");
-          indicator.textContent = index === columnIndex ? (isAscending ? "▲" : "▼") : "";
-      });
-  }
+window.onload = function() {
+    // Default sort by Eyes Opened Time (column index 1)
+    sortTable(1, true);
+};
+
+function sortTable(columnIndex, isNumeric = false) {
+    var table = document.getElementById("combinedLeaderboard");
+    var rows = Array.from(table.rows).slice(1);
+    var isAscending = table.getAttribute("data-sort-order") === "asc";
+
+    rows.sort(function (a, b) {
+        var cellA = a.cells[columnIndex].textContent.trim();
+        var cellB = b.cells[columnIndex].textContent.trim();
+
+        if (isNumeric) {
+            cellA = parseFloat(cellA) || 0;
+            cellB = parseFloat(cellB) || 0;
+        }
+
+        if (isAscending) {
+            return cellA > cellB ? 1 : -1;
+        } else {
+            return cellA < cellB ? 1 : -1;
+        }
+    });
+
+    table.tBodies[0].append(...rows);
+    table.setAttribute("data-sort-order", isAscending ? "desc" : "asc");
+
+    // Update sort indicators and keep hover effect on the sorted column
+    updateSortIndicators(table, columnIndex, isAscending);
+}
+
+function updateSortIndicators(table, columnIndex, isAscending) {
+    var headers = table.querySelectorAll("th");
+    headers.forEach(function(header, index) {
+        var indicator = header.querySelector(".sort-indicator");
+        if (index === columnIndex) {
+            indicator.textContent = isAscending ? "▲" : "▼";
+            header.classList.add("sorted");  // Keep hover color on the sorted column
+        } else {
+            indicator.textContent = "";
+            header.classList.remove("sorted");  // Remove hover color from unsorted columns
+        }
+    });
+}
   </script>
    
   <body>
