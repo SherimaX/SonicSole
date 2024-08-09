@@ -179,8 +179,8 @@ function updateSortIndicators(table, columnIndex, isAscending) {
           <tbody>
               {% for entry in data %}
               <tr>
-                  <td>{{ entry.name | replace('(Eyes Opened)', '') | replace('(Eyes Closed)', '') }}</td>
-                  <td>
+                <td>{{ entry.first_name | replace('(Eyes Opened)', '') | replace('(Eyes Closed)', '') }} {{ entry.last_name }}</td>
+                <td>
                       {% if "(Eyes Opened)" in entry.name %}
                       {{ "%.2f" | format(entry.time) }} s
                       {% else %}
