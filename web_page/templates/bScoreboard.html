@@ -172,8 +172,8 @@ function updateSortIndicators(table, columnIndex, isAscending) {
           <thead>
               <tr>
                   <th onclick="sortTable(0)" class="sortable">Name <span class="sort-indicator"></span></th>
-                  <th onclick="sortTable(1, true)" class="sortable">Eyes Opened Time <span class="sort-indicator"></span></th>
-                  <th onclick="sortTable(2, true)" class="sortable">Eyes Closed Time <span class="sort-indicator"></span></th>
+                  <th onclick="sortTable(1, true)" class="sortable">E.O Time (seconds)<span class="sort-indicator"></span></th>
+                  <th onclick="sortTable(2, true)" class="sortable">E.C Time (seconds)<span class="sort-indicator"></span></th>
               </tr>
           </thead>
           <tbody>
@@ -182,14 +182,14 @@ function updateSortIndicators(table, columnIndex, isAscending) {
                   <td>{{ entry.name | replace('(Eyes Opened)', '') | replace('(Eyes Closed)', '') }}</td>
                   <td>
                       {% if "(Eyes Opened)" in entry.name %}
-                      {{ "%.2f" | format(entry.time) }} Seconds
+                      {{ "%.2f" | format(entry.time) }} s
                       {% else %}
                       --
                       {% endif %}
                   </td>
                   <td>
                       {% if "(Eyes Closed)" in entry.name %}
-                      {{ "%.2f" | format(entry.time) }} Seconds
+                      {{ "%.2f" | format(entry.time) }} s
                       {% else %}
                       --
                       {% endif %}
