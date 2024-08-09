@@ -6,117 +6,150 @@
     <title>Document</title>
   </head>
   <style>
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      height: 100vh;
-      margin: 0;
-      padding: 0;
-      font-family: Bradley Hand, cursive;
-      background-color: #ffdada;
-    }
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    font-family: Bradley Hand, cursive;
+    background-color: #ffdada;
+}
 
-    h1 {
-      font-size: 4.5em;
-      margin-top: 2.5em;
-      margin-bottom: 0.1em;
-      color: #8a0000;
-    }
+h1 {
+    font-size: 4.5em;
+    margin-top: 2.5em;
+    margin-bottom: 0.1em;
+    color: #8a0000;
+}
 
-    p {
-      font-size: 1.3em;
-      margin-bottom: 10em;
-    }
+p {
+    font-size: 1.3em;
+    margin-bottom: 10em;
+}
 
-    a {
-      display: inline-block;
-      margin-top: 20px;
-      font-size: 1.3em;
-      color: #310000;
-      text-decoration: none;
-      border: 2px solid #310000;
-      padding: 10px 20px;
-      border-radius: 5px;
-      transition: background-color 0.3s, color 0.3s;
-    }
-    a:hover {
-      background-color: #310000;
-      color: #fff;
-    }
+a {
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 1.3em;
+    color: #310000;
+    text-decoration: none;
+    border: 2px solid #310000;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
 
-    .homebutton {
-      margin-bottom: 1em;
-    }
+a:hover {
+    background-color: #310000;
+    color: #fff;
+}
 
-    table {
-      border-collapse: collapse;
-      background-color: #fff;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 20px;
-    }
+.homebutton {
+    margin-bottom: 1em;
+}
 
-    .leaderboards {
-            display: flex;
-            justify-content: space-around; /* Optional: Adjusts the space between the tables */
-            align-items: flex-start; /* Aligns the tables at the top */
-            gap: 20px; /* Optional: Adds space between the tables */
-        }
+table {
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 20px;
+}
 
+.leaderboards {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    gap: 20px;
+}
 
-    th,
-    td {
-      padding: 15px;
-      font-size: 1.2em;
-      text-align: center;
-    }
+th,
+td {
+    padding: 15px;
+    font-size: 1.2em;
+    text-align: center;
+}
 
-    th {
-      background-color: #320000;
-      color: #fff;
-      text-align: center;
-      font-size: 1.4em;
-    }
+th {
+    background-color: #320000;
+    color: #fff;
+    text-align: center;
+    font-size: 1.4em;
+    cursor: pointer;
+    position: relative;
+    padding-right: 25px;
+    transition: background-color 0.3s;
+}
 
-    tr:nth-child(even) {
-      background-color: #ffc2c0;
-    }
+th:hover {
+    background-color: #5e0000;
+}
 
-    td:first-child {
-      font-weight: bold;
-      color: #320000;
-    }
+.sort-indicator {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9em;
+}
+
+tr:nth-child(even) {
+    background-color: #ffc2c0;
+}
+
+td:first-child {
+    font-weight: bold;
+    color: #320000;
+}
+
+td:empty::after {
+    content: "--";
+    color: #999;
+}
   </style>
-  <script>
-    // Function to sort the table
-    function sortTable(columnIndex, isNumeric = false) {
-        var table = document.getElementById("combinedLeaderboard");
-        var rows = Array.from(table.rows).slice(1);
-        var isAscending = table.getAttribute("data-sort-order") === "asc";
-    
-        rows.sort(function (a, b) {
-            var cellA = a.cells[columnIndex].textContent.trim();
-            var cellB = b.cells[columnIndex].textContent.trim();
-    
-            if (isNumeric) {
-                cellA = parseFloat(cellA) || 0;
-                cellB = parseFloat(cellB) || 0;
-            }
-    
-            if (isAscending) {
-                return cellA > cellB ? 1 : -1;
-            } else {
-                return cellA < cellB ? 1 : -1;
-            }
-        });
-    
-        table.tBodies[0].append(...rows);
-        table.setAttribute("data-sort-order", isAscending ? "desc" : "asc");
-    }
-    </script>    
+<script>
+  // Function to sort the table
+  function sortTable(columnIndex, isNumeric = false) {
+      var table = document.getElementById("combinedLeaderboard");
+      var rows = Array.from(table.rows).slice(1);
+      var isAscending = table.getAttribute("data-sort-order") === "asc";
+  
+      rows.sort(function (a, b) {
+          var cellA = a.cells[columnIndex].textContent.trim();
+          var cellB = b.cells[columnIndex].textContent.trim();
+  
+          if (isNumeric) {
+              cellA = parseFloat(cellA) || 0;
+              cellB = parseFloat(cellB) || 0;
+          }
+  
+          if (isAscending) {
+              return cellA > cellB ? 1 : -1;
+          } else {
+              return cellA < cellB ? 1 : -1;
+          }
+      });
+  
+      table.tBodies[0].append(...rows);
+      table.setAttribute("data-sort-order", isAscending ? "desc" : "asc");
+  
+      // Update sort indicators
+      updateSortIndicators(table, columnIndex, isAscending);
+  }
+  
+  function updateSortIndicators(table, columnIndex, isAscending) {
+      var headers = table.querySelectorAll("th");
+      headers.forEach(function(header, index) {
+          var indicator = header.querySelector(".sort-indicator");
+          indicator.textContent = index === columnIndex ? (isAscending ? "▲" : "▼") : "";
+      });
+  }
+  </script>
+   
   <body>
     <h1>Balancing Scoreboard</h1>
     <a href="/balance" class="homebutton">Go Back</a>
@@ -125,9 +158,9 @@
       <table class="leaderboard" id="combinedLeaderboard">
           <thead>
               <tr>
-                  <th onclick="sortTable(0)">Name</th>
-                  <th onclick="sortTable(1, true)">Eyes Opened Time</th>
-                  <th onclick="sortTable(2, true)">Eyes Closed Time</th>
+                  <th onclick="sortTable(0)" class="sortable">Name <span class="sort-indicator"></span></th>
+                  <th onclick="sortTable(1, true)" class="sortable">Eyes Opened Time <span class="sort-indicator"></span></th>
+                  <th onclick="sortTable(2, true)" class="sortable">Eyes Closed Time <span class="sort-indicator"></span></th>
               </tr>
           </thead>
           <tbody>
@@ -137,19 +170,22 @@
                   <td>
                       {% if "(Eyes Opened)" in entry.name %}
                       {{ "%.2f" | format(entry.time) }} Seconds
+                      {% else %}
+                      --
                       {% endif %}
                   </td>
                   <td>
                       {% if "(Eyes Closed)" in entry.name %}
                       {{ "%.2f" | format(entry.time) }} Seconds
+                      {% else %}
+                      --
                       {% endif %}
                   </td>
               </tr>
               {% endfor %}
           </tbody>
       </table>
-  </div>
-  
+    
 
   </body>
 </html>
