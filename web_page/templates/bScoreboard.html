@@ -154,7 +154,7 @@ function updateSortIndicators(table, columnIndex, isAscending) {
     headers.forEach(function(header, index) {
         var indicator = header.querySelector(".sort-indicator");
         if (index === columnIndex) {
-            indicator.textContent = isAscending ? "Asc." : "Desc.";
+            indicator.textContent = isAscending ? "9Ascending)" : "(Descending)";
             header.classList.add("sorted");  // Keep hover color on the sorted column
         } else {
             indicator.textContent = "";
