@@ -153,11 +153,13 @@ def b_scoreboard():
                     splitted_name = row[0].split("_")
                     if len(splitted_name) > 1:
                         if splitted_name[1] == "0":
-                            data.append({'name': splitted_name[0]+" (Eyes Closed)", 'time':  float(row[1])})
+                            label = "Eyes Closed"
                         else:
-                            data.append({'name': splitted_name[0]+" (Eyes Opened)", 'time': float(row[1])})
-                    else:
-                        data.append({'name': row[0], 'time':  float(row[1])})
+                            label = "Eyes Opened"
+                        
+                        name = splitted_name[0]
+                        time = float(row[1])
+                        data.append({'name': name, 'label': label, 'time': time})
     except FileNotFoundError:
         return "Error: SonicSole2.txt file not found."
     except ValueError:
@@ -165,23 +167,35 @@ def b_scoreboard():
     except Exception as e:
         return f"Error: {e}"
 
-    # Sort data based on total time in descending order
-    data.sort(key=lambda x: x['time'], reverse=True)
-    
-    # Remove the lowest time of any duplicate names
-    unique_data = {}
+    # Organize data by name and label
+    organized_data = {}
     for entry in data:
         name = entry['name']
+        label = entry['label']
         time = entry['time']
-        if name not in unique_data:
-            unique_data[name] = time
-        else:
-            if time > unique_data[name]:
-                unique_data[name] = time
-
-    # Convert unique_data back to a list of dictionaries
-    sorted_data = [{'name': name, 'time': time} for name, time in unique_data.items()]
-    sorted_data.sort(key=lambda x: x['time'], reverse=True)
+        
+        if name not in organized_data:
+            organized_data[name] = {'Eyes Closed': None, 'Eyes Opened': None}
+        
+        if label == 'Eyes Closed':
+            if organized_data[name]['Eyes Closed'] is None or time > organized_data[name]['Eyes Closed']:
+                organized_data[name]['Eyes Closed'] = time
+        elif label == 'Eyes Opened':
+            if organized_data[name]['Eyes Opened'] is None or time > organized_data[name]['Eyes Opened']:
+                organized_data[name]['Eyes Opened'] = time
+    
+    # Convert organized_data back to a list of dictionaries
+    sorted_data = []
+    for name, times in organized_data.items():
+        if times['Eyes Closed'] is not None and times['Eyes Opened'] is not None:
+            sorted_data.append({'name': name, 'Eyes Closed': times['Eyes Closed'], 'Eyes Opened': times['Eyes Opened']})
+        elif times['Eyes Closed'] is not None:
+            sorted_data.append({'name': name, 'Eyes Closed': times['Eyes Closed'], 'Eyes Opened': None})
+        elif times['Eyes Opened'] is not None:
+            sorted_data.append({'name': name, 'Eyes Closed': None, 'Eyes Opened': times['Eyes Opened']})
+    
+    # Sort data based on 'Eyes Opened' time in descending order, and then 'Eyes Closed' time
+    sorted_data.sort(key=lambda x: (x['Eyes Opened'] if x['Eyes Opened'] is not None else 0, x['Eyes Closed'] if x['Eyes Closed'] is not None else 0), reverse=True)
     
     return render_template('bScoreboard.html', data=sorted_data)
 
