@@ -24,9 +24,6 @@ G_fore = 255
 submitted_name = "User1"
 eyes_open = False
 greatest_total = 50
-first_name = "FirstName"
-last_name = "LastName"
-
 
 
 def update_heel_color(pressure):
@@ -68,10 +65,8 @@ i = 1
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    global submitted_name, first_name, last_name, eyes_open
-    first_name = request.form['first_name']
-    last_name = request.form['last_name']
-    submitted_name = first_name + last_name
+    global submitted_name, eyes_open
+    submitted_name = request.form['name']
     if "eyes" in request.form:
         eyes_open = request.form['eyes']
         submitted_name += "_" + eyes_open
