@@ -80,8 +80,8 @@ public:
     int thresholdCounter = 0;
     int thresholdCross = 0;
 
-    int heelSensorAddr = 160;
-    int foreSensorAddr = 224;
+    int heelSensorAddr = 224;
+    int foreSensorAddr = 160;
 
     double minHeelPressure = 0;
     double minForePressure = 0;
