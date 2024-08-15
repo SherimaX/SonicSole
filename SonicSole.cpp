@@ -118,9 +118,9 @@ string generateFileName() {
     ostringstream filenameStream;
     filenameStream << directory << "/sole_data_"
                    << (localTime->tm_year + 1900) << "_"
-                   << (localTime->tm_mon + 1) << "_"
-                   << localTime->tm_mday << "_"
-                   << localTime->tm_hour << ":"
+                   << setw (2) << setfill ('0') << (localTime->tm_mon + 1) << "_"
+                   << setw (2) << setfill ('0') << localTime->tm_mday << "_"
+                   << setw (2) << setfill ('0') << localTime->tm_hour << ":"
                    << setw (2) << setfill ('0') << localTime->tm_min << ":"
                    << setw (2) << setfill ('0') << localTime->tm_sec
                    << ".csv";
