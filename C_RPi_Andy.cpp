@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
     //    * places time values in thresholdTimes vector whenever the threshold is crossed
     //    * if threshold has been crossed 3 times, runs a check to see if the threshold
     //    * was crossed in sucession (within 3 seconds)
-    //    * if it has, mode switches and the vector clears
+    //    * if it has, mode switches and the vector clears 
     //    */ 
     //   if (sole->thresholdCross >= 3) {
     //     bool modeSwitch = false;
