@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 
 
       // debugging 
-      cout << "DEBUG /// dataAcce.ay: " << sole->az << endl;
+      // cout << "DEBUG /// dataAcce.ay: " << sole->az << endl;
       // cout << "DEBUG /// axData size: " << axData.size() << ", ayData size: " << ayData.size() << ", azData size: " << azData.size() << endl;
       // if (!axData.empty()) {
       //       cout << "DEBUG /// Latest axData: " << axData.back() << endl;
