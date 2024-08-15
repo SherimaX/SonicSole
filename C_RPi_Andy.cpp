@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
       cout << "Cycle: " << cycle << endl;
       cycle++;
       
-      // sole->readIMU();
+      sole->readIMU();
       sole->getAccelVectorData(sole->az, azData);
       sole->toCSV(time, sole->currForePressure, sole->currHeelPressure, sole->az);
 
