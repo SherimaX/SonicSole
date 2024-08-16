@@ -226,8 +226,10 @@
           .getElementById("startButton")
           .addEventListener("click", function () {
             startCountdown();
-            var audio = new Audio('signal.mp3');
+            const audio = document.querySelector("audio");
+            audio.volume = 0.3;
             audio.play();
+
 
             setTimeout(function () {
               fetch("/button_click", { method: "POST" })
@@ -302,6 +304,8 @@
           <p class="information">Data</p>
         </div>
       </div>
+      <audio src="signal.mp3"></audio>
+
       <div style="text-align: center">
         <a href="/bScoreboard">Balancing Scoreboard</a>
       </div>
