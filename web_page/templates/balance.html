@@ -226,9 +226,7 @@
           .getElementById("startButton")
           .addEventListener("click", function () {
             startCountdown();
-            const audio = document.querySelector("audio");
-            audio.volume = 0.3;
-            audio.play();
+            new Audio('signal.mp3').play()
 
 
             setTimeout(function () {
