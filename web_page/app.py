@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
 import socket
 import threading
 import time
@@ -141,6 +141,11 @@ def index():
 @app.route('/balance')
 def balance():
     return render_template('balance.html')
+
+@app.route("/play", methods=["GET", "POST"])
+def play():
+    return send_file("countdown.mp3")
+
 
 @app.route('/bScoreboard')
 def b_scoreboard():
