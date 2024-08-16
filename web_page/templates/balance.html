@@ -226,8 +226,9 @@
           .getElementById("startButton")
           .addEventListener("click", function () {
             startCountdown();
+            var audio = new Audio('signal.mp3');
+            audio.play();
 
-            // Assuming startCountdown takes some time, let's say 3 seconds
             setTimeout(function () {
               fetch("/button_click", { method: "POST" })
                 .then((response) => response.json())
