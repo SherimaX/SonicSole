@@ -226,7 +226,7 @@
           .getElementById("startButton")
           .addEventListener("click", function () {
           startCountdown();
-          var audio = new Audio('/countdown.mp3');
+          var audio = new Audio('countdown.mp3');
           audio.play();
 
 
@@ -235,7 +235,7 @@
                 .then((response) => response.json())
                 .then((data) => console.log(data.status))
                 .catch((error) => console.error("Error:", error));
-            }, 3120); // Adjust the delay time (3000 ms = 3 seconds)
+            }, 3120); 
           });
       });
 
