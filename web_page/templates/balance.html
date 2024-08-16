@@ -225,8 +225,8 @@
         document
           .getElementById("startButton")
           .addEventListener("click", function () {
-            startCountdown();
-            new Audio('signal.mp3').play()
+            var audio = document.getElementById("signalAudio");
+            audio.play();
 
 
             setTimeout(function () {
@@ -302,8 +302,7 @@
           <p class="information">Data</p>
         </div>
       </div>
-      <audio src="signal.mp3"></audio>
-
+      <audio id="signalAudio" src="signal.mp3"></audio>
       <div style="text-align: center">
         <a href="/bScoreboard">Balancing Scoreboard</a>
       </div>
