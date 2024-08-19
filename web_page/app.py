@@ -27,6 +27,10 @@ greatest_total = 50
 first_name = "first"
 last_name = "last"
 
+submitted_name2 = "User1"
+first_name2 = "first"
+last_name2 = "last"
+
 
 def update_heel_color(pressure):
     global R_heel, G_heel
@@ -47,18 +51,18 @@ def update_fore_color(pressure):
         G_fore = int(255 - ((pressure - 1000) / 1000) * 255)
 
 def jumpingScoreInformation():
-    global received_fore_data, received_heel_data, submitted_name, greatest_total
-    curr_submitted_name = submitted_name
+    global received_fore_data, received_heel_data, submitted_name2, greatest_total
+    curr_submitted_name = submitted_name2
     greatest_total = 50
     while True:
-            if(submitted_name != curr_submitted_name):
+            if(submitted_name2 != curr_submitted_name):
                 greatest_total = 50
-                curr_submitted_name = submitted_name
+                curr_submitted_name = submitted_name2
             if int(received_heel_data) + int(received_fore_data) > greatest_total:
-                print(submitted_name)
+                print(submitted_name2)
                 greatest_total = int(received_heel_data) + int(received_fore_data)
                 g = open("SonicSoleBalance.txt", "a")
-                g.write(submitted_name + "," + str(greatest_total) + "\n")
+                g.write(submitted_name2 + "," + str(greatest_total) + "\n")
                 g.close()
 
 
@@ -78,6 +82,14 @@ def submit():
         pass
 
     return jsonify({"status": "Name submitted successfully"})
+
+def submit2():
+    global submitted_name2, first_name2, last_name2
+    first_name2 = request.form['first_name2']
+    last_name2 = request.form['last_name2']
+    submitted_name2 = first_name2 + " " + last_name2
+    return jsonify({"status": "Name submitted successfully"})
+
 
 def balancing_pressure():
     global totalTime, recording_time, submitted_name, i
