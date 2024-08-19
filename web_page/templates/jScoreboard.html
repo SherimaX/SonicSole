@@ -99,53 +99,57 @@
     }
 
     .sort-indicator {
-      margin-left: 10px;
+      margin-left: 20px;
       font-size: 0.9em;
       position: absolute;
       right: 10px; /* Align the indicator to the right for better spacing */
     }
   </style>
   <script>
-    function sortTable(columnIndex, isNumeric = false) {
-      var table = document.getElementById("leaderboard");
-      var rows = Array.from(table.rows).slice(1);
-      var isAscending = table.getAttribute("data-sort-asc") === "true";
+function sortTable(columnIndex, isNumeric = false) {
+    var table = document.getElementById("leaderboard");
+    var rows = Array.from(table.rows).slice(1);
+    var isAscending = table.getAttribute("data-sort-asc") === "true";
 
-      rows.sort(function (rowA, rowB) {
+    rows.sort(function (rowA, rowB) {
         var cellA = rowA.cells[columnIndex].innerText;
         var cellB = rowB.cells[columnIndex].innerText;
 
         if (isNumeric) {
-          cellA = parseFloat(cellA) || 0;
-          cellB = parseFloat(cellB) || 0;
+            cellA = parseFloat(cellA) || 0;
+            cellB = parseFloat(cellB) || 0;
         }
 
-        if (cellA < cellB) return isAscending ? -1 : 1;
-        if (cellA > cellB) return isAscending ? 1 : -1;
+        if (isNumeric ? (cellA < cellB) : (cellA.toLowerCase() < cellB.toLowerCase())) 
+            return isAscending ? -1 : 1;
+        if (isNumeric ? (cellA > cellB) : (cellA.toLowerCase() > cellB.toLowerCase())) 
+            return isAscending ? 1 : -1;
+        
         return 0;
-      });
+    });
 
-      rows.forEach(function (row) {
+    rows.forEach(function (row) {
         table.tBodies[0].appendChild(row);
-      });
+    });
 
-      table.setAttribute("data-sort-asc", !isAscending);
-      updateSortIndicators(table, columnIndex, !isAscending);
-    }
+    table.setAttribute("data-sort-asc", !isAscending);
+    updateSortIndicators(table, columnIndex, !isAscending);
+}
 
-    function updateSortIndicators(table, columnIndex, isAscending) {
-      var headers = table.querySelectorAll("th");
-      headers.forEach(function (header, index) {
+function updateSortIndicators(table, columnIndex, isAscending) {
+    var headers = table.querySelectorAll("th");
+    headers.forEach(function (header, index) {
         var indicator = header.querySelector(".sort-indicator");
         if (index === columnIndex) {
-          indicator.textContent = isAscending ? "Ascending" : "Descending";
-          header.classList.add("sorted");
+            indicator.textContent = isAscending ? "Ascending" : "Descending";
+            header.classList.add("sorted");
         } else {
-          indicator.textContent = "";
-          header.classList.remove("sorted");
+            indicator.textContent = "";
+            header.classList.remove("sorted");
         }
-      });
-    }
+    });
+}
+
   </script>
   <body>
     <h1>Balancing Scoreboard</h1>
