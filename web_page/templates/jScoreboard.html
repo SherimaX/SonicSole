@@ -83,23 +83,81 @@
       font-weight: bold;
       color: #320000;
     }
+
+    th {
+    background-color: #320000;
+    color: #fff;
+    text-align: center;
+    font-size: 1.4em;
+    cursor: pointer;
+}
+
+th.sorted {
+    background-color: #8a0000;
+    color: #fff;
+}
+
+.sort-indicator {
+    margin-left: 10px;
+    font-size: 0.9em;
+}
+
 </style>
+<script>
+  function sortTable(columnIndex, isNumeric = false) {
+      var table = document.getElementById("leaderboard");
+      var rows = Array.from(table.rows).slice(1);
+      var isAscending = table.getAttribute("data-sort-asc") === "true";
+
+      rows.sort(function (rowA, rowB) {
+          var cellA = rowA.cells[columnIndex].innerText;
+          var cellB = rowB.cells[columnIndex].innerText;
+
+          if (isNumeric) {
+              cellA = parseFloat(cellA) || 0;
+              cellB = parseFloat(cellB) || 0;
+          }
+
+          if (cellA < cellB) return isAscending ? -1 : 1;
+          if (cellA > cellB) return isAscending ? 1 : -1;
+          return 0;
+      });
+
+      rows.forEach(function (row) {
+          table.tBodies[0].appendChild(row);
+      });
+
+      table.setAttribute("data-sort-asc", !isAscending);
+      updateSortIndicators(table, columnIndex, !isAscending);
+  }
+
+  function updateSortIndicators(table, columnIndex, isAscending) {
+      var headers = table.querySelectorAll("th");
+      headers.forEach(function (header, index) {
+          var indicator = header.querySelector(".sort-indicator");
+          if (index === columnIndex) {
+              header.classList.add("sorted");
+          } else {
+              header.classList.remove("sorted");
+          }
+      });
+  }
+</script>
 <body>
     <h1>Balancing Scoreboard</h1>
     <a href="/index" class="homebutton">Go Back</a>
     <table id="leaderboard">
       <tr>
-        <th>Name</th>
-        <th>Fore & Heel Pressure</th>
-
-    </tr>
-    {% for entry in data %}
-    <tr>
-        <td>{{ entry.name }}</td>
-        <td>{{ entry.total }}</td>
-    </tr>
-    {% endfor %}
-    </table>
- 
+          <th onclick="sortTable(0)" class="sortable">Name <span class="sort-indicator"></span></th>
+          <th onclick="sortTable(1, true)" class="sortable">Fore & Heel Pressure <span class="sort-indicator"></span></th>
+      </tr>
+      {% for entry in data %}
+      <tr>
+          <td>{{ entry.name }}</td>
+          <td>{{ entry.total }}</td>
+      </tr>
+      {% endfor %}
+  </table>
+   
 </body>
 </html>
