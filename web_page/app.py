@@ -27,9 +27,9 @@ greatest_total = 50
 first_name = "first"
 last_name = "last"
 
-# submitted_name2 = "User1"
-# first_name2 = "first"
-# last_name2 = "last"
+submitted_name2 = "User1"
+first_name2 = "first"
+last_name2 = "last"
 
 
 def update_heel_color(pressure):
@@ -85,10 +85,11 @@ def submit():
 
 @app.route('/submit', methods=['POST'])
 def submit2():
-    first_name2 = request.form.get('first_name2')
-    last_name2 = request.form.get('last_name2')
-    submitted_name2 = f"{first_name2} {last_name2}"
-    return jsonify({"status": "Name submitted successfully", "full_name": submitted_name2})
+    global submitted_name2, first_name2, last_name2
+    first_name2 = request.form['first_name2']
+    last_name2 = request.form['last_name2']
+    submitted_name2 = first_name2 + " " + last_name2
+    return jsonify({"status": "Name submitted successfully"})
 
 
 def balancing_pressure():
