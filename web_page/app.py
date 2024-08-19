@@ -83,6 +83,7 @@ def submit():
 
     return jsonify({"status": "Name submitted successfully"})
 
+@app.route('/submit', methods=['POST'])
 def submit2():
     global submitted_name2, first_name2, last_name2
     first_name2 = request.form['first_name2']
