@@ -13,7 +13,7 @@
         height: 100vh;
         margin: 0;
         padding: 0;
-        font-family: Bradley Hand, cursive;
+        font-family: Ariel, sans-serif;
         background-color: #ffdada;
       }
 
@@ -26,7 +26,7 @@
 
       .buttons {
         margin-top: 4em;
-        margin-bottom: 5em;
+        margin-bottom: 4em;
       }
 
       button {
@@ -38,8 +38,9 @@
         border-radius: 5px;
         cursor: pointer;
         transition: background-color 0.3s;
-        margin-top: 10px;
-        font-family: Bradley Hand, cursive;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        font-family: Ariel, sans-serif;
       }
       button:hover {
         background-color: #210000;
@@ -142,7 +143,7 @@
         border-radius: 5px;
         margin-bottom: 10px;
         width: 250px;
-        font-family: Bradley Hand, cursive;
+        font-family: Ariel, sans-serif;
       }
 
       .content {
@@ -152,7 +153,10 @@
       .a {
         text-align: center;
       }
-
+      #balanceDataLocation {
+        font-size: 2.5em;
+        text-align: center;
+      }
       .eye {
         text-align: center;
         justify-content: center;
@@ -187,7 +191,7 @@
           .then((response) => response.json())
           .then((data) => {
             document.getElementById("balanceDataLocation").innerText =
-              data.data;
+              data.data + " seconds";
           });
       }
 
@@ -292,7 +296,7 @@
       </div>
     </form>
     <div class="content">
-      <p>if you make any changes, please hit submit again!</p>
+      <p>If you make any changes, please hit submit again!</p>
       <div id="countdown" class="countdown"></div>
       <div class="buttons">
         <button id="startButton">Start Balancing</button>
@@ -302,11 +306,14 @@
             <span class="close" onclick="closeModal()">&times;</span>
             <h2>Instructions</h2>
             <p>
+              Before beginning, students will first predict whether it will be easier 
+              to balance with their eyes covered or uncovered. Students will observe 
+              the relationship between visual cues and single-leg balance. 
               Press the "Start Balancing" button. Then, close your eyes and lift
-              one of your legs up and off the ground. Keep balancing on your one
+              one of your legs up and off the ground. Keep balancing on one
               leg for as long as you can. As soon as your foot touches the
-              ground, your SonicSole should detect the force and the timer
-              should stop.
+              ground, your SonicSole's force sensing units should detect the force and 
+              the timer should stop.
             </p>
           </div>
         </div>

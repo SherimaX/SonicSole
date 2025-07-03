@@ -12,7 +12,7 @@
         justify-content: flex-start;
         height: 100vh;
         margin: 0;
-        font-family: Bradley Hand, cursive;
+        font-family: Ariel, sans-serif;
         background-color: #ffdada;
         overflow: hidden;
       }
@@ -20,7 +20,25 @@
       h1 {
         font-size: 4.5em;
         margin: 20px 0;
-        color: #8a0000;
+        color: none;
+      }
+
+      button {
+        padding: 10px 20px;
+        margin-top: 25px;
+        font-size: 1.3em;
+        color: black;
+        background-color: none;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-family: Ariel, sans-serif;
+      }
+
+      .btn:hover {
+        background-color: #210000;
+        color: white;
       }
 
       .panel-container {
@@ -109,6 +127,38 @@
         margin-top: 4em;
         margin-bottom: 5em;
       }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-content {
+        background-color: #ffdada;
+        margin: auto;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        width: 80%;
+        max-width: 600px;
+        text-align: left;
+      }
+
+    .close {
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
     </style>
     <script>
       function fetchData() {
@@ -128,6 +178,15 @@
         // fetchData();
         setInterval(fetchData, 200);
       };
+
+      function openModal(id) {
+        document.getElementById(id).style.display = "flex";
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).style.display = "none";
+      }
+
     </script>
   </head>
   <body>
@@ -151,10 +210,35 @@
         </div>
         <div class="panel">
           <h3>Materials</h3>
-          <p>Shoe insole</p>
-          <p>Hardware Assembly</p>
-          <p>Logic Board</p>
-          <p>Scissors and Tape</p>
+          <button>Shoe Insole</button>
+        
+          <!-- Hardware Assembly Button -->
+          <button class = "btn" onclick="openModal('hardwareModal')">Hardware Assembly</button>
+          <!-- Logic Board Button -->
+          <button class = "btn" onclick="openModal('logicModal')">Logic Board</button>
+        
+          <button>Scissors and Tape</button>
+        </div>
+        
+        <!-- MODALS -->
+        <div id="hardwareModal" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="closeModal('hardwareModal')">&times;</span>
+            <h2>Hardware Assembly</h2>
+            <p>
+              The hardware assembly includes a vibration motor, a force sensing unit converting mechanical force into electrical signals, and an inertial measurement unit (IMU) which includes a combination of sensors like accelerometers and gyroscopes. These sensors will be used to measure foot pressure and movement during activities.
+            </p>
+          </div>
+        </div>
+        
+        <div id="logicModal" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="closeModal('logicModal')">&times;</span>
+            <h2>Logic Board</h2>
+            <p>
+              The logic board is a printed circuit board (PCB) that controls the components in the hardware assembly. It processes signals from the force sensing unit and IMU and controls the vibration motors.
+            </p>
+          </div>
         </div>
         <div class="panel">
           <h3>Step 1</h3>

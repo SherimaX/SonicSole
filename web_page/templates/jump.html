@@ -13,7 +13,7 @@
         height: 100vh;
         margin: 0;
         padding: 0;
-        font-family: Bradley Hand, cursive;
+        font-family: Ariel, sans-serif;
         background-color: #ffdada;
       }
 
@@ -29,13 +29,15 @@
         font-size: 1.3em;
         border: 2px solid #210000;
         border-radius: 5px;
+        margin-top: 25px;
         margin-bottom: 10px;
         width: 250px;
-        font-family: Bradley Hand, cursive;
+        font-family: Ariel, sans-serif;
       }
 
       button {
         padding: 10px 20px;
+        margin-top: 25px;
         font-size: 1.3em;
         color: #fff;
         background-color: #8a0000;
@@ -43,8 +45,7 @@
         border-radius: 5px;
         cursor: pointer;
         transition: background-color 0.3s;
-        margin-top: 10px;
-        font-family: Bradley Hand, cursive;
+        font-family: Ariel, sans-serif;
       }
 
       button:hover {
@@ -86,12 +87,46 @@
       .content {
         display: none;
         text-align: center;
-        margin-top: 2em;
+        margin-top: 1em;
+      }
+
+      .buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-top: 1em;
+        margin-bottom: 1em;
+      }
+
+      #jumpStatus {
+        font-size: 1.3em;
+        color: #333;
+        margin-top: 5px;
+        display: none;
+      }
+
+      #pressureVisuals {
+        display: none;
+        margin-top: 1em;
+      }
+
+      .data-box {
+        font-size: 1.1em;
+        background-color: #fafafa;
+        padding: 10px;
+        border-radius: 10px;
+        margin: 8px auto;
+        width: 200px;
+        height: 80px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        border: 1px solid #ddd;
       }
 
       a {
         display: inline-block;
-        margin-top: 20px;
+        margin-top: 25px;
         font-size: 1.3em;
         color: #310000;
         text-decoration: none;
@@ -130,29 +165,59 @@
         });
       }
 
+      function startJumping() {
+        document.getElementById("jumpStatus").style.display = "block";
+        document.getElementById("jumpStatus").innerText =
+          "Jump Height: awaiting jump...";
+
+        document.getElementById("pressureVisuals").style.display = "block";
+
+        setInterval(fetchData, 200);
+      }
+
+      function fetchData() {
+        fetch("/color_data")
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById(
+              "data-window-heel"
+            ).style.backgroundColor = `rgb(${data.R_heel}, ${data.G_heel}, 0)`;
+            document.getElementById(
+              "data-window-fore"
+            ).style.backgroundColor = `rgb(${data.R_fore}, ${data.G_fore}, 0)`;
+          });
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
         document
           .getElementById("name-form")
           .addEventListener("submit", submitForm);
+
+        document
+          .getElementById("startButton")
+          .addEventListener("click", startJumping);
       });
     </script>
   </head>
   <body>
     <h1>Jumping Activity</h1>
+
     <form id="name-form">
-      <input
-        type="text"
-        name="first_name"
-        required
-        placeholder="Enter First Name"
-      /><br />
-      <input
-        type="text"
-        name="last_name"
-        required
-        placeholder="Enter Last Name"
-      /><br />
-      <button type="submit">Submit</button>
+      <div style="text-align: center;">
+        <input
+          type="text"
+          name="first_name"
+          required
+          placeholder="Enter First Name"
+        /><br />
+        <input
+          type="text"
+          name="last_name"
+          required
+          placeholder="Enter Last Name"
+        /><br />
+        <button type="submit">Submit</button>
+      </div>
     </form>
 
     <div class="content">
@@ -160,20 +225,28 @@
       <div class="buttons">
         <button id="startButton">Start Jumping</button>
         <button onclick="openModal()">Instructions</button>
-        <div id="instructionsModal" class="modal">
-          <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Instructions</h2>
-            <p>
-              Press the "Start Jumping" button. Then, jump as high as
-              you can. Make sure to land with both feet flat
-              so the device can track your landings!
-            </p>
-          </div>
+      </div>
+
+      <p id="jumpStatus">Jump Height: awaiting jump...</p>
+
+      <div id="pressureVisuals">
+        <div class="data-box" id="data-window-heel">Heel Pressure</div>
+        <div class="data-box" id="data-window-fore">Fore Pressure</div>
+      </div>
+
+      <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeModal()">&times;</span>
+          <h2>Instructions</h2>
+          <p>
+            Press the "Start Jumping" button. Then, jump as high as you can. The IMU (Inertial Measurement Unit) will measure your vertical acceleration once the force sensing units detect you are off the ground. Acceleration is integrated twice to calculate your jump height.
+          </p>
         </div>
       </div>
+
       <a href="/jScoreboard">Jumping Scoreboard</a>
     </div>
+
     <a href="/">Home</a>
   </body>
 </html>
