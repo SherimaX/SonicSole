@@ -37,6 +37,7 @@
       color: #310000;
       text-decoration: none;
       border: 2px solid #310000;
+      background-color: none;
       padding: 10px 20px;
       border-radius: 5px;
       transition: background-color 0.3s, color 0.3s;
@@ -152,15 +153,15 @@ function updateSortIndicators(table, columnIndex, isAscending) {
 
   </script>
   <body>
-    <h1>Balancing Scoreboard</h1>
-    <a href="/index" class="homebutton">Go Back</a>
+    <h1>Jumping Scoreboard</h1>
+    <a href="/jump" class="homebutton">Go Back</a>
     <table id="leaderboard">
       <tr>
         <th onclick="sortTable(0)" class="sortable">
           Name <span class="sort-indicator"></span>
         </th>
         <th onclick="sortTable(1, true)" class="sortable">
-          Fore & Heel Pressure <span class="sort-indicator"></span>
+          Jump Height <span class="sort-indicator"></span>
         </th>
       </tr>
       {% for entry in data %}

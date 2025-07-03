@@ -14,7 +14,7 @@ body {
     height: 100vh;
     margin: 0;
     padding: 0;
-    font-family: Bradley Hand, cursive;
+    font-family: Ariel, sans-serif;
     background-color: #ffdada;
 }
 
@@ -30,10 +30,11 @@ p {
     margin-bottom: 10em;
 }
 
-a {
+.btn {
     display: inline-block;
     margin-top: 20px;
     font-size: 1.3em;
+    background-color: white;
     color: #310000;
     text-decoration: none;
     border: 2px solid #310000;
@@ -42,7 +43,7 @@ a {
     transition: background-color 0.3s, color 0.3s;
 }
 
-a:hover {
+.btn:hover {
     background-color: #310000;
     color: #fff;
 }
@@ -111,6 +112,38 @@ td:first-child {
 td:empty::after {
     content: "--";
     color: #999;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: #ffdada;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  width: 70%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.close {
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
   </style>
@@ -205,12 +238,23 @@ function mergeLeaderboardRows() {
         table.querySelector('tbody').appendChild(row);
     });
 }
+function openModal() {
+  document.getElementById("instructionsModal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("instructionsModal").style.display = "none";
+}
 
   </script>
    
   <body>
     <h1>Balancing Scoreboard</h1>
-    <a href="/balance" class="homebutton">Go Back</a>
+    <div style="display: flex; gap: 10px; margin-bottom: 1em; margin-top: 1em;">
+      <a class = "btn" href="/balance" class="homebutton">Go Back</a>
+      <button class = "btn" onclick="openModal()">Explanation</button>
+    </div>
+
     <div class="leaderboards">
       <!-- Combined Table -->
       <table class="leaderboard" id="combinedLeaderboard">
@@ -243,7 +287,15 @@ function mergeLeaderboardRows() {
               {% endfor %}
           </tbody>
       </table>
-    
-
+    </div>
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeModal()">&times;</span>
+          <h2>Explanation</h2>
+          <p>
+            After completing the activity, you should have noticed that you had an easier time balancing on one leg when your eyes were open. This is because the brain relies on visual cues  to  ensure that the projection of your body’s center of mass falls over the standing foot. This occurs through the actions of your muscles. When your eyes are covered, your body has a more difficult time trying to balance because it cannot rely on your sight to help correct your posture to maintain balance. The visual and muscular feedback are both important aspects necessary to maintaining balance. 
+          </p>
+        </div>
+      </div>
   </body>
 </html>

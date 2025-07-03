@@ -6,12 +6,20 @@ import csv
 
 app = Flask(__name__)
 
-UDP_IP = "127.0.0.1"
+#UDP_IP = "127.0.0.1"
+UDP_IP = "0.0.0.0"
 UDP_PORT = 21000
 UDP_PORT2 = 20000
+
+UDP_PORT3 = 22000  # for jump height
+
 bufferSize = 1024
 received_heel_data = "0"
 received_fore_data = "0"
+
+received_vertical_raw = "0.0" # for jump height
+airtime=0
+
 # heel_list = [0 for _ in range(100)]
 totalTime = "0"
 recording_time = False
@@ -102,13 +110,13 @@ def balancing_pressure():
             
             # totalTime = str(end_time - start_time)
             totalTime = "{:.3f}".format(end_time - start_time) # 3 decimal places
-            print("Currently Balanced for {} seconds".format(totalTime))
+         #   print("Currently Balanced for {} seconds".format(totalTime))
             
             time.sleep(0.01)
         else:
             recording_time = False
             start_time = time.time()
-            print("Total time balanced: {} seconds".format(totalTime))
+           # print("Total time balanced: {} seconds".format(totalTime))
             # print(submitted_name)
             if i == 0:
                 f = open("SonicSole2.txt", "a")
@@ -120,6 +128,38 @@ def balancing_pressure():
 
 # For index.html
 
+# for jump height
+def read_vertical_f():
+    global received_vertical_raw
+
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind((UDP_IP, UDP_PORT3))
+
+    while True:
+        data, addr = sock.recvfrom(1024)
+        try:
+            received_vertical_raw = data.decode().strip()
+        except:
+            continue
+# for jump height
+def get_airtime(threshold=500):
+    global received_heel_data, received_fore_data, received_vertical_raw
+    vertical_raw_data = []
+    while True:
+        if int(received_heel_data) < threshold and int(received_fore_data) < threshold:
+            start_time = time.time()
+            break
+        time.sleep(0.001)
+    while True:
+        if int(received_heel_data) >= threshold or int(received_fore_data) >= threshold:
+            end_time = time.time()
+            break
+        vertical_raw_data.append(received_vertical_raw)
+        time.sleep(0.001)
+    airtime = end_time - start_time
+    return round(airtime, 4), vertical_raw_data
+
 def read_heel_pressure():
     global received_heel_data #, heel_list
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
@@ -128,8 +168,9 @@ def read_heel_pressure():
         data, addr = sock.recvfrom(1024)
         received_heel_data = int.from_bytes(data, byteorder='little')
         update_heel_color(received_heel_data)
+        print(f"Heel Pressure: {received_heel_data}")
         # time.sleep(0.1)
-        
+
 
 def read_fore_pressure():
     global received_fore_data
@@ -139,6 +180,7 @@ def read_fore_pressure():
         data, addr = sock.recvfrom(1024)
         received_fore_data = int.from_bytes(data, byteorder='little')
         update_fore_color(received_fore_data)
+        print(f"Fore Pressure: {received_fore_data}")
         # print("received message: %s" % data)
 
 def send_udp_data():
@@ -150,9 +192,13 @@ def send_udp_data():
 def home():
     return render_template('home.html')
 
-@app.route('/index')
-def index():
-    return render_template('index.html')
+#@app.route('/index')
+#def index():
+#    return render_template('index.html')
+# for jump height
+@app.route('/jump')
+def jump():
+    return render_template('jump.html')
 
 @app.route('/balance')
 def balance():
@@ -252,7 +298,8 @@ def assembly_instructions():
 @app.route('/button', methods=['POST'])
 def button():
     send_udp_data()
-    return redirect(url_for('index'))
+    #return redirect(url_for('index'))
+    return redirect(url_for('jump'))
 
 @app.route('/heel_data', methods=['GET'])
 def heel_data():
@@ -299,6 +346,11 @@ if __name__ == '__main__':
     udp_thread_balance.start()
     udp_thread_jumping.daemon = True
     udp_thread_jumping.start()
+
+    # for jump height
+    udp_thread_verticalF = threading.Thread(target=read_vertical_f)
+    udp_thread_verticalF.daemon = True
+    udp_thread_verticalF.start()
 
     app.run(host='0.0.0.0', port=5000)
 

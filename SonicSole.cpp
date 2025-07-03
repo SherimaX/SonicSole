@@ -389,7 +389,8 @@ void SonicSole::sendFlexSensorData(int flexSensorData, int port) {
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(port);
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
+    //serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
+    serverAddr.sin_addr.s_addr = inet_addr("192.168.50.109");
 
     /*
     if (sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
