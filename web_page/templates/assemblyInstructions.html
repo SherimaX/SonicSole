@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Assembly Instructions</title>
     <style>
       body {
         display: flex;
@@ -12,7 +12,7 @@
         justify-content: flex-start;
         height: 100vh;
         margin: 0;
-        font-family: Ariel, sans-serif;
+        font-family: Arial, sans-serif;
         background-color: #ffdada;
         overflow: hidden;
       }
@@ -20,7 +20,6 @@
       h1 {
         font-size: 4.5em;
         margin: 20px 0;
-        color: none;
       }
 
       button {
@@ -28,12 +27,16 @@
         margin-top: 25px;
         font-size: 1.3em;
         color: black;
-        background-color: none;
+        background-color: #f9f9f9;
         border: none;
         border-radius: 5px;
         cursor: pointer;
         transition: background-color 0.3s;
-        font-family: Ariel, sans-serif;
+        font-family: Arial, sans-serif;
+      }
+
+      .btn {
+        color: #8a0000;
       }
 
       .btn:hover {
@@ -109,6 +112,7 @@
       a {
         display: inline-block;
         margin-top: 20px;
+        margin-bottom: 20px;
         font-size: 1.3em;
         color: #310000;
         text-decoration: none;
@@ -127,6 +131,17 @@
         margin-top: 4em;
         margin-bottom: 5em;
       }
+
+      .modal-content img {
+        width: 80%;
+        max-width: 400px;
+        margin-top: 15px;
+        border-radius: 8px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
       .modal {
         display: none;
         position: fixed;
@@ -152,30 +167,40 @@
         text-align: left;
       }
 
-    .close {
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+      .modal-content img {
+        width: 100%;
+        margin-top: 15px;
+        border-radius: 8px;
+      }
 
+      .close {
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .clickable {
+        color: #8a0000;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+
+      .clickable:hover {
+        color: #210000;
+      }
     </style>
     <script>
       function fetchData() {
         fetch("/color_data")
           .then((response) => response.json())
           .then((data) => {
-            document.getElementById(
-              "data-window2"
-            ).style.backgroundColor = `rgb(${data.R_fore}, ${data.G_fore}, 0)`;
-            document.getElementById(
-              "data-window1"
-            ).style.backgroundColor = `rgb(${data.R_heel}, ${data.G_heel}, 0)`;
+            document.getElementById("data-window2").style.backgroundColor = `rgb(${data.R_fore}, ${data.G_fore}, 0)`;
+            document.getElementById("data-window1").style.backgroundColor = `rgb(${data.R_heel}, ${data.G_heel}, 0)`;
           });
       }
 
       window.onload = function () {
-        // fetchData();
         setInterval(fetchData, 200);
       };
 
@@ -186,7 +211,6 @@
       function closeModal(id) {
         document.getElementById(id).style.display = "none";
       }
-
     </script>
   </head>
   <body>
@@ -196,11 +220,13 @@
         <div class="panel">
           <h3>Introduction</h3>
           <p>
-            The kit is composed of an insole and the hardware assembly that will
-            be attached to the insole. The hardware assembly consists of a
-            vibration motor, force sensing unit, and inertial measurement unit
-            (IMU). Throughout the lessons, the kit will be used for various
-            activities related to the topics in the video lessons.
+            The kit is composed of an insole and the 
+            <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> 
+            that will be attached to the insole. The 
+            <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> 
+            consists of a vibration motor, force sensing unit, and inertial measurement unit (IMU). 
+            Later, you will participate in activities will use these sensors.
+          
           </p>
           <h3>Learning Objectives</h3>
           <p>
@@ -211,47 +237,62 @@
         <div class="panel">
           <h3>Materials</h3>
           <button>Shoe Insole</button>
-        
-          <!-- Hardware Assembly Button -->
-          <button class = "btn" onclick="openModal('hardwareModal')">Hardware Assembly</button>
-          <!-- Logic Board Button -->
-          <button class = "btn" onclick="openModal('logicModal')">Logic Board</button>
-        
+          <button class="clickable" onclick="openModal('hardwareModal')">
+            Hardware Assembly
+          </button>
+          <button class="clickable" onclick="openModal('logicModal')">
+            Logic Board
+          </button>
           <button>Scissors and Tape</button>
         </div>
-        
+
         <!-- MODALS -->
         <div id="hardwareModal" class="modal">
           <div class="modal-content">
             <span class="close" onclick="closeModal('hardwareModal')">&times;</span>
             <h2>Hardware Assembly</h2>
             <p>
-              The hardware assembly includes a vibration motor, a force sensing unit converting mechanical force into electrical signals, and an inertial measurement unit (IMU) which includes a combination of sensors like accelerometers and gyroscopes. These sensors will be used to measure foot pressure and movement during activities.
+              The hardware assembly includes a vibration motor, a force sensing
+              unit converting mechanical force into electrical signals, and an
+              inertial measurement unit (IMU) which includes a combination of
+              sensors like accelerometers (measures acceleration) and gyroscopes (measures orientation and angular velocity). These sensors will be
+              used to measure foot pressure and movement during activities.
             </p>
+            <img src="{{ url_for('static', filename='Hardware.png') }}" alt="Hardware" />
           </div>
         </div>
-        
+
         <div id="logicModal" class="modal">
           <div class="modal-content">
             <span class="close" onclick="closeModal('logicModal')">&times;</span>
             <h2>Logic Board</h2>
             <p>
-              The logic board is a printed circuit board (PCB) that controls the components in the hardware assembly. It processes signals from the force sensing unit and IMU and controls the vibration motors.
+              The logic board contains printed circuit boards (PCBs) that controls the
+              components in the hardware assmebly. It processes signals from the
+              force sensing unit and IMU, and sends data to the computer to display on this website.
             </p>
+            <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="Logic Board Image" />
           </div>
         </div>
+
         <div class="panel">
           <h3>Step 1</h3>
           <p>
             Determine the correct size by aligning your foot on the guide to see
             which number corresponds with your foot length.
           </p>
+        </div>
+        <div class="panel">
           <h3>Step 2</h3>
           <p>Trim the insole based off the size determined in Step 1</p>
         </div>
         <div class="panel">
           <h3>Step 3</h3>
-          <p>Lay the hardware onto the insole.</p>
+          <p>
+            Lay the <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> onto the insole.
+          </p>
+        </div>
+        <div class="panel">
           <h3>Step 4</h3>
           <p>
             Ensure that the vibration motors are aligned in the proper position
@@ -264,23 +305,29 @@
             Fold the top wire as needed to fit the force sensing unit within the
             insole
           </p>
-          <h3>Step 6</h3>
-          <p>Tape the hardware assembly to the insole.</p>
         </div>
         <div class="panel">
-          <h3>Step 7: Testing!</h3>
+          <h3>Step 6</h3>
+          <p>
+            Tape the <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> to the insole.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Step 7</h3>
+          <p>
+            Plug the insole wire into the <span class="clickable" onclick="openModal('logicModal')">logic board</span>.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Testing!</h3>
           <p class="infodata">Heel Data</p>
-          <div id="data-window1">
-            <p></p>
-          </div>
+          <div id="data-window1"><p></p></div>
           <p class="infodata">Fore Data</p>
-          <div id="data-window2">
-            <p></p>
-          </div>
+          <div id="data-window2"><p></p></div>
           <a href="/"> I'm Ready! </a>
         </div>
-        <!-- Add more panels as needed -->
       </div>
     </div>
+    <a href="/">Home</a>
   </body>
 </html>

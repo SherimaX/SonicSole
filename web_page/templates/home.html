@@ -1,176 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SonicSole</title>
-    <style>
-      body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
-        font-family: Ariel, sans-serif;
-        background-color: #ffdada;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SonicSole</title>
+  <style>
+    :root {
+      --main-bg: linear-gradient(135deg, #ffe1e1, #ffdada);
+      --accent: #8a0000;
+      --accent-dark: #4d0000;
+      --card-bg: #fff;
+      --text-dark: #333;
+      --text-subtle: #555;
+    }
 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--main-bg);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      text-align: center;
+      padding: 60px 20px 30px;
+    }
+
+    h1 {
+      font-size: 4.5rem;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .sub {
+      font-size: 1.8rem;
+      margin-bottom: 30px;
+      color: var(--text-subtle);
+    }
+
+    .instructions-button {
+      font-size: 1.1rem;
+      padding: 12px 24px;
+      border: none;
+      background-color: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .instructions-button:hover {
+      background-color: var(--accent-dark);
+      transform: scale(1.05);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      padding: 50px 30px;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .card-title {
+      padding: 16px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: center;
+      color: var(--text-dark);
+      background-color: #ffe1e1;
+    }
+
+    @media (max-width: 600px) {
       h1 {
-        font-size: 4.5em;
-        margin-bottom: 3px;
-        color: #8a0000;
+        font-size: 3rem;
       }
-
-      p {
-        font-size: 1.3em;
-        margin-bottom: 20px;
-        color: #666;
-      }
-
       .sub {
-        font-size: 2em;
-        margin-bottom: 1em;
-        color: #8a0000;
+        font-size: 1.4rem;
       }
-
-      form {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-bottom: 20px;
-      }
-
-      input[type="text"] {
-        padding: 10px;
-        font-size: 1.3em;
-        border: 2px solid #210000;
-        border-radius: 5px;
-        margin-bottom: 10px;
-        width: 250px;
-        font-family: Ariel, sans-serif;
-      }
-
-      button {
+      .instructions-button {
+        font-size: 1rem;
         padding: 10px 20px;
-        font-size: 1.3em;
-        color: #fff;
-        background-color: #8a0000;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        margin-top: 10px;
-        font-family: Ariel, sans-serif;
       }
+    }
+  </style>
+</head>
+<body>
 
-      button:hover {
-        background-color: #210000;
-      }
-
-      .hidden-content {
-        display: none;
-        flex-direction: column;
-        align-items: center;
-      }
-
-      a {
-        display: inline-block;
-        margin-top: 20px;
-        font-size: 1.3em;
-        color: #310000;
-        text-decoration: none;
-        border: 2px solid #310000;
-        padding: 10px 20px;
-        border-radius: 5px;
-        transition: background-color 0.3s, color 0.3s;
-      }
-
-      a:hover {
-        background-color: #310000;
-        color: #fff;
-      }
-
-      h3 {
-        color: #333;
-        margin: 20px 0;
-      }
-
-      .reset-button {
-        margin-top: 20px;
-        font-size: 1.3em;
-        color: #fff;
-        background-color: #8a0000;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        margin-bottom: 1em;
-      }
-
-      .reset-button:hover {
-        background-color: #3b0000;
-      }
-
-      .balancing {
-        margin-left: 0.2em;
-        width: 200px;
-        text-align: center;
-      }
-      .jumping {
-        margin-right: 0.2em;
-        width: 200px;
-        text-align: center;
-      }
-
-      .activities {
-        margin-top: 4em;
-        margin-bottom: 9em;
-      }
-    </style>
-  </head>
-  <body>
+  <header>
     <h1>SonicSole</h1>
     <p class="sub">An Interactive Lab Experience</p>
-    <!-- <form id="name-form">
-    <input type="text" name="name" id="name-input" placeholder="Enter Name" />
-    <button type="submit">Submit</button>
-  </form> -->
-    <!-- <div class="hidden-content" id="hidden-content"> -->
-    <!-- <a class="reset-button" id="reset-button">Edit Name</a> -->
-    <a href="/assemblyInstructions">Assembly Instructions</a>
-    <div class="activities">
-     <!-- <a href="/index" class="jumping">Jumping Activity</a> -->
-      <a href="/jump" class="jumping">Jumping Activity</a>
-      <a href="/balance" class="balancing">Balancing Activity</a>
-    </div>
-    <!-- </div> -->
+    <a href="/assemblyInstructions" class="instructions-button">Assembly Instructions</a>
+  </header>
 
-    <script>
-      // document.addEventListener('DOMContentLoaded', function() {
-      //   const name = localStorage.getItem('name');
-      //   if (name) {
-      //     document.getElementById('hidden-content').style.display = 'flex';
-      //     document.getElementById('name-form').style.display = 'none';
-      //   }
+  <div class="card-grid">
+    <a class="card" href="/jump">
+      <img src="{{ url_for('static', filename='Jumping.png') }}" alt="Jumping" />
+      <div class="card-title">Jumping Activity</div>
+    </a>
+    <a class="card" href="/balance">
+      <img src="{{ url_for('static', filename='Balancing.png') }}" alt="Balancing">
+      <div class="card-title">Balancing Activity</div>
+    </a>
+    <a class="card" href="/placeholder3">
+      <img src="{{ url_for('static', filename='ForeFootWalk.png') }}" alt="Placeholder">
+      <div class="card-title">Heel/Forefoot Walk Activity</div>
+    </a>
+    <a class="card" href="/placeholder4">
+      <img src="{{ url_for('static', filename='Reaction.png') }}" alt="Placeholder">
+      <div class="card-title">Reaction Time Activity</div>
+    </a>
+    <a class="card" href="/placeholder5">
+      <img src="{{ url_for('static', filename='Pressure.png') }}" alt="Placeholder">
+      <div class="card-title">Force Sensitivity Activity</div>
+    </a>
+    <a class="card" href="/placeholder6">
+      <img src="{{ url_for('static', filename='Piano.png') }}" alt="Placeholder">
+      <div class="card-title">Piano Activity</div>
+    </a>
+    <a class="card" href="/placeholder7">
+      <img src="{{ url_for('static', filename='Memory.png') }}" alt="Placeholder">
+      <div class="card-title">Pattern Memory Activity</div>
+    </a>
+    <a class="card" href="/placeholder8">
+      <img src="{{ url_for('static', filename='Obstacle.png') }}" alt="Placeholder">
+      <div class="card-title">Obstacle Simulator Activity</div>
+    </a>
+    <a class="card" href="/placeholder9">
+      <img src="{{ url_for('static', filename='stepT.png') }}" alt="Placeholder">
+      <div class="card-title">Step Timing Activity</div>
+    </a>
+  </div>
 
-      //   document.getElementById('name-form').addEventListener('submit', function(event) {
-      //     event.preventDefault();
-      //     const nameInput = document.getElementById('name-input').value;
-      //     if (nameInput.trim() !== "") {
-      //       localStorage.setItem('name', nameInput);
-      //       document.getElementById('hidden-content').style.display = 'flex';
-      //       document.getElementById('name-form').style.display = 'none';
-      //     }
-      //   });
-
-      //   document.getElementById('reset-button').addEventListener('click', function() {
-      //     localStorage.removeItem('name');
-      //     document.getElementById('hidden-content').style.display = 'none';
-      //     document.getElementById('name-form').style.display = 'flex';
-      //   });
-      // });
-    </script>
-  </body>
+</body>
 </html>
