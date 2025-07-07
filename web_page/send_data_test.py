@@ -1,5 +1,5 @@
 import socket
-target_ip = "127.0.0.1"
+target_ip = "192.168.50.109"
 target_port = 21000 
 heel_pressure_value = 800  
 data = heel_pressure_value.to_bytes(2)

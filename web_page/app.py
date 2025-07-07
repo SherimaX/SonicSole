@@ -162,6 +162,7 @@ def get_airtime(threshold=500):
 
 def read_heel_pressure():
     global received_heel_data #, heel_list
+    print(f"Read Heel Pressure")
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
     sock.bind((UDP_IP, UDP_PORT))
     while True:
@@ -174,6 +175,7 @@ def read_heel_pressure():
 
 def read_fore_pressure():
     global received_fore_data
+    print(f"Read Fore Pressure")
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
     sock.bind((UDP_IP, UDP_PORT2))
     while True:
