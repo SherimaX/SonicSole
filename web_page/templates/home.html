@@ -113,20 +113,38 @@
         background-color: #3b0000;
       }
 
-      .balancing {
-        margin-left: 0.2em;
-        width: 200px;
-        text-align: center;
-      }
-      .jumping {
-        margin-right: 0.2em;
-        width: 200px;
-        text-align: center;
+      .tiles {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        width: 100%;
+        max-width: 1200px;
+        padding: 20px;
+        box-sizing: border-box;
+        perspective: 1000px;
       }
 
-      .activities {
-        margin-top: 4em;
-        margin-bottom: 9em;
+      .tile {
+        position: relative;
+        overflow: hidden;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s;
+        aspect-ratio: 1 / 1;
+      }
+
+      .tile img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        pointer-events: none;
+      }
+
+      .tile:hover {
+        transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
       }
     </style>
   </head>
@@ -139,13 +157,35 @@
   </form> -->
     <!-- <div class="hidden-content" id="hidden-content"> -->
     <!-- <a class="reset-button" id="reset-button">Edit Name</a> -->
-    <a href="/assemblyInstructions">Assembly Instructions</a>
-    <div class="activities">
-     <!-- <a href="/index" class="jumping">Jumping Activity</a> -->
-      <a href="/jump" class="jumping">Jumping Activity</a>
-      <a href="/balance" class="balancing">Balancing Activity</a>
-    </div>
-    <!-- </div> -->
+      <a href="/assemblyInstructions">Assembly Instructions</a>
+
+      <div class="tiles">
+        <a href="/balance" class="tile">
+          <img src="{{ url_for('static', filename='Balancing.png') }}" alt="Balancing" />
+        </a>
+        <a href="/jump" class="tile">
+          <img src="{{ url_for('static', filename='Jumping.png') }}" alt="Jumping" />
+        </a>
+        <div class="tile">
+          <img src="{{ url_for('static', filename='Obstacle.png') }}" alt="Obstacle" />
+        </div>
+        <div class="tile">
+          <img src="{{ url_for('static', filename='Pressure.png') }}" alt="Pressure" />
+        </div>
+        <div class="tile">
+          <img src="{{ url_for('static', filename='ForeFootWalk.png') }}" alt="ForeFoot Walk" />
+        </div>
+        <div class="tile">
+          <img src="{{ url_for('static', filename='Memory.png') }}" alt="Memory" />
+        </div>
+        <div class="tile">
+          <img src="{{ url_for('static', filename='Piano.png') }}" alt="Piano" />
+        </div>
+        <div class="tile">
+          <img src="{{ url_for('static', filename='Reaction.png') }}" alt="Reaction" />
+        </div>
+      </div>
+      <!-- </div> -->
 
     <script>
       // document.addEventListener('DOMContentLoaded', function() {
