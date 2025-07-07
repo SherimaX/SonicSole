@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
 import socket
+import os
 import threading
 import time
 import csv
@@ -207,6 +208,11 @@ def balance():
 @app.route("/play", methods=["GET", "POST"])
 def play():
     return send_file("countdown.mp3")
+
+
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    return send_file(os.path.join('..', 'images', filename))
 
 
 @app.route('/bScoreboard')

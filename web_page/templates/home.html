@@ -113,20 +113,47 @@
         background-color: #3b0000;
       }
 
-      .balancing {
-        margin-left: 0.2em;
-        width: 200px;
-        text-align: center;
-      }
-      .jumping {
-        margin-right: 0.2em;
-        width: 200px;
-        text-align: center;
+      .tiles {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2em;
+        width: 100%;
+        padding: 2em;
+        box-sizing: border-box;
+        margin-top: 2em;
+        margin-bottom: 2em;
       }
 
-      .activities {
-        margin-top: 4em;
-        margin-bottom: 9em;
+      .tile {
+        width: 100%;
+        padding-top: 100%;
+        position: relative;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+        backdrop-filter: blur(4px);
+      }
+
+      .tile img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .tile:hover {
+        transform: translateY(-10px) rotateZ(1deg);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      @media (max-width: 800px) {
+        .tiles {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
     </style>
   </head>
@@ -140,12 +167,32 @@
     <!-- <div class="hidden-content" id="hidden-content"> -->
     <!-- <a class="reset-button" id="reset-button">Edit Name</a> -->
     <a href="/assemblyInstructions">Assembly Instructions</a>
-    <div class="activities">
-     <!-- <a href="/index" class="jumping">Jumping Activity</a> -->
-      <a href="/jump" class="jumping">Jumping Activity</a>
-      <a href="/balance" class="balancing">Balancing Activity</a>
+    <div class="tiles">
+      <a href="/jump" class="tile">
+        <img src="{{ url_for('serve_image', filename='Jumping.png') }}" alt="Jumping" />
+      </a>
+      <a href="/balance" class="tile">
+        <img src="{{ url_for('serve_image', filename='Balancing.png') }}" alt="Balancing" />
+      </a>
+      <div class="tile">
+        <img src="{{ url_for('serve_image', filename='Obstacle.png') }}" alt="Obstacle" />
+      </div>
+      <div class="tile">
+        <img src="{{ url_for('serve_image', filename='Pressure.png') }}" alt="Pressure" />
+      </div>
+      <div class="tile">
+        <img src="{{ url_for('serve_image', filename='ForeFootWalk.png') }}" alt="ForeFoot Walk" />
+      </div>
+      <div class="tile">
+        <img src="{{ url_for('serve_image', filename='Memory.png') }}" alt="Memory" />
+      </div>
+      <div class="tile">
+        <img src="{{ url_for('serve_image', filename='Piano.png') }}" alt="Piano" />
+      </div>
+      <div class="tile">
+        <img src="{{ url_for('serve_image', filename='Reaction.png') }}" alt="Reaction" />
+      </div>
     </div>
-    <!-- </div> -->
 
     <script>
       // document.addEventListener('DOMContentLoaded', function() {
