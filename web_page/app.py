@@ -4,7 +4,7 @@ import threading
 import time
 import csv
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/images', static_folder='../images')
 
 #UDP_IP = "127.0.0.1"
 UDP_IP = "0.0.0.0"
