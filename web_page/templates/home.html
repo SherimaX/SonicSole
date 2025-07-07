@@ -9,8 +9,8 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        height: 100vh;
+        justify-content: flex-start;
+        min-height: 100vh;
         margin: 0;
         font-family: Ariel, sans-serif;
         background-color: #ffdada;
@@ -113,20 +113,45 @@
         background-color: #3b0000;
       }
 
-      .balancing {
-        margin-left: 0.2em;
-        width: 200px;
-        text-align: center;
-      }
-      .jumping {
-        margin-right: 0.2em;
-        width: 200px;
-        text-align: center;
+      /* Container for the activity tiles */
+      .tiles-container {
+        width: 90vw;
+        max-width: 1200px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-gap: 20px;
+        margin-top: 3em;
+        margin-bottom: 3em;
       }
 
-      .activities {
-        margin-top: 4em;
-        margin-bottom: 9em;
+      /* Individual tile styling */
+      .tile {
+        position: relative;
+        width: 100%;
+        padding-bottom: 100%;
+        overflow: hidden;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transform-style: preserve-3d;
+        perspective: 1000px;
+      }
+
+      .tile img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .tile:hover {
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+        transform: translateY(-10px);
       }
     </style>
   </head>
@@ -140,10 +165,31 @@
     <!-- <div class="hidden-content" id="hidden-content"> -->
     <!-- <a class="reset-button" id="reset-button">Edit Name</a> -->
     <a href="/assemblyInstructions">Assembly Instructions</a>
-    <div class="activities">
-     <!-- <a href="/index" class="jumping">Jumping Activity</a> -->
-      <a href="/jump" class="jumping">Jumping Activity</a>
-      <a href="/balance" class="balancing">Balancing Activity</a>
+    <div class="tiles-container">
+      <a href="/balance" class="tile">
+        <img src="/images/Balancing.png" alt="Balancing" />
+      </a>
+      <a href="/jump" class="tile">
+        <img src="/images/Jumping.png" alt="Jumping" />
+      </a>
+      <div class="tile">
+        <img src="/images/Pressure.png" alt="Pressure" />
+      </div>
+      <div class="tile">
+        <img src="/images/Reaction.png" alt="Reaction" />
+      </div>
+      <div class="tile">
+        <img src="/images/Memory.png" alt="Memory" />
+      </div>
+      <div class="tile">
+        <img src="/images/Piano.png" alt="Piano" />
+      </div>
+      <div class="tile">
+        <img src="/images/ForeFootWalk.png" alt="ForeFootWalk" />
+      </div>
+      <div class="tile">
+        <img src="/images/Obstacle.png" alt="Obstacle" />
+      </div>
     </div>
     <!-- </div> -->
 
@@ -171,6 +217,21 @@
       //     document.getElementById('name-form').style.display = 'flex';
       //   });
       // });
+
+      // Simple tilt effect for the tiles
+      document.querySelectorAll('.tile').forEach((tile) => {
+        tile.addEventListener('mousemove', (e) => {
+          const rect = tile.getBoundingClientRect();
+          const x = e.clientX - rect.left - rect.width / 2;
+          const y = e.clientY - rect.top - rect.height / 2;
+          const rotateX = (-y / 20).toFixed(2);
+          const rotateY = (x / 20).toFixed(2);
+          tile.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+        tile.addEventListener('mouseleave', () => {
+          tile.style.transform = 'none';
+        });
+      });
     </script>
   </body>
 </html>
