@@ -203,7 +203,7 @@
         const maxForce = data.max_force;
         messageBox.innerText = `Step 2: Match the target pressure level: ${target !== null ? target + "%" : "..."}. Your max pressure was ${maxForce}`;
         const measuringElapsed = elapsed - 13; // 10 calibration + 3 cooldown
-        const measuringRemaining = Math.max(0, 12 - measuringElapsed).toFixed(1); // if you set 12s
+        const measuringRemaining = Math.max(0, 10 - measuringElapsed).toFixed(1); // set 10s
         timeBox.innerText = `Measuring: ${measuringRemaining}s`;
 
 
