@@ -13,7 +13,7 @@
         height: 100vh;
         margin: 0;
         padding: 0;
-        font-family: Ariel, sans-serif;
+        font-family: Arial, sans-serif;
         background-color: #ffdada;
       }
 
@@ -33,7 +33,7 @@
         margin-top: 25px;
         margin-bottom: 10px;
         width: 250px;
-        font-family: Ariel, sans-serif;
+        font-family: Arial, sans-serif;
       }
 
       button {
@@ -46,7 +46,7 @@
         border-radius: 5px;
         cursor: pointer;
         transition: background-color 0.3s;
-        font-family: Ariel, sans-serif;
+        font-family: Arial, sans-serif;
       }
 
       button:hover {
@@ -141,6 +141,13 @@
         background-color: #310000;
         color: #fff;
       }
+
+      .name-fields {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
     </style>
     <script>
       function openModal() {
@@ -156,7 +163,7 @@
         var form = document.getElementById("name-form");
         var formData = new FormData(form);
 
-        fetch("/submit", {
+        fetch("/submit2", {
           method: "POST",
           body: formData,
         }).then((response) => {
@@ -205,18 +212,20 @@
 
     <form id="name-form">
       <div style="text-align: center;">
-        <input
-          type="text"
-          name="first_name"
-          required
-          placeholder="Enter First Name"
-        /><br />
-        <input
-          type="text"
-          name="last_name"
-          required
-          placeholder="Enter Last Name"
-        /><br />
+        <div class="name-fields">
+          <input
+            type="text"
+            name="first_name"
+            required
+            placeholder="Enter First Name"
+          />
+          <input
+            type="text"
+            name="last_name"
+            required
+            placeholder="Enter Last Name"
+          />
+        </div>
         <button type="submit">Submit</button>
       </div>
     </form>
@@ -240,7 +249,11 @@
           <span class="close" onclick="closeModal()">&times;</span>
           <h2>Instructions</h2>
           <p>
-            Press the "Start Jumping" button. Then, jump as high as you can. The IMU (Inertial Measurement Unit) will measure your vertical acceleration once the force sensing units detect you are off the ground. Acceleration is integrated twice to calculate your jump height.
+            Press the "Start Jumping" button. Then, jump as high as you can.
+            The IMU (Inertial Measurement Unit) will measure your vertical
+            acceleration once the force sensing units detect you are off the
+            ground. Acceleration is integrated twice to calculate your jump
+            height.
           </p>
         </div>
       </div>

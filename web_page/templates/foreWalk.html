@@ -1,0 +1,37 @@
+<!-- templates/foreWalk.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Forefoot Walk Challenge</title>
+  <script>
+    let timer = null;
+
+    function startWalk() {
+      document.getElementById("status").innerText = "Walking...";
+
+      fetch('/start_forefoot', { method: 'POST' });
+
+      timer = setInterval(() => {
+        fetch('/forefoot_status')
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === "success") {
+              clearInterval(timer);
+              document.getElementById("status").innerText = `✅ Success! Time: ${data.time}s`;
+            } else if (data.status === "fail") {
+              clearInterval(timer);
+              document.getElementById("status").innerText = `❌ Failed! Time: ${data.time}s`;
+              new Audio("/static/fail.mp3").play();
+            }
+          });
+      }, 200);
+    }
+  </script>
+</head>
+<body>
+  <h1>Forefoot Walk Challenge</h1>
+  <button onclick="startWalk()">Start</button>
+  <p id="status">Press Start to begin</p>
+</body>
+</html>
