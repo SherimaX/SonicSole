@@ -1,333 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Assembly Instructions</title>
-    <style>
-      body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        height: 100vh;
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background-color: #ffdada;
-        overflow: hidden;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assembly Instructions</title>
+  <style>
+    :root {
+      --primary-color: #8a0000;
+      --accent-color: #ffdada;
+      --light-color: #fafafa;
+      --text-dark: #310000;
+      --gray: #666;
+    }
 
-      h1 {
-        font-size: 4.5em;
-        margin: 20px 0;
-      }
+    * {
+      box-sizing: border-box;
+    }
 
-      button {
-        padding: 10px 20px;
-        margin-top: 25px;
-        font-size: 1.3em;
-        color: black;
-        background-color: #f9f9f9;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        font-family: Arial, sans-serif;
-      }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--accent-color);
+      color: var(--text-dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-      .btn {
-        color: #8a0000;
-      }
+    h1 {
+      font-size: 3.5rem;
+      margin: 2rem 0 1rem;
+      color: var(--primary-color);
+    }
 
-      .btn:hover {
-        background-color: #210000;
-        color: white;
-      }
+    .panels {
+      width: 90%;
+      max-width: 1200px;
+    }
 
-      .panel-container {
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        height: 70vh;
-        overflow-x: scroll;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-      }
+    .panel-container {
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: 1.5rem;
+      padding-bottom: 3rem;
+    }
 
-      .panel {
-        flex: none;
-        width: 100%;
-        height: 100%;
-        background-color: #f9f9f9;
-        border: 2px solid #210000;
-        border-radius: 10px;
-        padding: 20px;
-        margin: 0 10px;
-        box-sizing: border-box;
-        scroll-snap-align: start;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
+    .panel {
+      flex: 0 0 100%;
+      background: var(--light-color);
+      border-radius: 15px;
+      padding: 2rem;
+      scroll-snap-align: start;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
 
+    .panel h3 {
+      font-size: 2rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    .panel p {
+      font-size: 1.2rem;
+      color: var(--gray);
+      margin-bottom: 1.2rem;
+    }
+
+    .clickable {
+      color: var(--primary-color);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .clickable:hover {
+      color: var(--text-dark);
+    }
+
+    .buttons, button, a {
+      font-size: 1.1rem;
+      padding: 0.6rem 1.2rem;
+      margin: 0.5rem;
+      border: none;
+      border-radius: 8px;
+      background-color: white;
+      color: var(--primary-color);
+      border: 2px solid var(--primary-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    button:hover, a:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+    background-color: var(--accent-color);
+    padding: 1.5rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px; /* Shrink modal width */
+    position: relative;
+  }
+
+
+    .modal-content h2 {
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    .modal-content p {
+      font-size: 1.1rem;
+      color: var(--gray);
+    }
+
+    .modal-content img {
+      width: 100%;
+      max-height: 250px; /* Limit height */
+      object-fit: contain;
+      margin-top: 1rem;
+      border-radius: 10px;
+    }
+
+
+    .close {
+      position: absolute;
+      top: 10px;
+      right: 16px;
+      font-size: 1.8rem;
+      color: var(--primary-color);
+      cursor: pointer;
+    }
+
+    .gifTwo, .gifFour,.gifFive, .gifSeven, .imgSix {
+      width: 300px;
+      height: 200px;
+      margin: 1rem auto;
+      background-size: auto 250px;
+      background-position: center -50px;
+      background-repeat: no-repeat;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+
+
+    .gifTwo { background-image: url('/static/image16.gif'); }
+    .gifFour { background-image: url('/static/image19.gif'); }
+    .gifFive { background-image: url('/static/image13.gif'); }
+    .gifSeven { background-image: url('/static/image15.gif'); }
+    .imgSix {
+      width: 175px;
+      height: 260px;
+      background-image: url('/static/image0.jpeg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: top center;
+      margin-top: 2rem;
+    }
+
+
+    #data-window1, #data-window2 {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      margin: 1rem auto;
+      width: 80%;
+      max-width: 500px;
+      text-align: center;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      font-size: 1rem;
+    }
+
+    .infodata {
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: var(--primary-color);
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
       .panel h3 {
-        color: #8a0000;
-        font-size: 32px;
-        margin-bottom: 10px;
+        font-size: 1.6rem;
       }
 
-      .infodata {
-        color: #3d0000;
-        font-size: 18px;
+      .panel p, button, a {
+        font-size: 1rem;
       }
+    }
+    .material-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
 
-      .panel p {
-        color: #666;
-        font-size: 1.3em;
-        text-align: center;
-        margin-left: 5%;
-        margin-right: 5%;
-      }
+    .material-list div {
+      font-size: 1.1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: white;
+      color: var(--primary-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      text-align: center;
+    }
 
-      .panels {
-        width: 80%;
-        height: 100%;
-      }
+    .material-list div:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
 
-      #data-window1,
-      #data-window2 {
-        font-size: 1.1em;
-        background-color: #fafafa;
-        padding: 10px;
-        border-radius: 10px;
-        margin: 8px;
-        width: 80%;
-        max-width: 580px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        border: 1px solid #ddd;
-      }
+  </style>
+  <script>
+    function fetchData() {
+      fetch("/color_data")
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("data-window1").style.backgroundColor = `rgb(${data.R_heel}, ${data.G_heel}, 0)`;
+          document.getElementById("data-window2").style.backgroundColor = `rgb(${data.R_fore}, ${data.G_fore}, 0)`;
+        });
+    }
 
-      a {
-        display: inline-block;
-        margin-top: 20px;
-        margin-bottom: 20px;
-        font-size: 1.3em;
-        color: #310000;
-        text-decoration: none;
-        border: 2px solid #310000;
-        padding: 10px 20px;
-        border-radius: 5px;
-        transition: background-color 0.3s, color 0.3s;
-      }
+    window.onload = () => setInterval(fetchData, 200);
 
-      a:hover {
-        background-color: #310000;
-        color: #fff;
-      }
+    function openModal(id) {
+      document.getElementById(id).style.display = "flex";
+    }
 
-      .buttons {
-        margin-top: 4em;
-        margin-bottom: 5em;
-      }
+    function closeModal(id) {
+      document.getElementById(id).style.display = "none";
+    }
+  </script>
+</head>
+<body>
+  <h1>Assembly Instructions</h1>
+  <div class="panels">
+    <div class="panel-container">
+      <div class="panel">
+        <h3>Introduction</h3>
+        <p>
+          The kit is composed of an insole and the <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span>.
+          It includes a vibration motor, force sensor, and inertial measurement unit (IMU).
+        </p>
+        <h3>Learning Objectives</h3>
+        <p>Students will learn how to assemble their kit and understand the purpose of each component.</p>
+      </div>
 
-      .modal-content img {
-        width: 80%;
-        max-width: 400px;
-        margin-top: 15px;
-        border-radius: 8px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 999;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
-        align-items: center;
-        justify-content: center;
-      }
-
-      .modal-content {
-        background-color: #ffdada;
-        margin: auto;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        width: 80%;
-        max-width: 600px;
-        text-align: left;
-      }
-
-      .modal-content img {
-        width: 100%;
-        margin-top: 15px;
-        border-radius: 8px;
-      }
-
-      .close {
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-      }
-
-      .clickable {
-        color: #8a0000;
-        cursor: pointer;
-        text-decoration: underline;
-      }
-
-      .clickable:hover {
-        color: #210000;
-      }
-    </style>
-    <script>
-      function fetchData() {
-        fetch("/color_data")
-          .then((response) => response.json())
-          .then((data) => {
-            document.getElementById("data-window2").style.backgroundColor = `rgb(${data.R_fore}, ${data.G_fore}, 0)`;
-            document.getElementById("data-window1").style.backgroundColor = `rgb(${data.R_heel}, ${data.G_heel}, 0)`;
-          });
-      }
-
-      window.onload = function () {
-        setInterval(fetchData, 200);
-      };
-
-      function openModal(id) {
-        document.getElementById(id).style.display = "flex";
-      }
-
-      function closeModal(id) {
-        document.getElementById(id).style.display = "none";
-      }
-    </script>
-  </head>
-  <body>
-    <h1>Assembly Instructions</h1>
-    <div class="panels">
-      <div class="panel-container">
-        <div class="panel">
-          <h3>Introduction</h3>
-          <p>
-            The kit is composed of an insole and the 
-            <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> 
-            that will be attached to the insole. The 
-            <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> 
-            consists of a vibration motor, force sensing unit, and inertial measurement unit (IMU). 
-            Later, you will participate in activities will use these sensors.
-          
-          </p>
-          <h3>Learning Objectives</h3>
-          <p>
-            Students will learn how to assemble their kit to prepare for future
-            activities, as well as the different devices used and their purpose.
-          </p>
+      <div class="panel">
+        <h3>Materials</h3>
+        <div class="material-list">
+          <div>Shoe Insole</div>
+          <div class="clickable" onclick="openModal('hardwareModal')">Hardware Assembly</div>
+          <div class="clickable" onclick="openModal('logicModal')">Logic Board</div>
+          <div>Scissors and Tape</div>
         </div>
-        <div class="panel">
-          <h3>Materials</h3>
-          <button>Shoe Insole</button>
-          <button class="clickable" onclick="openModal('hardwareModal')">
-            Hardware Assembly
-          </button>
-          <button class="clickable" onclick="openModal('logicModal')">
-            Logic Board
-          </button>
-          <button>Scissors and Tape</button>
-        </div>
+      </div>
+      
 
-        <!-- MODALS -->
-        <div id="hardwareModal" class="modal">
-          <div class="modal-content">
-            <span class="close" onclick="closeModal('hardwareModal')">&times;</span>
-            <h2>Hardware Assembly</h2>
-            <p>
-              The hardware assembly includes a vibration motor, a force sensing
+      <div class="panel"><h3>Step 1</h3><p>Align your foot on the guide to determine your insole size.</p></div>
+      <div class="panel"><h3>Step 2</h3><p>Trim the insole accordingly.</p><div class="gifTwo"></div></div>
+      <div class="panel"><h3>Step 3</h3><p>Lay the <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> on the insole.</p></div>
+      <div class="panel"><h3>Step 4</h3><p>Align the lower force sensing unit and vibration motor and tape it in place. The lower force sensing unit should rest below your heel.</p><div class="gifFour"></div></div>
+      <div class="panel"><h3>Step 5</h3><p>Fold wires as needed and secure them and the upper force sensing unit with tape. The upper force sensing unit should rest below your forefoot.`</p><div class="gifFive"></div></div>
+      <div class="panel"><h3>Step 6</h3><p>Tape the rest of the<span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> to the insole.</p><div class="imgSix"></div></div>
+      <div class="panel"><h3>Step 7</h3><p>Connect to the <span class="clickable" onclick="openModal('logicModal')">logic board</span>.</p><div class="gifSeven"></div></div>
+
+      <div class="panel">
+        <h3>Testing!</h3>
+        <p class="infodata">Heel Data</p>
+        <div id="data-window1"><p></p></div>
+        <p class="infodata">Fore Data</p>
+        <div id="data-window2"><p></p></div>
+        <a href="/">I'm Ready!</a>
+      </div>
+    </div>
+  </div>
+
+  <a href="/">Home</a>
+
+  <div id="hardwareModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('hardwareModal')">&times;</span>
+      <h2>Hardware Assembly</h2>
+      <p>
+        The hardware assembly includes a vibration motor, a force sensing
               unit converting mechanical force into electrical signals, and an
               inertial measurement unit (IMU) which includes a combination of
               sensors like accelerometers (measures acceleration) and gyroscopes (measures orientation and angular velocity). These sensors will be
               used to measure foot pressure and movement during activities.
-            </p>
-            <img src="{{ url_for('static', filename='Hardware.png') }}" alt="Hardware" />
-          </div>
-        </div>
+      </p>
+      <img src="{{ url_for('static', filename='Hardware.png') }}" alt="Hardware">
+    </div>
+  </div>
 
-        <div id="logicModal" class="modal">
-          <div class="modal-content">
-            <span class="close" onclick="closeModal('logicModal')">&times;</span>
-            <h2>Logic Board</h2>
-            <p>
-              The logic board contains printed circuit boards (PCBs) that controls the
+  <div id="logicModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('logicModal')">&times;</span>
+      <h2>Logic Board</h2>
+      <p>
+        The logic board contains printed circuit boards (PCBs) that controls the
               components in the hardware assmebly. It processes signals from the
               force sensing unit and IMU, and sends data to the computer to display on this website.
-            </p>
-            <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="Logic Board Image" />
-          </div>
-        </div>
-
-        <div class="panel">
-          <h3>Step 1</h3>
-          <p>
-            Determine the correct size by aligning your foot on the guide to see
-            which number corresponds with your foot length.
-          </p>
-        </div>
-        <div class="panel">
-          <h3>Step 2</h3>
-          <p>Trim the insole based off the size determined in Step 1</p>
-        </div>
-        <div class="panel">
-          <h3>Step 3</h3>
-          <p>
-            Lay the <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> onto the insole.
-          </p>
-        </div>
-        <div class="panel">
-          <h3>Step 4</h3>
-          <p>
-            Ensure that the vibration motors are aligned in the proper position
-            at the bottom on the insole.
-          </p>
-        </div>
-        <div class="panel">
-          <h3>Step 5</h3>
-          <p>
-            Fold the top wire as needed to fit the force sensing unit within the
-            insole
-          </p>
-        </div>
-        <div class="panel">
-          <h3>Step 6</h3>
-          <p>
-            Tape the <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> to the insole.
-          </p>
-        </div>
-        <div class="panel">
-          <h3>Step 7</h3>
-          <p>
-            Plug the insole wire into the <span class="clickable" onclick="openModal('logicModal')">logic board</span>.
-          </p>
-        </div>
-        <div class="panel">
-          <h3>Testing!</h3>
-          <p class="infodata">Heel Data</p>
-          <div id="data-window1"><p></p></div>
-          <p class="infodata">Fore Data</p>
-          <div id="data-window2"><p></p></div>
-          <a href="/"> I'm Ready! </a>
-        </div>
-      </div>
+      </p>
+      <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="Logic Board">
     </div>
-    <a href="/">Home</a>
-  </body>
+  </div>
+</body>
 </html>
