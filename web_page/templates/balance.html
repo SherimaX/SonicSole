@@ -264,6 +264,11 @@
           }
         }, 1000);
       }
+      function stopDataAndNavigate(url) {
+        fetch('/stop_data', { method: 'POST' }).then(() => {
+        window.location.href = url;
+      });
+      }
     </script>
   </head>
   <body>
@@ -331,6 +336,6 @@
         <a href="/bScoreboard">Balancing Scoreboard</a>
       </div>
     </div>
-    <a href="/">Home</a>
+    <a href="#" onclick="stopDataAndNavigate('/')">Home</a>
   </body>
 </html>

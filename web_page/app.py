@@ -4,6 +4,7 @@ import threading
 import time
 import csv
 import random
+import struct
 
 from scipy.integrate import cumulative_trapezoid
 
@@ -17,10 +18,10 @@ logging.getLogger('werkzeug').disabled = True
 app = Flask(__name__)
 #UDP_IP = "127.0.0.1"
 UDP_IP = "0.0.0.0"
-UDP_PORT = 21000 #now used for pressures and accels in one packet
+UDP_PORT = 21000 #now used for pressures and accels in one packet in one port
 #UDP_PORT2 = 20000
 
-#UDP_PORT3 = 22000  # for jump height
+#UDP_PORT3 = 22000 
 
 bufferSize = 1024
 received_heel_data = "0"
@@ -40,7 +41,6 @@ last_airtime = 0.0
 
 # heel_list = [0 for _ in range(100)]
 totalTime = "0"
-recording_time = False
 R_heel = 0
 G_heel = 255
 
@@ -63,13 +63,31 @@ forefoot_time = 0
 
 force_trainer_state = {
     'status': 'idle',           # 'idle', 'calibrating', 'measuring', 'done'
-    'max_force': 1,            # to avoid division by zero
+    'max_force': 1,            
     'target_percent': 0,
     'measured_force': 0,
     'error_percent': 0
 }
 
 vertical_raw_data_UDP = []
+
+combined_data_thread = None
+combined_data_running = False
+
+def start_combined_data_thread():
+    global combined_data_thread, combined_data_running
+    if not combined_data_running:
+        
+        combined_data_running = True
+        combined_data_thread = threading.Thread(target=read_combined_data)
+        combined_data_thread.daemon = True
+        combined_data_thread.start()
+
+def stop_combined_data_thread():
+    global combined_data_running
+    print("Stopped")
+    combined_data_running = False
+    print("combined_data_running in stop thread: {}".format(combined_data_running))
 
 def update_heel_color(pressure):
     global R_heel, G_heel
@@ -104,7 +122,6 @@ def jumpingScoreInformation():
                 g.write(submitted_name2 + "," + str(greatest_total) + "\n")
                 g.close()
 
-
 #For balance.html
 i = 1
 
@@ -129,26 +146,29 @@ def submit2():
     submitted_name2 = first_name2 + " " + last_name2
     return jsonify({"status": "Name submitted successfully"})
 
-
 def balancing_pressure():
-    global totalTime, recording_time, submitted_name, i
-    start_time = time.time()
+    global totalTime, submitted_name
+    recording_time = True
+    start_time = None
+    start_combined_data_thread()  # 🔹 Start UDP data collection
+    print("balance_started")
     while True:
-        if recording_time and (int(received_heel_data) < 500 and int(received_fore_data) < 500):
-            i = 0
-            end_time = time.time()
-            totalTime = "{:.3f}".format(end_time - start_time)
-            time.sleep(0.01)
-        else:
-            recording_time = False
-            start_time = time.time()
-            if i == 0:
-                f = open("SonicSole2.txt", "a")
-                f.write(submitted_name + ","+ totalTime + "\n")
-                f.close()
-                i = 1
-            time.sleep(0.01)
+        if recording_time:
+            if start_time is None:
+                start_time = time.time()
 
+            # Check if user is balancing
+            if int(received_heel_data) < 500 and int(received_fore_data) < 500:
+                totalTime = "{:.3f}".format(time.time() - start_time)
+            else:
+                recording_time = False  # Stop updating, but keep value frozen
+                print("balance_stopped")
+                stop_combined_data_thread()  # 🔹 Stop UDP data collection
+                break
+
+        else:
+            start_time = None  # Reset start time if not recording
+        time.sleep(0.01)
 
 
 # ForeWalk: logic thread for forefoot-only walking
@@ -156,6 +176,7 @@ def forefoot_walk_session(threshold=500, duration=10):
     global received_heel_data, received_fore_data, forefoot_status, forefoot_time
     while True:
         if forefoot_status == "start":
+            start_combined_data_thread()
             start_time = time.time()
             while time.time() - start_time < duration:
                 if int(received_heel_data) > threshold:
@@ -166,12 +187,8 @@ def forefoot_walk_session(threshold=500, duration=10):
             else:
                 forefoot_status = "success"
                 forefoot_time = round(duration, 2)
+            stop_combined_data_thread()
         time.sleep(0.01)
-
-# For index.html
-
-# for jump height
-import struct
 '''
 def read_vertical_f():
     global received_vertical_raw
@@ -187,38 +204,47 @@ def read_vertical_f():
 # Combine heel, forefoot, and accelerometer readings on one UDP port
 def read_combined_data():
     global received_heel_data, received_fore_data, received_vertical_raw
-    global ax, ay, az
+    global ax, ay, az, vertical_raw_data_UDP, combined_data_running
 
-    global vertical_raw_data_UDP
+    print("[UDP Thread] Started reading data")  # 🔹 ADD THIS LINE
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((UDP_IP, UDP_PORT))  
-    num_packet = 1
-    while True:
+
+    while combined_data_running:
         try:
+            print("get data")
             data, addr = sock.recvfrom(1024)
-            # print(num_packet)
-            # print(len(data))
-            # num_packet += 1
+            
             if len(data) < 20:
                 continue  # Skip malformed packets
 
-            # Unpack 5 float
             fore_pressure, heel_pressure, ax_val, ay_val, az_val = struct.unpack('5f', data)
             az_val = round(az_val, 3)
-            # Assign to global variables
+
             received_fore_data = int(fore_pressure)
             received_heel_data = int(heel_pressure)
             ax, ay, az = ax_val, ay_val, az_val
-            received_vertical_raw = az_val  # For jump height
+            received_vertical_raw = az_val
             vertical_raw_data_UDP.append(az_val)
 
             update_fore_color(received_fore_data)
             update_heel_color(received_heel_data)
-            # print(f"Fore: {received_fore_data}, Heel: {received_heel_data}, ax: {ax:.2f}, ay: {ay:.2f}, az: {az:.2f}")
+            print("combined_data_running in read thread: {}".format(combined_data_running))
+
+            print("[UDP Thread] Receiving data...")  # 🔹 Optional debug
+            print("Fore Pressure: {}, Heel Pressure: {}".format(received_fore_data, received_heel_data))
+
         except Exception as e:
-            print(f"Packet error: {e}")
+            print(f"[UDP Thread] Packet error: {e}")
             continue
+
+    print("[UDP Thread] Stopped reading data")  # 🔹 ADD THIS LINE
+
+    sock.close()
+
+
+
 
 
 def estimate_jump_height(accel_data_str, dt=0.01):
@@ -293,11 +319,14 @@ def start_jump():
     print("start_jump clicked")
     global last_airtime, last_jump_height, jump_metrics_ready
     jump_metrics_ready = False
+    #start_combined_data_thread()
     airtime, height = get_airtime_and_height()
+    stop_combined_data_thread()
     last_airtime = airtime
     last_jump_height = height
     jump_metrics_ready = True
     return jsonify({'status': 'jump measured'})
+
 
 '''
 def read_heel_pressure():
@@ -353,6 +382,8 @@ def force_trainer_status():
 def run_force_trainer():
     global force_trainer_state, received_fore_data
 
+    start_combined_data_thread()
+
     # Step 1: Calibration
     force_trainer_state['status'] = 'calibrating'
     force_trainer_state['max_force'] = 1
@@ -366,16 +397,16 @@ def run_force_trainer():
 
     force_trainer_state['max_force'] = max_val if max_val > 0 else 1000 
 
-    #  New Step: Cooldown
+    # Step 2: Cooldown
     force_trainer_state['status'] = 'cooldown'
-    time.sleep(3)  # wait without recording anything
+    time.sleep(3)
 
-    # Step 2: Random target percentage
+    # Step 3: Random target percentage
     force_trainer_state['status'] = 'measuring'
     target_percent = random.choice([10, 20, 30, 40, 50, 60, 70, 80, 90])
     force_trainer_state['target_percent'] = target_percent
 
-    # Step 3: Measure user holding pressure
+    # Step 4: Measure pressure hold
     readings = []
     start_time = time.time()
     while time.time() - start_time < 12:
@@ -394,6 +425,9 @@ def run_force_trainer():
     force_trainer_state['error_percent'] = round(percent_error, 1)
     force_trainer_state['status'] = 'done'
 
+    stop_combined_data_thread()
+
+
 
 
 def send_udp_data():
@@ -407,16 +441,21 @@ def home():
 
 @app.route('/jump')
 def jump():
+    start_combined_data_thread()  
     return render_template('jump.html')
+
 
 @app.route("/forceSensitivity")
 def force_trainer_page():
     return render_template("forceSensitivity.html")
 
-
 @app.route('/balance')
 def balance():
+    global totalTime
+    totalTime = "0"
     return render_template('balance.html')
+
+
 
 @app.route("/play", methods=["GET", "POST"])
 def play():
@@ -510,7 +549,15 @@ def j_scoreboard():
 
 @app.route('/assemblyInstructions')
 def assembly_instructions():
+    start_combined_data_thread()
     return render_template('assemblyInstructions.html')
+
+@app.route('/stop_data', methods=['GET', 'POST'])
+def stop_data():
+    print("[Flask] stop_data called")  
+    stop_combined_data_thread()
+    return '', 204
+
 
 @app.route('/button', methods=['POST'])
 def button():
@@ -556,9 +603,9 @@ def force_trainer_results():
 
 @app.route('/button_click', methods=['POST'])
 def button_click():
-    global recording_time
-    recording_time = True
+    balancing_pressure()
     return jsonify({"status": "Data transmission started"})
+
 
 @app.route('/color_data', methods=['GET'])
 def color_data():
@@ -568,14 +615,14 @@ def color_data():
 if __name__ == '__main__':
 #    udp_thread = threading.Thread(target=read_heel_pressure)
 #    udp_thread2 = threading.Thread(target=read_fore_pressure)
-    udp_thread_balance = threading.Thread(target=balancing_pressure)
+    # udp_thread_balance = threading.Thread(target=balancing_pressure)
     udp_thread_jumping = threading.Thread(target=jumpingScoreInformation)
  #   udp_thread.daemon = True
  #   udp_thread.start()
  #   udp_thread2.daemon = True
  #   udp_thread2.start()
-    udp_thread_balance.daemon = True
-    udp_thread_balance.start()
+    # udp_thread_balance.daemon = True
+    # udp_thread_balance.start()
     udp_thread_jumping.daemon = True
     udp_thread_jumping.start()
 
@@ -583,9 +630,9 @@ if __name__ == '__main__':
 #    udp_thread_verticalF.daemon = True
 #    udp_thread_verticalF.start()
 
-    udp_thread_combined = threading.Thread(target=read_combined_data)
-    udp_thread_combined.daemon = True
-    udp_thread_combined.start()
+    #udp_thread_combined = threading.Thread(target=read_combined_data)
+    #udp_thread_combined.daemon = True
+    #udp_thread_combined.start()
 
     # ForeWalk: start thread
     # ForeWalk: start thread

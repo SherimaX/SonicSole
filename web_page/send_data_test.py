@@ -1,4 +1,4 @@
-'''import socket
+import socket
 import time
 import struct
 
@@ -10,20 +10,26 @@ target_port = 21000  # Unified port you're using in Flask
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Function to send test data (5 floats: fore, heel, ax, ay, az)
+
 def send_combined_test_data(fore, heel, ax, ay, az):
+    i = 0
     while True:
         # Pack data as 5 floats (little-endian by default)
-        data = struct.pack('5f', fore, heel, ax, ay, az)
+        i += 50
+        # data = struct.pack('5f', fore, heel, ax, ay, az)
+        data = struct.pack('5f', i, i, ax, ay, az)
         sock.sendto(data, (target_ip, target_port))
-        print(f"Sent -> Fore: {fore}, Heel: {heel}, ax: {ax}, ay: {ay}, az: {az}", flush=True)
-        time.sleep(0.01)  # Send at 100Hz (adjust as needed)
+        # print(f"Sent -> Fore: {fore}, Heel: {heel}, ax: {ax}, ay: {ay}, az: {az}", flush=True)
+        print(f"Sent -> Fore: {i}, Heel: {i}, ax: {ax}, ay: {ay}, az: {az}", flush=True)
+        time.sleep(1)  # Send at 100Hz (adjust as needed)
 
 # Example: Fore=900, Heel=850, Simulated accel values
-send_combined_test_data(900.0, 850.0, 0.02, -0.01, 9.81)
+send_combined_test_data(500.0, 950.0, 0.02, -0.01, 9.81)
+
 
 print("✅ Done sending test packets.", flush=True)
-'''
 
+'''
 import socket
 import time
 import struct
@@ -40,8 +46,8 @@ def send_packet(fore, heel, ax, ay, az):
     data = struct.pack('5f', fore, heel, ax, ay, az)
     sock.sendto(data, (target_ip, target_port))
 
-# Step 1: Standing still (10 seconds)
-for _ in range(10):
+# Step 1: Standing still
+for _ in range(1000):
     send_packet(900, 900, 0.0, 0.0, 0)
 
     time.sleep(0.01)
@@ -52,9 +58,9 @@ for i in range(45):
     time.sleep(0.01)
 
 # Step 3: in air (1 seconds)
-#for _ in range(100):
- #   send_packet(0, 0, 0.0, 0.0, 0.0)  # Near free-fall
-  #  time.sleep(0.01)
+for _ in range(100):
+   send_packet(0, 0, 0.0, 0.0, 0.0)  # Near free-fall
+   time.sleep(0.01)
 
 # Step 4: Landing 
 for _ in range(10):
@@ -62,8 +68,8 @@ for _ in range(10):
     time.sleep(0.01)
 
 # Step 5: Back to standing
-for _ in range(10):
+for _ in range(1000):
     send_packet(900, 900, 0.0, 0.0, 0)
     time.sleep(0.01)
 
-print("✅ Simulated jump complete.", flush=True)
+print("Complete", flush=True)'''

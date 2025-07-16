@@ -234,12 +234,16 @@
       document.getElementById("statusBox").innerHTML = msg;
     });
 }
-
-  
     document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("name-form").addEventListener("submit", submitForm);
       document.getElementById("startButton").addEventListener("click", startForceTrainer);
     });
+
+    function stopDataAndNavigate(url) {
+        fetch('/stop_data', { method: 'POST' }).then(() => {
+        window.location.href = url;
+      });
+      }
   </script>
   
 </head>
@@ -280,6 +284,6 @@
     </div>
   </div>
 
-  <a href="/">Home</a>
+  <a href="#" onclick="stopDataAndNavigate('/')">Home</a>
 </body>
 </html>

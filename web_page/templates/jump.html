@@ -240,6 +240,11 @@
           .addEventListener("click", startJumping);
       });
 
+      function stopDataAndNavigate(url) {
+        fetch('/stop_data', { method: 'POST' }).then(() => {
+        window.location.href = url;
+      });
+      }
 
     </script>
   </head>
@@ -301,6 +306,6 @@
       <a href="/jScoreboard">Jumping Scoreboard</a>
     </div>
 
-    <a href="/">Home</a>
+    <a href="#" onclick="stopDataAndNavigate('/')">Home</a>
   </body>
 </html>

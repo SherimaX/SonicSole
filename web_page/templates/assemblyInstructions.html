@@ -253,6 +253,13 @@
     function closeModal(id) {
       document.getElementById(id).style.display = "none";
     }
+
+    function stopDataAndNavigate(url) {
+      fetch('/stop_data', { method: 'POST' }).then(() => {
+      window.location.href = url;
+    });
+    }
+
   </script>
 </head>
 <body>
@@ -294,12 +301,12 @@
         <div id="data-window1"><p></p></div>
         <p class="infodata">Fore Data</p>
         <div id="data-window2"><p></p></div>
-        <a href="/">I'm Ready!</a>
+        <a href="#" onclick="stopDataAndNavigate('/')">I'm Ready!</a>
       </div>
     </div>
   </div>
 
-  <a href="/">Home</a>
+  <a href="#" onclick="stopDataAndNavigate('/')">Home</a>
 
   <div id="hardwareModal" class="modal">
     <div class="modal-content">
@@ -328,5 +335,6 @@
       <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="Logic Board">
     </div>
   </div>
+ 
 </body>
 </html>
