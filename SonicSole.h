@@ -72,7 +72,8 @@ static const int IMU_PACKET_LENGTH = 52;
 uint64_t getMicrosTimeStamp();
 uint64_t getSecondsTimeStamp(); 
 
-void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr);
+//  void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr);
+void UDPSendArray(int sockfd, const int* data, size_t numElements, const struct sockaddr_in& servaddr); //free function outside class
 
 class SonicSole {
 public:
@@ -146,6 +147,9 @@ public:
     // void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector);
     void getAccelVectorData(float az, vector<float>& azVector);
     float vectorIntegral(vector<float> v);
+
+    void sendSensorData(float flexSensorData[], int port, size_t numElements);
+    
 
 private: 
     double heelThresholdInterval = 0;

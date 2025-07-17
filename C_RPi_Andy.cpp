@@ -104,8 +104,19 @@ int main(int argc, char* argv[])
       cout << "\nFore Pressure: " << sole->currForePressure << endl;
       cout << "Heel Pressure: " << sole->currHeelPressure << endl;
 
-      sole->sendFlexSensorData((int)sole->currForePressure, 20000); 
-      sole->sendFlexSensorData((int)sole->currHeelPressure, 21000); 
+      // sole->sendFlexSensorData((int)sole->currForePressure, 20000); 
+      // sole->sendFlexSensorData((int)sole->currHeelPressure, 21000); 
+      float sensorData[] = {
+        static_cast<float>(sole->currForePressure),
+        static_cast<float>(sole->currHeelPressure),
+        static_cast<float>(sole->ax),
+        static_cast<float>(sole->ay),
+        static_cast<float>(sole->az)
+      };
+    
+      sole->sendSensorData(sensorData, 21000, 5);
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
       // delay(100);
       // if (sole->getRunningTime() > MAX_RUN_TIME) { 

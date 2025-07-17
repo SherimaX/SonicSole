@@ -6,7 +6,7 @@ import csv
 import random
 import struct
 
-from scipy.integrate import cumulative_trapezoid
+# from scipy.integrate import cumulative_trapezoid
 
 import numpy as np
 
@@ -30,14 +30,12 @@ ax = 0.0
 ay = 0.0
 az = 0.0
 
-
 received_vertical_raw = "0.0" # for jump height
 airtime=0
 
 jump_metrics_ready = False
 last_jump_height = 0.0
 last_airtime = 0.0
-
 
 # heel_list = [0 for _ in range(100)]
 totalTime = "0"
@@ -150,7 +148,7 @@ def balancing_pressure():
     global totalTime, submitted_name
     recording_time = True
     start_time = None
-    start_combined_data_thread()  # 🔹 Start UDP data collection
+    start_combined_data_thread()  #  Start UDP data collection
     print("balance_started")
     while True:
         if recording_time:
@@ -163,13 +161,12 @@ def balancing_pressure():
             else:
                 recording_time = False  # Stop updating, but keep value frozen
                 print("balance_stopped")
-                stop_combined_data_thread()  # 🔹 Stop UDP data collection
+                stop_combined_data_thread()  #  Stop UDP data collection
                 break
 
         else:
             start_time = None  # Reset start time if not recording
         time.sleep(0.01)
-
 
 # ForeWalk: logic thread for forefoot-only walking
 def forefoot_walk_session(threshold=500, duration=10):
@@ -202,11 +199,12 @@ def read_vertical_f():
             continue
 '''
 # Combine heel, forefoot, and accelerometer readings on one UDP port
+'''
 def read_combined_data():
     global received_heel_data, received_fore_data, received_vertical_raw
     global ax, ay, az, vertical_raw_data_UDP, combined_data_running
 
-    print("[UDP Thread] Started reading data")  # 🔹 ADD THIS LINE
+    print("[UDP Thread] Started reading data")  #  ADD THIS LINE
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((UDP_IP, UDP_PORT))  
@@ -232,20 +230,66 @@ def read_combined_data():
             update_heel_color(received_heel_data)
             print("combined_data_running in read thread: {}".format(combined_data_running))
 
-            print("[UDP Thread] Receiving data...")  # 🔹 Optional debug
+            print("[UDP Thread] Receiving data...")  #  Optional debug
             print("Fore Pressure: {}, Heel Pressure: {}".format(received_fore_data, received_heel_data))
 
         except Exception as e:
-            print(f"[UDP Thread] Packet error: {e}")
+            # print(f"[UDP Thread] Packet error: {e}")
             continue
 
-    print("[UDP Thread] Stopped reading data")  # 🔹 ADD THIS LINE
+    print("[UDP Thread] Stopped reading data")  #  ADD THIS LINE
 
     sock.close()
+'''
+def read_combined_data():
+    global received_heel_data, received_fore_data, received_vertical_raw
+    global ax, ay, az, vertical_raw_data_UDP, combined_data_running
 
+    print("[UDP Thread] Started reading data")
 
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
+    sock.settimeout(0.5)  
 
+    try:
+        sock.bind((UDP_IP, UDP_PORT))
+    except OSError as e:
+        print(f"[UDP Thread] Could not bind socket: {e}")
+        combined_data_running = False
+        sock.close()
+        return
 
+    while combined_data_running:
+        try:
+            #print("get data")
+            data, addr = sock.recvfrom(1024)
+
+            if len(data) < 20:
+                continue  
+
+            fore_pressure, heel_pressure, ax_val, ay_val, az_val = struct.unpack('5f', data)
+            az_val = round(az_val, 3)
+
+            received_fore_data = int(fore_pressure)
+            received_heel_data = int(heel_pressure)
+            ax, ay, az = ax_val, ay_val, az_val
+            received_vertical_raw = az_val
+            vertical_raw_data_UDP.append(az_val)
+
+            update_fore_color(received_fore_data)
+            update_heel_color(received_heel_data)
+
+            print("combined_data_running in read thread: {}".format(combined_data_running))
+            print("[UDP Thread] Receiving data...")
+            print(f"Fore Pressure: {received_fore_data}, Heel Pressure: {received_heel_data}")
+
+        except socket.timeout:
+            continue
+        except Exception:
+            continue
+
+    print("[UDP Thread] Stopped reading data")
+    sock.close()
 
 def estimate_jump_height(accel_data_str, dt=0.01):
     print("accel_data_str: {}".format(accel_data_str))
@@ -301,16 +345,16 @@ def get_airtime_and_height(threshold=500):
         time.sleep(0.01)
 
     airtime = end_time - start_time
-    print(f"Airtime: {airtime:.4f} seconds")
-    print(f"Samples collected: {len(vertical_raw_data_UDP)}")
+    # print(f"Airtime: {airtime:.4f} seconds")
+    # print(f"Samples collected: {len(vertical_raw_data_UDP)}")
 
     if len(vertical_raw_data) < 10:
         print("Not enough samples for jump height. Returning 0.")
         return round(airtime, 5), 0.0
     
-    jump_height = estimate_jump_height(vertical_raw_data_UDP) #double integration approach
-    #jump_height = (1/8) * 9.81 * (airtime) ** 2 #physics approach
-    print(f"Estimated height: {jump_height:.5f} m")
+    # jump_height = estimate_jump_height(vertical_raw_data_UDP) #double integration approach
+    jump_height = (1/8) * 9.81 * (airtime) ** 2 #physics approach
+    # print(f"Estimated height: {jump_height:.5f} m")
     vertical_raw_data_UDP = []
     return round(airtime, 4), jump_height
 
@@ -377,8 +421,6 @@ def force_trainer_status():
         max_force=force_trainer_state.get('max_force', 0)
     )
 
-
-
 def run_force_trainer():
     global force_trainer_state, received_fore_data
 
@@ -426,9 +468,6 @@ def run_force_trainer():
     force_trainer_state['status'] = 'done'
 
     stop_combined_data_thread()
-
-
-
 
 def send_udp_data():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -500,7 +539,8 @@ def b_scoreboard():
     except ValueError:
         return "Error: Incorrect data format in SonicSole2.txt."
     except Exception as e:
-        return f"Error: {e}"
+        # return f"Error: {e}"
+        return "Error"
     data.sort(key=lambda x: x['time'], reverse=True)
     unique_data = {}
     for entry in data:
@@ -526,14 +566,15 @@ def j_scoreboard():
                     try:
                         data.append({'name': row[0], 'total': float(row[1])})
                     except ValueError:
-                        print(f"Invalid data format in row: {row}")
+                        # print(f"Invalid data format in row: {row}")
                         continue
     except FileNotFoundError:
         print("Error: SonicSoleBalance.txt file not found.")
         return "Error: SonicSoleBalance.txt file not found."
     except Exception as e:
-        print(f"Unexpected error: {e}")
-        return f"Error: {e}"
+        # print(f"Unexpected error: {e}")
+        # return f"Error: {e}"
+        return "Error"
     unique_data = {}
     for entry in data:
         name = entry['name']

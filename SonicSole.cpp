@@ -14,11 +14,28 @@ uint64_t getSecondsTimeStamp() {
     // return tv.tv_sec+tv.tv_usec;
 }
 
-void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
-    sendto(sockfd, (const int *)reading, len,
-           MSG_CONFIRM, (const struct sockaddr *) &servaddr,
-           sizeof(servaddr));
+//void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr) {
+  //  sendto(sockfd, (const int *)reading, len,
+    //       MSG_CONFIRM, (const struct sockaddr *) &servaddr,
+      //     sizeof(servaddr));
+//}
+
+
+void UDPSendArray(int sockfd, const float* data, size_t numElements, const struct sockaddr_in& servaddr) {
+    size_t numBytes = numElements * sizeof(float);
+
+    ssize_t sent = sendto(sockfd, data, numBytes, 0,
+                          (const struct sockaddr*)&servaddr,
+                          sizeof(servaddr));
+
+    if (sent == -1) {
+        std::cerr << "UDPSend error: Failed to send data" << std::endl;
+    } else {
+        std::cout << "UDPSend: Sent " << sent << " bytes" << std::endl;
+    }
 }
+
+
 
 SonicSole::SonicSole() {
     // startTime = getSecondsTimeStamp();
@@ -390,8 +407,9 @@ void SonicSole::sendFlexSensorData(int flexSensorData, int port) {
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(port);
     //serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
-    serverAddr.sin_addr.s_addr = inet_addr("192.168.50.109");
-
+    //serverAddr.sin_addr.s_addr = inet_addr("192.168.0.101"); //ip of the pi?
+    //serverAddr.sin_addr.s_addr = inet_addr("192.168.50.109"); //ip on wifi 1
+    serverAddr.sin_addr.s_addr = inet_addr("192.168.0.100"); //ip on wifi 2 (tp link)
     /*
     if (sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
         std::cerr << "Error sending data" << std::endl;
@@ -401,13 +419,82 @@ void SonicSole::sendFlexSensorData(int flexSensorData, int port) {
     */
 
     try {
-        UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
+        float flexSensorDataFloat = static_cast<float>(flexSensorData);
+        UDPSendArray(sockfd, &flexSensorDataFloat, 1, serverAddr);
+
+       // UDPSendArray(sockfd, &flexSensorData, 1, serverAddr);
+
+        //  UDPSend(sockfd, &flexSensorData, sizeof(flexSensorData), serverAddr);
         // sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
     }
     catch (...) {
-        std:cout << "Error: UDPSend cannot send data" << endl;
+        //std:cout << "Error: UDPSend cannot send data" << endl;
+        std::cout << "Error: UDPSend cannot send data" << endl;
     }
 
     std::cout << "Data sent to UDP" << endl;
+    close(sockfd);
+}
+/*
+void SonicSole::sendSensorData(int flexSensorData[], int port, size_t numElements){
+    int sockfd;
+    struct sockaddr_in serverAddr;
+
+    // UDP Socket
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+        std::cerr << "Error creating socket" << std::endl;
+        return;
+    }
+
+    memset(&serverAddr, 0, sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(port);
+    //serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
+    //serverAddr.sin_addr.s_addr = inet_addr("192.168.0.101");
+    serverAddr.sin_addr.s_addr = inet_addr("192.168.50.109");
+
+    
+    //if (sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
+      //  std::cerr << "Error sending data" << std::endl;
+    //} else {
+      //  std::cout << "Flex sensor data sent successfully!" << std::endl;
+    //}
+    
+
+    try {
+        // sendto(sockfd, flexSensorData, sizeof(flexSensorData), serverAddr);
+        UDPSendArray(sockfd, flexSensorData, numElements, serverAddr);
+        // sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
+    }
+    catch (...) {
+       // std:cout << "Error: UDPSend cannot send data" << endl;
+        std::cout << "Error: UDPSend cannot send data" << endl;
+    }
+
+    std::cout << "Data sent to UDP" << endl;
+    close(sockfd);
+}*/
+void SonicSole::sendSensorData(float flexSensorData[], int port, size_t numElements){
+    int sockfd;
+    struct sockaddr_in serverAddr;
+
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+        std::cerr << "Error creating socket" << std::endl;
+        return;
+    }
+
+    memset(&serverAddr, 0, sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(port);
+    serverAddr.sin_addr.s_addr = inet_addr("192.168.0.100"); // same IP as your test script
+
+    try {
+        UDPSendArray(sockfd, flexSensorData, numElements, serverAddr);
+    }
+    catch (...) {
+        std::cout << "Error: UDPSend cannot send data" << std::endl;
+    }
+
+    std::cout << "Data sent to UDP" << std::endl;
     close(sockfd);
 }
