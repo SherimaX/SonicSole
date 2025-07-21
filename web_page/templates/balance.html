@@ -43,6 +43,7 @@
         margin-bottom: 5px;
         font-family: Ariel, sans-serif;
       }
+
       button:hover {
         background-color: #210000;
       }
@@ -50,7 +51,7 @@
         transform: scale(0.95);
       }
 
-      a {
+      .btn{
         display: inline-block;
         margin-top: 20px;
         font-size: 1.3em;
@@ -61,7 +62,29 @@
         border-radius: 5px;
         transition: background-color 0.3s, color 0.3s;
       }
-      a:hover {
+      #res{
+        display: inline-block;
+        margin-top: 20px;
+        background-color: transparent;
+        font-size: 1.3em;
+        color: #310000;
+        text-decoration: none;
+        border: 2px solid #310000;
+        padding: 10px 20px;
+        border-radius: 5px;
+        transition: background-color 0.3s, color 0.3s;
+      }
+      
+      .btn:hover {
+        background-color: #310000;
+        color: #fff;
+      }
+
+      #res{
+        margin-top: 20px;
+      }
+
+      #res:hover {
         background-color: #310000;
         color: #fff;
       }
@@ -333,9 +356,10 @@
 
       <!-- <audio id="signalAudio" src="countdown.mp3"></audio> -->
       <div style="text-align: center">
-        <a href="/bScoreboard">Balancing Scoreboard</a>
+        <a class = "btn" href="/bScoreboard">Balancing Scoreboard</a>
       </div>
     </div>
-    <a href="#" onclick="stopDataAndNavigate('/')">Home</a>
+    <a class = "btn" href="#" onclick="stopDataAndNavigate('/')">Home</a>
+    <a href="{{ url_for('balance') }}"><button id="res">Reset</button></a>
   </body>
 </html>

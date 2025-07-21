@@ -114,14 +114,13 @@
     }
 
     .modal-content {
-    background-color: var(--accent-color);
-    padding: 1.5rem;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 400px; /* Shrink modal width */
-    position: relative;
-  }
-
+      background-color: var(--accent-color);
+      padding: 1.5rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px; 
+      position: relative;
+    }
 
     .modal-content h2 {
       color: var(--primary-color);
@@ -135,12 +134,11 @@
 
     .modal-content img {
       width: 100%;
-      max-height: 250px; /* Limit height */
+      max-height: 250px; 
       object-fit: contain;
       margin-top: 1rem;
       border-radius: 10px;
     }
-
 
     .close {
       position: absolute;
@@ -162,8 +160,6 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     
-
-
     .gifTwo { background-image: url('/static/image16.gif'); }
     .gifFour { background-image: url('/static/image19.gif'); }
     .gifFive { background-image: url('/static/image13.gif'); }
@@ -228,7 +224,7 @@
       text-align: center;
     }
 
-    .material-list div:hover {
+    .m:hover {
       background-color: var(--primary-color);
       color: white;
     }
@@ -269,8 +265,7 @@
       <div class="panel">
         <h3>Introduction</h3>
         <p>
-          The kit is composed of an insole and the <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span>.
-          It includes a vibration motor, force sensor, and inertial measurement unit (IMU).
+          The kit is composed of an insole, <span class="clickable" onclick="openModal('logicModal')">logic unit</span>, and the <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span>.
         </p>
         <h3>Learning Objectives</h3>
         <p>Students will learn how to assemble their kit and understand the purpose of each component.</p>
@@ -280,8 +275,8 @@
         <h3>Materials</h3>
         <div class="material-list">
           <div>Shoe Insole</div>
-          <div class="clickable" onclick="openModal('hardwareModal')">Hardware Assembly</div>
-          <div class="clickable" onclick="openModal('logicModal')">Logic Board</div>
+          <div class="clickable" class="m" onclick="openModal('hardwareModal')">Hardware Assembly</div>
+          <div class="clickable" class="m" onclick="openModal('logicModal')">Logic Unit</div>
           <div>Scissors and Tape</div>
         </div>
       </div>
@@ -293,7 +288,7 @@
       <div class="panel"><h3>Step 4</h3><p>Align the lower force sensing unit and vibration motor and tape it in place. The lower force sensing unit should rest below your heel.</p><div class="gifFour"></div></div>
       <div class="panel"><h3>Step 5</h3><p>Fold wires as needed and secure them and the upper force sensing unit with tape. The upper force sensing unit should rest below your forefoot.`</p><div class="gifFive"></div></div>
       <div class="panel"><h3>Step 6</h3><p>Tape the rest of the<span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> to the insole.</p><div class="imgSix"></div></div>
-      <div class="panel"><h3>Step 7</h3><p>Connect to the <span class="clickable" onclick="openModal('logicModal')">logic board</span>.</p><div class="gifSeven"></div></div>
+      <div class="panel"><h3>Step 7</h3><p>Connect to the <span class="clickable" onclick="openModal('logicModal')">logic unit</span>.</p><div class="gifSeven"></div></div>
 
       <div class="panel">
         <h3>Testing!</h3>
@@ -313,11 +308,7 @@
       <span class="close" onclick="closeModal('hardwareModal')">&times;</span>
       <h2>Hardware Assembly</h2>
       <p>
-        The hardware assembly includes a vibration motor, a force sensing
-              unit converting mechanical force into electrical signals, and an
-              inertial measurement unit (IMU) which includes a combination of
-              sensors like accelerometers (measures acceleration) and gyroscopes (measures orientation and angular velocity). These sensors will be
-              used to measure foot pressure and movement during activities.
+        The hardware assembly includes two force sensing units that convert mechanical force into electrical signals. These are flexible resistive sensors that detect pressure changes by varying their resistance. Combined with an inertial measurement unit (IMU) which includes accelerometers (measuring acceleration) and gyroscopes (measuring orientation and angular velocity) this system captures both foot pressure and movement during activities.
       </p>
       <img src="{{ url_for('static', filename='Hardware.png') }}" alt="Hardware">
     </div>
@@ -326,11 +317,9 @@
   <div id="logicModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeModal('logicModal')">&times;</span>
-      <h2>Logic Board</h2>
+      <h2>Logic Unit</h2>
       <p>
-        The logic board contains printed circuit boards (PCBs) that controls the
-              components in the hardware assmebly. It processes signals from the
-              force sensing unit and IMU, and sends data to the computer to display on this website.
+        The logic unit contains printed circuit boards (PCBs) that manage the components of the hardware assembly. It includes a single-board computer that collects data from the sensors and transmits it via UDP (User Datagram Protocol) to a computer for processing and display on this website. The logic unit also houses a small speaker and a battery.
       </p>
       <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="Logic Board">
     </div>

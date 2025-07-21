@@ -125,7 +125,7 @@
         border: 1px solid #ddd;
       }
 
-      a {
+      .btn, #res {
         display: inline-block;
         margin-top: 25px;
         font-size: 1.3em;
@@ -135,9 +135,14 @@
         padding: 10px 20px;
         border-radius: 5px;
         transition: background-color 0.3s, color 0.3s;
+        background-color: transparent;
       }
 
-      a:hover {
+      .btn:hover {
+        background-color: #310000;
+        color: #fff;
+      }
+      #res:hover {
         background-color: #310000;
         color: #fff;
       }
@@ -303,9 +308,10 @@
         </div>
       </div>
 
-      <a href="/jScoreboard">Jumping Scoreboard</a>
+      <a href="/jScoreboard" class = "btn">Jumping Scoreboard</a>
     </div>
 
-    <a href="#" onclick="stopDataAndNavigate('/')">Home</a>
+    <a href="#" onclick="stopDataAndNavigate('/')" class = "btn">Home</a>
+    <a href="{{ url_for('jump') }}"><button id="res">Reset</button></a>
   </body>
 </html>

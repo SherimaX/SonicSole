@@ -111,7 +111,7 @@
       border: 1px solid #ddd;
     }
 
-    a {
+    .btn, #res {
       display: inline-block;
       margin-top: 25px;
       font-size: 1.3em;
@@ -120,10 +120,16 @@
       border: 2px solid #310000;
       padding: 10px 20px;
       border-radius: 5px;
+      background-color: transparent;
       transition: background-color 0.3s, color 0.3s;
     }
 
-    a:hover {
+    .btn:hover {
+      background-color: #310000;
+      color: #fff;
+    }
+
+    #res:hover {
       background-color: #310000;
       color: #fff;
     }
@@ -284,6 +290,7 @@
     </div>
   </div>
 
-  <a href="#" onclick="stopDataAndNavigate('/')">Home</a>
+  <a class = "btn" href="#" onclick="stopDataAndNavigate('/')">Home</a>
+  <a href="{{ url_for('forceSensitivity') }}"><button id="res">Reset</button></a>
 </body>
 </html>

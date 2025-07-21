@@ -103,7 +103,7 @@ def update_fore_color(pressure):
         R_fore = int((pressure / 1000) * 255)
     elif pressure < 2000:
         R_fore = 255
-        G_fore = int(255 - ((pressure - 1000) / 1000) * 255)
+        G_fore = int(255 - ((pressure - 100) / 1000) * 255)
 
 def jumpingScoreInformation():
     global received_fore_data, received_heel_data, submitted_name2, greatest_total
@@ -144,28 +144,30 @@ def submit2():
     submitted_name2 = first_name2 + " " + last_name2
     return jsonify({"status": "Name submitted successfully"})
 
+recording_time = True
+'''
 def balancing_pressure():
     global totalTime, submitted_name
-    recording_time = True
+    print("[balancing_pressure] Called")
+    #recording_time = True
+    global recording_time
     start_time = None
-    start_combined_data_thread()  #  Start UDP data collection
+    start_combined_data_thread()  
     print("balance_started")
     while True:
-        if recording_time:
+        if recording_time == True:
             if start_time is None:
                 start_time = time.time()
-
-            # Check if user is balancing
             if int(received_heel_data) < 500 and int(received_fore_data) < 500:
                 totalTime = "{:.3f}".format(time.time() - start_time)
             else:
-                recording_time = False  # Stop updating, but keep value frozen
+                recording_time = False  
                 print("balance_stopped")
-                stop_combined_data_thread()  #  Stop UDP data collection
+                stop_combined_data_thread()  #
                 break
 
         else:
-            start_time = None  # Reset start time if not recording
+            start_time = None  
         time.sleep(0.01)
 
 # ForeWalk: logic thread for forefoot-only walking
@@ -186,6 +188,53 @@ def forefoot_walk_session(threshold=500, duration=10):
                 forefoot_time = round(duration, 2)
             stop_combined_data_thread()
         time.sleep(0.01)
+'''
+def balancing_pressure():
+    global totalTime, submitted_name, recording_time
+    global received_heel_data, received_fore_data
+
+    print("[balancing_pressure] Called")
+
+    received_heel_data = "0"
+    received_fore_data = "0"
+    totalTime = "0"
+
+    start_combined_data_thread()
+    print("[balancing_pressure] balance_started")
+    start_time = None
+    start_delay_period = 0.5 #gives a 0.5 second grace period so repeated runs are possible 
+    start = time.time()
+
+    while True:
+        now = time.time()
+
+        if recording_time:
+            if start_time is None:
+                start_time = now
+
+            
+            if now - start < start_delay_period:
+                time.sleep(0.01)
+                continue
+
+            heel = int(received_heel_data)
+            fore = int(received_fore_data)
+
+            if heel < 500 and fore < 500:
+                totalTime = "{:.3f}".format(now - start_time)
+            else:
+                recording_time = False
+                print("[balancing_pressure] balance_stopped")
+                stop_combined_data_thread()
+                break
+        else:
+            start_time = None
+
+        time.sleep(0.01)
+
+    print("[balancing_pressure] thread complete, combined_data_running:", combined_data_running)
+
+
 '''
 def read_vertical_f():
     global received_vertical_raw
@@ -353,7 +402,7 @@ def get_airtime_and_height(threshold=500):
         return round(airtime, 5), 0.0
     
     # jump_height = estimate_jump_height(vertical_raw_data_UDP) #double integration approach
-    jump_height = (1/8) * 9.81 * (airtime) ** 2 #physics approach
+    jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics approach
     # print(f"Estimated height: {jump_height:.5f} m")
     vertical_raw_data_UDP = []
     return round(airtime, 4), jump_height
@@ -402,7 +451,7 @@ def start_force_trainer():
     global trainer_start_time
     trainer_start_time = time.time()
 
-    # Start the activity in a new background thread
+    # Start activity new background thread
     thread = Thread(target=run_force_trainer)
     thread.start()
 
@@ -490,8 +539,9 @@ def force_trainer_page():
 
 @app.route('/balance')
 def balance():
-    global totalTime
+    global totalTime, recording_time
     totalTime = "0"
+    recording_time = True
     return render_template('balance.html')
 
 
@@ -642,10 +692,22 @@ def force_trainer_results():
     )
 
 
+#@app.route('/button_click', methods=['POST'])
+#def button_click():
+#    balancing_pressure()
+#    return jsonify({"status": "Data transmission started"})
 @app.route('/button_click', methods=['POST'])
 def button_click():
-    balancing_pressure()
+    global recording_time, totalTime
+    recording_time = True
+    totalTime = "0"
+
+    thread = threading.Thread(target=balancing_pressure)
+    thread.daemon = True
+    thread.start()
+
     return jsonify({"status": "Data transmission started"})
+
 
 
 @app.route('/color_data', methods=['GET'])
@@ -675,10 +737,16 @@ if __name__ == '__main__':
     #udp_thread_combined.daemon = True
     #udp_thread_combined.start()
 
+
+
+
+
+
+
     # ForeWalk: start thread
     # ForeWalk: start thread
-    udp_thread_forefoot = threading.Thread(target=forefoot_walk_session)
-    udp_thread_forefoot.daemon = True
-    udp_thread_forefoot.start()
+  #  udp_thread_forefoot = threading.Thread(target=forefoot_walk_session)
+  # udp_thread_forefoot.daemon = True
+  #  udp_thread_forefoot.start()
 
     app.run(host='0.0.0.0', port=5000, debug=False)
