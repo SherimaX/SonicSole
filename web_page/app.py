@@ -5,7 +5,11 @@ import time
 import csv
 import random
 import struct
+import pygame
 
+
+pygame.mixer.init()
+pygame.mixer.music.load("countdown.mp3")
 # from scipy.integrate import cumulative_trapezoid
 
 import numpy as np
@@ -534,7 +538,7 @@ def jump():
 
 
 @app.route("/forceSensitivity")
-def force_trainer_page():
+def forceSensitivity():
     return render_template("forceSensitivity.html")
 
 @app.route('/balance')
@@ -548,6 +552,8 @@ def balance():
 
 @app.route("/play", methods=["GET", "POST"])
 def play():
+    # play mp3 using py audio
+    pygame.mixer.music.play()
     return send_file("countdown.mp3")
 
 # ForeWalk: load forefoot walk page

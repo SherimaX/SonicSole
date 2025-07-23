@@ -1,4 +1,4 @@
-import socket
+'''import socket
 import time
 import struct
 
@@ -27,7 +27,7 @@ def send_combined_test_data(fore, heel, ax, ay, az):
 send_combined_test_data(500.0, 950.0, 0.02, -0.01, 9.81)
 
 
-print("✅ Done sending test packets.", flush=True)
+print("Done sending", flush=True)
 
 '''
 import socket
@@ -58,7 +58,7 @@ for i in range(45):
     time.sleep(0.01)
 
 # Step 3: in air (1 seconds)
-for _ in range(100):
+for _ in range(10):
    send_packet(0, 0, 0.0, 0.0, 0.0)  # Near free-fall
    time.sleep(0.01)
 
@@ -72,4 +72,4 @@ for _ in range(1000):
     send_packet(900, 900, 0.0, 0.0, 0)
     time.sleep(0.01)
 
-print("Complete", flush=True)'''
+print("Complete", flush=True)

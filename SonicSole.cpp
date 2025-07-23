@@ -407,9 +407,9 @@ void SonicSole::sendFlexSensorData(int flexSensorData, int port) {
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(port);
     //serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
-    //serverAddr.sin_addr.s_addr = inet_addr("192.168.0.101"); //ip of the pi?
+    serverAddr.sin_addr.s_addr = inet_addr("192.168.0.101"); //ip of the pi?
     //serverAddr.sin_addr.s_addr = inet_addr("192.168.50.109"); //ip on wifi 1
-    serverAddr.sin_addr.s_addr = inet_addr("192.168.0.100"); //ip on wifi 2 (tp link)
+    //serverAddr.sin_addr.s_addr = inet_addr("192.168.0.100"); //ip on wifi 2 (tp link)
     /*
     if (sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
         std::cerr << "Error sending data" << std::endl;
