@@ -1,4 +1,4 @@
-'''import socket
+import socket
 import time
 import struct
 
@@ -12,10 +12,10 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Function to send test data (5 floats: fore, heel, ax, ay, az)
 
 def send_combined_test_data(fore, heel, ax, ay, az):
-    i = 0
+    i = 450
     while True:
         # Pack data as 5 floats (little-endian by default)
-        i += 50
+        i += 100
         # data = struct.pack('5f', fore, heel, ax, ay, az)
         data = struct.pack('5f', i, i, ax, ay, az)
         sock.sendto(data, (target_ip, target_port))
@@ -73,3 +73,4 @@ for _ in range(1000):
     time.sleep(0.01)
 
 print("Complete", flush=True)
+'''

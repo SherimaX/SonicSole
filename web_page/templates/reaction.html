@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reaction Time Activity</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #ffdada;
+    }
+
+    h1 {
+      font-size: 4.5em;
+      margin-top: 2.5em;
+      margin-bottom: 3px;
+      font-family: 'Segoe UI', sans-serif;
+      color: #8a0000;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 1.3em;
+      border: 2px solid #210000;
+      border-radius: 5px;
+      margin-top: 25px;
+      margin-bottom: 10px;
+      width: 250px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 25px;
+      font-size: 1.3em;
+      color: #fff;
+      background-color: #8a0000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #210000;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background-color: #ffdada;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .close {
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .content {
+      display: none;
+      text-align: center;
+      margin-top: 1em;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-top: 1em;
+      margin-bottom: 1em;
+    }
+
+    .data-box {
+      font-size: 1.1em;
+      background-color: #fafafa;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 8px auto;
+      width: 280px;
+      height: 80px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    .btn, #res {
+      display: inline-block;
+      margin-top: 25px;
+      font-size: 1.3em;
+      color: #310000;
+      text-decoration: none;
+      border: 2px solid #310000;
+      padding: 10px 20px;
+      border-radius: 5px;
+      background-color: transparent;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .btn:hover, #res:hover {
+      background-color: #310000;
+      color: #fff;
+    }
+
+    .name-fields {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+  </style>
+
+  <script>
+    let pollingInterval = null;
+
+    function openModal() {
+      document.getElementById("instructionsModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("instructionsModal").style.display = "none";
+    }
+
+    function submitForm(event) {
+      event.preventDefault();
+      const form = document.getElementById("name-form");
+      const formData = new FormData(form);
+      fetch("/submit2", {
+        method: "POST",
+        body: formData,
+      }).then((response) => {
+        if (response.ok) {
+          document.querySelector(".content").style.display = "block";
+        }
+      });
+    }
+
+    function startReaction() {
+      fetch("/start_reaction").then((response) => {
+        if (response.ok) {
+          document.getElementById("statusBox").innerText = "Wait for the sound...";
+          document.getElementById("timeBox").innerText = "Timer: --";
+          startPolling();
+        }
+      });
+    }
+
+    function startPolling() {
+        if (pollingInterval) clearInterval(pollingInterval);
+        window.countdownPlayed = false;
+
+        pollingInterval = setInterval(() => {
+            fetch("/reaction_status")
+            .then((res) => res.json())
+            .then((data) => {
+                const status = data.status;
+
+                if (status === "timing") {
+                document.getElementById("statusBox").innerText = "Go! Step down!";
+                document.getElementById("timeBox").innerText = `Timer: Running`;
+
+                // Only play the sound once
+                if (!window.countdownPlayed) {
+                    new Audio("/static/countdown.mp3").play();
+                    window.countdownPlayed = true;
+                }
+
+                } else if (status === "success") {
+                document.getElementById("statusBox").innerText = `Reaction Time: ${data.reaction_time} sec`;
+                document.getElementById("timeBox").innerText = `Done!`;
+                clearInterval(pollingInterval);
+                new Audio("/static/success.mp3").play();
+
+                } else if (status === "invalid") {
+                document.getElementById("statusBox").innerText = "Invalid attempt. You moved too early.";
+                document.getElementById("timeBox").innerText = `Invalid`;
+                clearInterval(pollingInterval);
+                new Audio("/static/fail.mp3").play();
+                }
+            });
+        }, 200);
+    }
+
+    function stopDataAndNavigate(url) {
+      fetch('/stop_data', { method: 'POST' }).then(() => {
+        window.location.href = url;
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("name-form").addEventListener("submit", submitForm);
+      document.getElementById("startButton").addEventListener("click", startReaction);
+    });
+  </script>
+</head>
+<body>
+  <h1>Reaction Time Activity</h1>
+
+  <form id="name-form">
+    <div style="text-align: center;">
+      <div class="name-fields">
+        <input type="text" name="first_name2" required placeholder="Enter First Name" />
+        <input type="text" name="last_name2" required placeholder="Enter Last Name" />
+      </div>
+      <button type="submit">Submit</button>
+    </div>
+  </form>
+
+  <div class="content">
+    <p>If you make any changes, please hit submit again!</p>
+    <div class="buttons">
+      <button id="startButton">Start Reaction Test</button>
+      <button onclick="openModal()">Instructions</button>
+    </div>
+
+    <div class="data-box" id="timeBox">Wait for the beep</div>
+    <div class="data-box" id="statusBox">Wait for the beep</div>
+
+    <div id="instructionsModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Instructions</h2>
+        <p>
+          This activity tests your reaction time using foot pressure. Reaction time is the time it takes for your brain to detect a stimulus, in this case a sound, and send a signal to your muscles to respond.<br><br>
+          Lift your foot with the SonicSole off the ground. Then, click the "Start Reaction Test" button. After a random delay, you will hear a sound. As soon as you hear it, step down with your foot as quickly as possible. The force sensors will detect when you apply pressure.<br><br>
+          If you step before the sound, the trial is considered invalid and you will need to start the activity again.<br><br>
+          The system calculates your reaction time by measuring the time between the beep and when the pressure on the foot sensor crosses a defined threshold. This value reflects how quickly your nervous system processes the sound and initiates movement.<br><br>
+          Reaction time is influenced by several factors, including attention, fatigue, and even how well your brain communicates with your muscles. After each test, your measured reaction time will be displayed on the screen in seconds. 
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <a class="btn" href="#" onclick="stopDataAndNavigate('/')">Home</a>
+  <a href="{{ url_for('reaction') }}"><button id="res">Reset</button></a>
+</body>
+</html>
