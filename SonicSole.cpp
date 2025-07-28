@@ -393,7 +393,34 @@ float SonicSole::vectorIntegral(vector<float> v) {
   return vectInt;
 }
 
-void SonicSole::sendFlexSensorData(int flexSensorData, int port) {
+void SonicSole::sendSensorData(float flexSensorData[], int port, size_t numElements){
+    int sockfd;
+    struct sockaddr_in serverAddr;
+
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+        std::cerr << "Error creating socket" << std::endl;
+        return;
+    }
+    memset(&serverAddr, 0, sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(port);
+    serverAddr.sin_addr.s_addr = inet_addr("192.168.0.101"); // pi ip on tplink
+    //serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
+    //serverAddr.sin_addr.s_addr = inet_addr("192.168.50.109"); // ip on wrsl wifi
+    //serverAddr.sin_addr.s_addr = inet_addr("192.168.0.100"); //ip on tplink
+
+    try {
+        UDPSendArray(sockfd, flexSensorData, numElements, serverAddr);
+    }
+    catch (...) {
+        std::cout << "Error: UDPSend cannot send data" << std::endl;
+    }
+
+    std::cout << "Data sent to UDP" << std::endl;
+    close(sockfd);
+}
+
+void SonicSole::sendFlexSensorData(int flexSensorData, int port) { //no longer in use. see sendSensorData
     int sockfd;
     struct sockaddr_in serverAddr;
 
@@ -407,9 +434,9 @@ void SonicSole::sendFlexSensorData(int flexSensorData, int port) {
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(port);
     //serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
-    //serverAddr.sin_addr.s_addr = inet_addr("192.168.0.101"); //ip of the pi on tplink
-    //serverAddr.sin_addr.s_addr = inet_addr("192.168.50.109"); //jm ip on wrsl wifi
-    serverAddr.sin_addr.s_addr = inet_addr("192.168.0.100"); //jm ip on tp link
+    serverAddr.sin_addr.s_addr = inet_addr("192.168.0.101"); //ip of the pi on tplink
+    //serverAddr.sin_addr.s_addr = inet_addr("192.168.50.109"); // ip on wrsl wifi
+    //serverAddr.sin_addr.s_addr = inet_addr("192.168.0.100"); //ip on tp link
     /*
     if (sendto(sockfd, &flexData, sizeof(flexData), 0, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
         std::cerr << "Error sending data" << std::endl;
@@ -474,27 +501,3 @@ void SonicSole::sendSensorData(int flexSensorData[], int port, size_t numElement
     std::cout << "Data sent to UDP" << endl;
     close(sockfd);
 }*/
-void SonicSole::sendSensorData(float flexSensorData[], int port, size_t numElements){
-    int sockfd;
-    struct sockaddr_in serverAddr;
-
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-        std::cerr << "Error creating socket" << std::endl;
-        return;
-    }
-
-    memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(port);
-    serverAddr.sin_addr.s_addr = inet_addr("192.168.0.100"); // same IP as your test script
-
-    try {
-        UDPSendArray(sockfd, flexSensorData, numElements, serverAddr);
-    }
-    catch (...) {
-        std::cout << "Error: UDPSend cannot send data" << std::endl;
-    }
-
-    std::cout << "Data sent to UDP" << std::endl;
-    close(sockfd);
-}

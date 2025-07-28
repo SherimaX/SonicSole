@@ -255,9 +255,15 @@
           .getElementById("startButton")
           .addEventListener("click", function () {
             startCountdown();
-            const audio = document.querySelector("audio");
+            //const audio = document.querySelector("audio");
+            //audio.volume = 0.2;
+            //audio.play();
+            const audio = new Audio("/play");
             audio.volume = 0.2;
-            audio.play();
+            audio.play().catch((e) => {
+              console.warn("Audio play blocked or failed:", e);
+            });
+
 
             setTimeout(function () {
               fetch("/button_click", { method: "POST" })
@@ -352,7 +358,8 @@
           <p class="information">Data</p>
         </div>
       </div>
-      <audio src="play"></audio>
+      <!-- <audio src="play"></audio> -->
+
 
       <!-- <audio id="signalAudio" src="countdown.mp3"></audio> -->
       <div style="text-align: center">

@@ -17,7 +17,8 @@ logging.getLogger('werkzeug').disabled = True
 
 app = Flask(__name__)
 #UDP_IP = "127.0.0.1"
-UDP_IP = "0.0.0.0"
+UDP_IP = "192.168.0.101" #pi's ip on wifi2
+#UDP_IP = "0.0.0.0"
 UDP_PORT = 21000 
 bufferSize = 1024
 received_heel_data = "0"
@@ -76,10 +77,16 @@ pygame.mixer.init()
 
 @app.route("/play", methods=["GET", "POST"])
 def play():
-    # play mp3 using py 
-    CountSound = pygame.mixer.Sound("countdown.wav") #maybe need the path?
-    CountSound.play()
-    return send_file("countdown.mp3")
+    # play sound using py
+    try:
+        CountSound = pygame.mixer.Sound("countdown.wav")
+        CountSound.set_volume(0.01) 
+        CountSound.play()
+    except Exception as e:
+        print("Error playing sound:", e)
+        return jsonify({"error": str(e)}), 500
+    return send_file("countdown.wav") #to also play on laptop
+
 
 def start_combined_data_thread():
     global combined_data_thread, combined_data_running
@@ -206,14 +213,12 @@ def estimate_jump_height(accel_data_str, dt=0.01):
     # check if accel_data is all 0s
     non_zero_indices = np.where(accel_data != 0)[0]
     if len(non_zero_indices) == 0:
-        # do nothing
-        pass
+        pass  # do nothing
     else:   
         accel_data = accel_data[non_zero_indices[0]:non_zero_indices[-1]]
-    # Optional: Remove drift. dont reaaly need to because jump is short time
-    # accel_corrected = detrend(accel_data)
+    # accel_corrected = detrend(accel_data)  # Optional: Remove drift. dont reaaly need to because jump is short time
     print("accel_corrected: {}".format(accel_data))
-    #accel_corrected = accel_data
+    #accel_data = accel_corrected
     
     velocity = cumulative_trapezoid(accel_data, dx=dt, initial=0)
     print("velocity: {}".format(velocity))
@@ -341,8 +346,8 @@ def start_reaction():
             stop_combined_data_thread()
             return jsonify({"status": "invalid"})
         time.sleep(0.01)
-
-    beep = pygame.mixer.Sound("countdown.wav") #replace with dif sound
+    beep = pygame.mixer.Sound("beep.wav")
+    beep.set_volume(0.025) 
     beep.play()
     print("[Reaction] Beep")
     reaction_data["status"] = "timing"

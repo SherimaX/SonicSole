@@ -4,7 +4,8 @@ import struct
 
 print("Starting test script...", flush=True)
 
-target_ip = "192.168.0.100"
+target_ip = "192.168.0.101"
+# target_ip = "127.0.0.1"
 target_port = 21000  # Unified port you're using in Flask
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
