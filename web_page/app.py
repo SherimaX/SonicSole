@@ -7,7 +7,7 @@ import csv
 import random
 import struct
 import pygame
-# from scipy.integrate import cumulative_trapezoid
+from scipy.integrate import cumulative_trapezoid
 import numpy as np
 import logging
 from threading import Thread #
@@ -17,13 +17,13 @@ logging.getLogger('werkzeug').disabled = True
 
 app = Flask(__name__)
 #UDP_IP = "127.0.0.1"
-UDP_IP = "192.168.0.101" #pi's ip on wifi2
-#UDP_IP = "0.0.0.0"
+#UDP_IP = "192.168.0.101" #pi's ip on wifi2
+UDP_IP = "0.0.0.0" # accept connections on any available network interface of the server
 UDP_PORT = 21000 
 bufferSize = 1024
 received_heel_data = "0"
 received_fore_data = "0"
-ax = 0.0
+ax = 0.0 #m/s^2
 ay = 0.0
 az = 0.0
 received_vertical_raw = "0.0" 
@@ -35,9 +35,9 @@ last_airtime = 0.0
 
 # heel_list = [0 for _ in range(100)]
 totalTime = "0"
+
 R_heel = 0
 G_heel = 255
-
 R_fore = 0
 G_fore = 255
 
@@ -52,7 +52,8 @@ first_name2 = "first"
 last_name2 = "last"
 
 forefoot_status = "waiting"
-forefoot_time = 0
+forefoot_dist = 0
+forefoot_elapsed_time = 0
 
 force_trainer_state = {
     'status': 'idle', # 'idle', 'calibrating', 'measuring', 'done'
@@ -71,6 +72,7 @@ reaction_data = {
 }
 
 threshold = 500
+dt = 0.01 #time between samples
 
 pygame.init()
 pygame.mixer.init()
@@ -87,7 +89,7 @@ def play():
         return jsonify({"error": str(e)}), 500
     return send_file("countdown.wav") #to also play on laptop
 
-
+# data
 def start_combined_data_thread():
     global combined_data_thread, combined_data_running
     if not combined_data_running:
@@ -140,27 +142,21 @@ def read_combined_data(): # Combine heel, forefoot, and accelerometer readings o
     print("[UDP Thread] Stopped reading data")
     sock.close()
 
-@app.route('/submit', methods=['POST'])
-def submit():
-    global submitted_name, first_name, last_name, eyes_open
-    first_name = request.form['first_name']
-    last_name = request.form['last_name']
-    submitted_name = first_name + " " + last_name
-    if "eyes" in request.form:
-        eyes_open = request.form['eyes']
-        submitted_name += "_" + eyes_open
-    else:
-        pass
-    return jsonify({"status": "Name submitted successfully"})
+@app.route('/heel_data', methods=['GET'])
+def heel_data():
+    global received_heel_data
+    return jsonify({'data': received_heel_data})
 
-@app.route('/submit2', methods=['POST'])
-def submit2():
-    global submitted_name2, first_name2, last_name2
-    first_name2 = request.form['first_name2']
-    last_name2 = request.form['last_name2']
-    submitted_name2 = first_name2 + " " + last_name2
-    return jsonify({"status": "Name submitted successfully"})
-recording_time = True
+@app.route('/fore_data', methods=['GET'])
+def fore_data():
+    global received_fore_data
+    return jsonify({'data': received_fore_data})
+
+@app.route('/stop_data', methods=['GET', 'POST'])
+def stop_data():
+    print("[Flask] stop_data called")  
+    stop_combined_data_thread()
+    return '', 204
 
 # color
 def update_heel_color(pressure):
@@ -201,7 +197,8 @@ def jumpingScoreInformation():
                 g.write(submitted_name2 + "," + str(greatest_total) + "\n")
                 g.close()
 
-def estimate_jump_height(accel_data_str, dt=0.01):
+def estimate_jump_height(accel_data_str):
+    global dt;
     print("accel_data_str: {}".format(accel_data_str))
     if not accel_data_str:
         return 0.0
@@ -227,33 +224,34 @@ def estimate_jump_height(accel_data_str, dt=0.01):
     
     return round(np.max(displacement), 5)
 
-def get_airtime_and_height(thresh=500):
+def get_airtime_and_height():
     global received_heel_data, received_fore_data, received_vertical_raw, vertical_raw_data_UDP
-    global threshold
+    global threshold, dt
     vertical_raw_data = []
     while True:
         if int(received_heel_data) < threshold and int(received_fore_data) < threshold:
             start_time = time.time()
             print("Takeoff detected")
             break
-        time.sleep(0.001)
+        time.sleep(0.05)
     while True:
         if int(received_heel_data) >= threshold or int(received_fore_data) >= threshold:
             end_time = time.time()
             print("Landing detected")
             break
         vertical_raw_data.append(received_vertical_raw)
-        time.sleep(0.01)
+        time.sleep(dt)
     airtime = end_time - start_time
     # print(f"Airtime: {airtime:.4f} seconds")
-    # print(f"Samples collected: {len(vertical_raw_data_UDP)}")
+    #print(f"Samples collected vrdudp: {len(vertical_raw_data_UDP)}")
+    #print(f"Samples collected vrd: {len(vertical_raw_data)}")
     if len(vertical_raw_data) < 10:
         print("Not enough samples for jump height. Returning 0.")
         return round(airtime, 5), 0.0
-    # jump_height = estimate_jump_height(vertical_raw_data_UDP) #double integration approach
+    # jump_height = estimate_jump_height(vertical_raw_data) #double integration approach
     jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics approach
     # print(f"Estimated height: {jump_height:.5f} m")
-    vertical_raw_data_UDP = []
+    #vertical_raw_data_UDP = []
     return round(airtime, 4), jump_height
 
 @app.route('/start_jump')
@@ -389,7 +387,7 @@ def read_fore_pressure():
         update_fore_color(received_fore_data)
         print(f"Fore Pressure: {received_fore_data}")
 '''
-# Force Sensitivity
+# force sensitivity
 @app.route('/start_force_trainer')
 def start_force_trainer():
     global trainer_start_time
@@ -457,18 +455,50 @@ def force_trainer_results():
     )
 
 #ForeWalk
-# ForeWalk: start the timed challenge
-@app.route('/start_forefoot', methods=['POST'])
+@app.route('/start_forefoot', methods=['POST']) 
 def start_forefoot():
-    global forefoot_status, forefoot_time
-    forefoot_status = "start"
-    forefoot_time = 0
-    return jsonify({"status": "started"})
+    global forefoot_status, forefoot_dist, threshold, dt, forefoot_elapsed_time, received_heel_data
+    forefoot_status = "running"
+    received_heel_data = "0"
+    forefoot_dist = 0
+    start_combined_data_thread()
+    duration = 15.0
+    start_time = time.time()
+    ax_list = []
+   
+    while time.time() - start_time < duration:
+        heel = int(received_heel_data)
+        if heel > threshold:
+            forefoot_status = "invalid"
+            stop_combined_data_thread()
+            forefoot_elapsed_time = round(time.time() - start_time, 1)
+            return jsonify({"status": "invalid", "time": forefoot_elapsed_time})
+        ax_list.append(ax)
+        time.sleep(dt)
+    stop_combined_data_thread()
+    print(f"Samples collected: {len(ax_list)}")
+    print(f"Samples collected: {ax_list}")
+    forefoot_dist = round(estimate_distance_from_ax(ax_list), 3)
+    forefoot_status = "done"
+    return jsonify({"status": "done", "distance_meters": forefoot_dist})
 
-# ForeWalk: status polling endpoint
 @app.route('/forefoot_status', methods=['GET'])
 def get_forefoot_status():
-    return jsonify({'status': forefoot_status, 'time': forefoot_time})
+    return jsonify({
+        'status': forefoot_status,
+        'distance_meters': forefoot_dist,
+        'time': forefoot_elapsed_time
+    })
+
+def estimate_distance_from_ax(ax_values): #later may want to add decay/kalman for drift
+    if len(ax_values) < 2:
+        return 0.0
+    dt_adjusted = 15.0 / len(ax_values)
+    print(f"dt_adjusted: {dt_adjusted}")
+    ax_array = np.array(ax_values)
+    velocity = cumulative_trapezoid(ax_array, dx=dt_adjusted, initial=0)
+    displacement = cumulative_trapezoid(velocity, dx=dt_adjusted, initial=0)
+    return float(round(displacement[-1], 3))
 
 # webpage routes
 @app.route('/')
@@ -500,10 +530,11 @@ def assembly_instructions():
 def reaction():
     return render_template('reaction.html')
 
-@app.route('/forefoot')
-def forefoot():
+@app.route('/foreWalk')
+def foreWalk():
     return render_template('foreWalk.html')
 
+# scoreboard
 @app.route('/bScoreboard')
 def b_scoreboard():
     data = []
@@ -574,6 +605,30 @@ def j_scoreboard():
     leaderboard_data.sort(key=lambda x: x['total'], reverse=True)
     return render_template('jScoreboard.html', data=leaderboard_data)
 
+
+@app.route('/submit', methods=['POST'])
+def submit():
+    global submitted_name, first_name, last_name, eyes_open
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    submitted_name = first_name + " " + last_name
+    if "eyes" in request.form:
+        eyes_open = request.form['eyes']
+        submitted_name += "_" + eyes_open
+    else:
+        pass
+    return jsonify({"status": "Name submitted successfully"})
+
+@app.route('/submit2', methods=['POST'])
+def submit2():
+    global submitted_name2, first_name2, last_name2
+    first_name2 = request.form['first_name2']
+    last_name2 = request.form['last_name2']
+    submitted_name2 = first_name2 + " " + last_name2
+    return jsonify({"status": "Name submitted successfully"})
+recording_time = True
+
+# misc
 def send_udp_data(): #unsure what this is for
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     n = 1
@@ -584,26 +639,6 @@ def button():
     send_udp_data()
     return redirect(url_for('jump'))
 
-@app.route('/stop_data', methods=['GET', 'POST'])
-def stop_data():
-    print("[Flask] stop_data called")  
-    stop_combined_data_thread()
-    return '', 204
-
-@app.route('/heel_data', methods=['GET'])
-def heel_data():
-    global received_heel_data
-    return jsonify({'data': received_heel_data})
-
-@app.route('/fore_data', methods=['GET'])
-def fore_data():
-    global received_fore_data
-    return jsonify({'data': received_fore_data})
-
-#@app.route('/button_click', methods=['POST'])
-#def button_click():
-#    balancing_pressure()
-#    return jsonify({"status": "Data transmission started"})
 @app.route('/button_click', methods=['POST'])
 def button_click():
     global recording_time, totalTime
@@ -614,6 +649,7 @@ def button_click():
     thread.start()
     return jsonify({"status": "Data transmission started"})
 
+# main
 if __name__ == '__main__':
     udp_thread_jumping = threading.Thread(target=jumpingScoreInformation)
     udp_thread_jumping.daemon = True
@@ -623,7 +659,7 @@ if __name__ == '__main__':
     #udp_thread_combined.start()
     # ForeWalk: start thread
     # ForeWalk: start thread
-  #  udp_thread_forefoot = threading.Thread(target=forefoot_walk_session)
-  # udp_thread_forefoot.daemon = True
-  #  udp_thread_forefoot.start()
+    # udp_thread_forefoot = threading.Thread(target=forefoot_walk_session)
+    # udp_thread_forefoot.daemon = True
+    # udp_thread_forefoot.start()
     app.run(host='0.0.0.0', port=5000, debug=False)

@@ -4,8 +4,9 @@ import struct
 
 print("Starting test script...", flush=True)
 
-target_ip = "192.168.0.101"
-# target_ip = "127.0.0.1"
+# target_ip = "192.168.0.100" # ip on tplink
+#target_ip = "192.168.0.101" # pi ip on tplink
+target_ip = "127.0.0.1"
 target_port = 21000  # Unified port you're using in Flask
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -13,19 +14,19 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Function to send test data (5 floats: fore, heel, ax, ay, az)
 
 def send_combined_test_data(fore, heel, ax, ay, az):
-    i = 450
+    i = 0
     while True:
         # Pack data as 5 floats (little-endian by default)
-        i += 100
+        i += 10
         # data = struct.pack('5f', fore, heel, ax, ay, az)
-        data = struct.pack('5f', i, i, ax, ay, az)
+        data = struct.pack('5f', fore, heel, ax, ay, az)
         sock.sendto(data, (target_ip, target_port))
         # print(f"Sent -> Fore: {fore}, Heel: {heel}, ax: {ax}, ay: {ay}, az: {az}", flush=True)
-        print(f"Sent -> Fore: {i}, Heel: {i}, ax: {ax}, ay: {ay}, az: {az}", flush=True)
-        time.sleep(1)  # Send at 100Hz (adjust as needed)
+        print(f"Sent -> Fore: {fore}, Heel: {heel}, ax: {ax}, ay: {ay}, az: {az}", flush=True)
+        time.sleep(0.01) 
 
 # Example: Fore=900, Heel=850, Simulated accel values
-send_combined_test_data(500.0, 950.0, 0.02, -0.01, 9.81)
+send_combined_test_data(100.0, 100.0, 2.00, 0.01, 9.81)
 
 
 print("Done sending", flush=True)

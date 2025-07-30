@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
     
       sole->sendSensorData(sensorData, 21000, 5);
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(500)); //delay 0.5 seconds
 
       // delay(100);
       // if (sole->getRunningTime() > MAX_RUN_TIME) { 

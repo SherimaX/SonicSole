@@ -1,37 +1,260 @@
-<!-- templates/foreWalk.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Forefoot Walk Challenge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forefoot Walk Activity</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #ffdada;
+    }
+
+    h1 {
+      font-size: 4.5em;
+      margin-top: 2.5em;
+      margin-bottom: 3px;
+      font-family: 'Segoe UI', sans-serif;
+      color: #8a0000;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 1.3em;
+      border: 2px solid #210000;
+      border-radius: 5px;
+      margin-top: 25px;
+      margin-bottom: 10px;
+      width: 250px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 25px;
+      font-size: 1.3em;
+      color: #fff;
+      background-color: #8a0000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #210000;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background-color: #ffdada;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .close {
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .content {
+      display: none;
+      text-align: center;
+      margin-top: 1em;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-top: 1em;
+      margin-bottom: 1em;
+    }
+
+    .data-box {
+      font-size: 1.1em;
+      background-color: #fafafa;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 8px auto;
+      width: 280px;
+      height: 80px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    .btn, #res {
+      display: inline-block;
+      margin-top: 25px;
+      font-size: 1.3em;
+      color: #310000;
+      text-decoration: none;
+      border: 2px solid #310000;
+      padding: 10px 20px;
+      border-radius: 5px;
+      background-color: transparent;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .btn:hover, #res:hover {
+      background-color: #310000;
+      color: #fff;
+    }
+
+    .name-fields {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+  </style>
+
   <script>
-    let timer = null;
+    let timerInterval = null;
+    let startTime = null;
 
+    function openModal() {
+      document.getElementById("instructionsModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("instructionsModal").style.display = "none";
+    }
+
+    function submitForm(event) {
+      event.preventDefault();
+      const form = document.getElementById("name-form");
+      const formData = new FormData(form);
+      fetch("/submit", {
+        method: "POST",
+        body: formData,
+      }).then((response) => {
+        if (response.ok) {
+          document.querySelector(".content").style.display = "block";
+        }
+      });
+    }
+
+    // function startWalk() {
+    //   fetch("/start_forefoot", { method: "POST" }).then((response) => {
+    //     if (response.ok) {
+    //       document.getElementById("timeBox").innerText = "Timer: 0.0s";
+    //       document.getElementById("statusBox").innerText = "Walking...";
+    //       startTime = Date.now();
+    //       startPolling();
+    //     }
+    //   });
+    // }
     function startWalk() {
-      document.getElementById("status").innerText = "Walking...";
+      document.getElementById("timeBox").innerText = "Timer: 0.0s";
+      document.getElementById("statusBox").innerText = "Walking...";
+      startTime = Date.now();
+      startPolling(); 
+      fetch("/start_forefoot", { method: "POST" });
+    }
 
-      fetch('/start_forefoot', { method: 'POST' });
 
-      timer = setInterval(() => {
-        fetch('/forefoot_status')
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === "success") {
-              clearInterval(timer);
-              document.getElementById("status").innerText = `✅ Success! Time: ${data.time}s`;
-            } else if (data.status === "fail") {
-              clearInterval(timer);
-              document.getElementById("status").innerText = `❌ Failed! Time: ${data.time}s`;
-              new Audio("/static/fail.mp3").play();
+    function startPolling() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        document.getElementById("timeBox").innerText = `Timer: ${elapsed}s`;
+        fetch("/forefoot_status")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.status === "done") {
+              clearInterval(timerInterval);
+              document.getElementById("statusBox").innerText = `Success! Distance: ${data.distance_meters} m`;
+              document.getElementById("timeBox").innerText = `Final Time: 15.0s`;
+            } else if (data.status === "invalid") {
+              clearInterval(timerInterval);
+              document.getElementById("statusBox").innerText = `Failed! Heel touched down.`;
+              document.getElementById("timeBox").innerText = `Final Time: ${data.time} s`;
             }
-          });
+          })
+
       }, 200);
     }
+
+    function stopDataAndNavigate(url) {
+      fetch('/stop_data', { method: 'POST' }).then(() => {
+        window.location.href = url;
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("name-form").addEventListener("submit", submitForm);
+      document.getElementById("startButton").addEventListener("click", startWalk);
+    });
   </script>
 </head>
+
 <body>
-  <h1>Forefoot Walk Challenge</h1>
-  <button onclick="startWalk()">Start</button>
-  <p id="status">Press Start to begin</p>
+  <h1>Forefoot Walk Activity</h1>
+
+  <form id="name-form">
+    <div style="text-align: center;">
+      <div class="name-fields">
+        <input type="text" name="first_name" required placeholder="Enter First Name" />
+        <input type="text" name="last_name" required placeholder="Enter Last Name" />
+      </div>
+      <button type="submit">Submit</button>
+    </div>
+  </form>
+
+  <div class="content">
+    <p>If you make any changes, please hit submit again!</p>
+    <div class="buttons">
+      <button id="startButton">Start Walking</button>
+      <button onclick="openModal()">Instructions</button>
+    </div>
+
+    <div class="data-box" id="timeBox">Timer: --</div>
+    <div class="data-box" id="statusBox">Waiting for walk to start...</div>
+
+    <div id="instructionsModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Instructions</h2>
+        <p>
+          Press "Start Walking" to begin. Walk forward on your forefeet—this means keeping your heels completely off the ground.
+          Your goal is to maintain this position for 15 seconds and walk as far as possible. If your heels touch down at any point, the trial ends and counts as a failure.
+          Force sensors continuously monitor heel pressure. As soon as heel contact is detected, a signal is sent to the computer to stop the timer and log your time.
+          This activity trains balance, ankle stability, and calf strength, all of which are key in activities like sprinting, dance, and gymnastics.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <a class="btn" href="#" onclick="stopDataAndNavigate('/')">Home</a>
+  <a href="{{ url_for('foreWalk') }}"><button id="res">Reset</button></a>
 </body>
 </html>
