@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jump Scoreboard</title>
+    <title>ForeWalk Scoreboard</title>
   </head>
   <style>
     body {
@@ -92,7 +92,7 @@
       text-align: left;
       font-size: 1.4em;
       cursor: pointer;
-      position: relative; /* Ensure the sort indicator is properly positioned */
+      position: relative;
     }
 
     th.sorted {
@@ -104,7 +104,7 @@
       margin-left: 20px;
       font-size: 0.9em;
       position: absolute;
-      right: 10px; /* Align the indicator to the right for better spacing */
+      right: 10px; 
     }
   </style>
   <script>
@@ -154,21 +154,21 @@ function updateSortIndicators(table, columnIndex, isAscending) {
 
   </script>
   <body>
-    <h1>Jumping Scoreboard</h1>
-    <a href="/jump" class="homebutton">Go Back</a>
+    <h1>ForeWalk Scoreboard</h1>
+    <a href="/foreWalk" class="homebutton">Go Back</a>
     <table id="leaderboard">
       <tr>
         <th onclick="sortTable(0)" class="sortable">
           Name <span class="sort-indicator"></span>
         </th>
         <th onclick="sortTable(1, true)" class="sortable">
-          Jump Height <span class="sort-indicator"></span>
+          Distance <span class="sort-indicator"></span>
         </th>
       </tr>
       {% for entry in data %}
       <tr>
         <td>{{ entry.name }}</td>
-        <td>{{ entry.total }}</td>
+        <td>{{ entry.forefoot_dist }}</td>
       </tr>
       {% endfor %}
     </table>

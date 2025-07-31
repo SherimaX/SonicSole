@@ -62,6 +62,8 @@ force_trainer_state = {
     'measured_force': 0,
     'error_percent': 0
 }
+percent_error = 0
+
 vertical_raw_data_UDP = []
 combined_data_thread = None
 combined_data_running = False
@@ -70,6 +72,7 @@ reaction_data = {
     "status": "idle",
     "reaction_time": 0.0
 }
+reaction_time = "0"
 
 threshold = 500
 dt = 0.01 #time between samples
@@ -181,6 +184,7 @@ def update_fore_color(pressure):
 def color_data():
     global R_heel, G_heel, R_fore, G_fore
     return jsonify({'R_heel': R_heel, 'G_heel': G_heel, 'R_fore': R_fore, 'G_fore': G_fore})
+
 # jump
 def jumpingScoreInformation():
     global received_fore_data, received_heel_data, submitted_name2, greatest_total
@@ -193,7 +197,7 @@ def jumpingScoreInformation():
             if int(received_heel_data) + int(received_fore_data) > greatest_total:
                 print(submitted_name2)
                 greatest_total = int(received_heel_data) + int(received_fore_data)
-                g = open("SonicSoleBalance.txt", "a")
+                g = open("SonicSoleJump.txt", "a")
                 g.write(submitted_name2 + "," + str(greatest_total) + "\n")
                 g.close()
 
@@ -309,6 +313,10 @@ def balancing_pressure():
             else:
                 recording_time = False
                 print("[balancing_pressure] balance_stopped")
+                    
+                with open("SonicSoleBalance.txt", "a") as f:
+                    f.write(f"{submitted_name},{totalTime}\n")
+
                 stop_combined_data_thread()
                 break
         else:
@@ -324,16 +332,15 @@ def balancing():
 # reaction time
 @app.route('/start_reaction')
 def start_reaction():
-    global reaction_data, threshold, received_fore_data, received_heel_data
+    global reaction_data, threshold, received_fore_data, received_heel_data, submitted_name2, reaction_time
     received_fore_data = "0"
     received_heel_data = "0"
+    reaction_time = "0"
     start_combined_data_thread()
-
     reaction_data = {
         "status": "waiting",
         "reaction_time": 0.0
     }
-
     delay = random.uniform(3, 6.0)
     print(f"[Reaction] Waiting for {delay:.2f}s")
     start_time = time.time()
@@ -357,6 +364,10 @@ def start_reaction():
             reaction_data["reaction_time"] = reaction_time
             reaction_data["status"] = "success"
             print(f"[Reaction] Success! Reaction time: {reaction_time}")
+          
+            with open("SonicSoleReaction.txt", "a") as f:
+                f.write(f"{submitted_name2},{reaction_time}\n")
+            
             stop_combined_data_thread()
             return jsonify({"status": "success"})
         time.sleep(0.001)
@@ -410,11 +421,12 @@ def force_trainer_status():
     )
 
 def run_force_trainer():
-    global force_trainer_state, received_fore_data
+    global force_trainer_state, received_fore_data, submitted_name2, percent_error
     start_combined_data_thread()
     force_trainer_state['status'] = 'calibrating' # Step 1: Calibration
     force_trainer_state['max_force'] = 1
     max_val = 0
+    percent_error = 0
     start_time = time.time()
     while time.time() - start_time < 10:
         current_val = int(received_fore_data)
@@ -427,7 +439,7 @@ def run_force_trainer():
     time.sleep(3)
 
     force_trainer_state['status'] = 'measuring' # Step 3: Random target percentage
-    target_percent = random.choice([10, 20, 30, 40, 50, 60, 70, 80, 90])
+    target_percent = random.choice([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95])
     force_trainer_state['target_percent'] = target_percent
 
     readings = [] # Step 4: Measure pressure hold
@@ -444,6 +456,11 @@ def run_force_trainer():
     force_trainer_state['measured_force'] = round(percent_applied, 1)
     force_trainer_state['error_percent'] = round(percent_error, 1)
     force_trainer_state['status'] = 'done'
+    percent_error = round(percent_error, 3)
+
+    with open("SonicSoleForceSense.txt", "a") as f:
+        f.write(f"{submitted_name2},{percent_error}\n")
+
     stop_combined_data_thread()
 
 @app.route('/force_trainer_results')
@@ -457,7 +474,7 @@ def force_trainer_results():
 #ForeWalk
 @app.route('/start_forefoot', methods=['POST']) 
 def start_forefoot():
-    global forefoot_status, forefoot_dist, threshold, dt, forefoot_elapsed_time, received_heel_data
+    global forefoot_status, forefoot_dist, threshold, dt, forefoot_elapsed_time, received_heel_data, submitted_name2
     forefoot_status = "running"
     received_heel_data = "0"
     forefoot_dist = 0
@@ -480,6 +497,10 @@ def start_forefoot():
     print(f"Samples collected: {ax_list}")
     forefoot_dist = round(estimate_distance_from_ax(ax_list), 3)
     forefoot_status = "done"
+                        
+    with open("SonicSoleWalk.txt", "a") as f:
+        f.write(f"{submitted_name2},{forefoot_dist}\n")
+
     return jsonify({"status": "done", "distance_meters": forefoot_dist})
 
 @app.route('/forefoot_status', methods=['GET'])
@@ -493,7 +514,7 @@ def get_forefoot_status():
 def estimate_distance_from_ax(ax_values): #later may want to add decay/kalman for drift
     if len(ax_values) < 2:
         return 0.0
-    dt_adjusted = 15.0 / len(ax_values)
+    dt_adjusted = 15.0 / len(ax_values) #adjust dt based on num of packets actually received
     print(f"dt_adjusted: {dt_adjusted}")
     ax_array = np.array(ax_values)
     velocity = cumulative_trapezoid(ax_array, dx=dt_adjusted, initial=0)
@@ -534,12 +555,12 @@ def reaction():
 def foreWalk():
     return render_template('foreWalk.html')
 
-# scoreboard
+# scoreboards
 @app.route('/bScoreboard')
 def b_scoreboard():
     data = []
     try:
-        with open('SonicSole2.txt', 'r') as f:
+        with open('SonicSoleBalance.txt', 'r') as f:
             reader = csv.reader(f)
             for row in reader:
                 if len(row) >= 2:
@@ -552,9 +573,9 @@ def b_scoreboard():
                     else:
                         data.append({'name': row[0], 'time':  float(row[1])})
     except FileNotFoundError:
-        return "Error: SonicSole2.txt file not found."
+        return "Error: SonicSoleBalance.txt file not found."
     except ValueError:
-        return "Error: Incorrect data format in SonicSole2.txt."
+        return "Error: Incorrect data format in SonicSoleBalance.txt."
     except Exception as e:
         # return f"Error: {e}"
         return "Error"
@@ -576,21 +597,18 @@ def b_scoreboard():
 def j_scoreboard():
     data = []
     try:
-        with open('SonicSoleBalance.txt', 'r') as g:
+        with open('SonicSoleJump.txt', 'r') as g:
             reader = csv.reader(g)
             for row in reader:
                 if len(row) >= 2:
                     try:
                         data.append({'name': row[0], 'total': float(row[1])})
                     except ValueError:
-                        # print(f"Invalid data format in row: {row}")
                         continue
     except FileNotFoundError:
-        print("Error: SonicSoleBalance.txt file not found.")
-        return "Error: SonicSoleBalance.txt file not found."
+        print("Error: SonicSoleJump.txt file not found.")
+        return "Error: SonicSoleJump.txt file not found."
     except Exception as e:
-        # print(f"Unexpected error: {e}")
-        # return f"Error: {e}"
         return "Error"
     unique_data = {}
     for entry in data:
@@ -605,6 +623,95 @@ def j_scoreboard():
     leaderboard_data.sort(key=lambda x: x['total'], reverse=True)
     return render_template('jScoreboard.html', data=leaderboard_data)
 
+@app.route('/rScoreboard')
+def r_scoreboard():
+    data = []
+    try:
+        with open('SonicSoleReaction.txt', 'r') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if len(row) >= 2:
+                    try:
+                        data.append({'name': row[0], 'reaction_time': float(row[1])})
+                    except ValueError:
+                        continue
+    except FileNotFoundError:
+        return "Error: SonicSoleReaction.txt file not found."
+    except Exception:
+        return "Error"
+    
+    # Keep best (lowest) time per user
+    unique_data = {}
+    for entry in data:
+        name = entry['name']
+        time = entry['reaction_time']
+        if name not in unique_data or time < unique_data[name]:
+            unique_data[name] = time
+    
+    leaderboard_data = [{'name': name, 'reaction_time': time} for name, time in unique_data.items()]
+    leaderboard_data.sort(key=lambda x: x['reaction_time'])  # Ascending (lower is better)
+
+    return render_template('rScoreboard.html', data=leaderboard_data)
+
+@app.route('/fScoreboard')
+def f_scoreboard():
+    data = []
+    try:
+        with open('SonicSoleForceSense.txt', 'r') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if len(row) >= 2:
+                    try:
+                        data.append({'name': row[0], 'percent_error': float(row[1])})
+                    except ValueError:
+                        continue
+    except FileNotFoundError:
+        return "Error: SonicSoleForceSense.txt file not found."
+    except Exception:
+        return "Error"
+    
+    # Keep best (lowest) percent error per user
+    unique_data = {}
+    for entry in data:
+        name = entry['name']
+        error = entry['percent_error']
+        if name not in unique_data or error < unique_data[name]:
+            unique_data[name] = error
+    
+    leaderboard_data = [{'name': name, 'percent_error': error} for name, error in unique_data.items()]
+    leaderboard_data.sort(key=lambda x: x['percent_error'])  # Ascending (lower is better)
+
+    return render_template('fScoreboard.html', data=leaderboard_data)
+
+@app.route('/wScoreboard')
+def w_scoreboard():
+    data = []
+    try:
+        with open('SonicSoleWalk.txt', 'r') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if len(row) >= 2:
+                    try:
+                        data.append({'name': row[0], 'forefoot_dist': float(row[1])})
+                    except ValueError:
+                        continue
+    except FileNotFoundError:
+        return "Error: SonicSoleWalk.txt file not found."
+    except Exception:
+        return "Error"
+    
+    # Keep best (highest) distance per user
+    unique_data = {}
+    for entry in data:
+        name = entry['name']
+        dist = entry['forefoot_dist']
+        if name not in unique_data or dist > unique_data[name]:
+            unique_data[name] = dist
+    
+    leaderboard_data = [{'name': name, 'forefoot_dist': dist} for name, dist in unique_data.items()]
+    leaderboard_data.sort(key=lambda x: x['forefoot_dist'], reverse=True)  
+
+    return render_template('wScoreboard.html', data=leaderboard_data)
 
 @app.route('/submit', methods=['POST'])
 def submit():
