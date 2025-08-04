@@ -13,7 +13,7 @@
         height: 100vh;
         margin: 0;
         padding: 0;
-        font-family: Ariel, sans-serif;
+        font-family: Arial, sans-serif;
         background-color: #ffdada;
       }
 
@@ -233,9 +233,19 @@
       }
 
       function submitForm(event) {
-        event.preventDefault(); // Prevent form submission
-        var form = document.getElementById("name-form");
-        var formData = new FormData(form);
+
+        event.preventDefault();
+        const first = document.getElementById("first_name").value.trim();
+        const last = document.getElementById("last_name").value.trim();
+        const eyes = document.querySelector('input[name="eyes"]:checked');
+
+        if (!first || !last || !eyes) {
+          alert("Please fill out all fields and select eye condition.");
+          return;
+        }
+
+        const form = document.getElementById("name-form");
+        const formData = new FormData(form);
         fetch("/submit", {
           method: "POST",
           body: formData,
@@ -258,19 +268,27 @@
             //const audio = document.querySelector("audio");
             //audio.volume = 0.2;
             //audio.play();
-            const audio = new Audio("/play");
-            audio.volume = 0.2;
-            audio.play().catch((e) => {
-              console.warn("Audio play blocked or failed:", e);
-            });
+           
+            // const audio = new Audio("/play");
+            // audio.volume = 0.2;
+            // audio.play().catch((e) => {
+            //   console.warn("Audio play blocked or failed:", e);
+            // });
 
 
-            setTimeout(function () {
-              fetch("/button_click", { method: "POST" })
-                .then((response) => response.json())
-                .then((data) => console.log(data.status))
-                .catch((error) => console.error("Error:", error));
-            }, 3120);
+            // setTimeout(function () {
+            //   fetch("/button_click", { method: "POST" })
+            //     .then((response) => response.json())
+            //     .then((data) => console.log(data.status))
+            //     .catch((error) => console.error("Error:", error));
+            // }, 3120);
+            fetch("/button_click", { method: "POST" })
+              .then((response) => response.json())
+              .then((data) => console.log(data.status))
+              .catch((error) => console.error("Error:", error));
+
+
+
           });
       });
 
@@ -327,7 +345,9 @@
         <label for="eyesOpened">Eyes Opened</label><br />
         <br />
         <input type="submit" style="display: none" />
-        <button type="submit">Submit</button>
+        <!-- <button type="submit">Submit</button> -->
+        <button type="button" onclick="submitForm(event)">Submit</button>
+
       </div>
     </form>
     <div class="content">

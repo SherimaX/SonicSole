@@ -7,13 +7,12 @@ import csv
 import random
 import struct
 import pygame
-from scipy.integrate import cumulative_trapezoid
+#from scipy.integrate import cumulative_trapezoid
 import numpy as np
 import logging
 from threading import Thread #
 
-# Suppress werkzeug logs
-logging.getLogger('werkzeug').disabled = True
+logging.getLogger('werkzeug').disabled = True #Suppress werkzeug logs
 
 app = Flask(__name__)
 #UDP_IP = "127.0.0.1"
@@ -79,19 +78,37 @@ dt = 0.01 #time between samples
 
 pygame.init()
 pygame.mixer.init()
+CountSound = pygame.mixer.Sound("countdown.wav")
+CountSound.set_volume(0.5) 
 
 @app.route("/play", methods=["GET", "POST"])
 def play():
     # play sound using py
     try:
-        CountSound = pygame.mixer.Sound("countdown.wav")
-        CountSound.set_volume(0.01) 
         CountSound.play()
     except Exception as e:
         print("Error playing sound:", e)
         return jsonify({"error": str(e)}), 500
     return send_file("countdown.wav") #to also play on laptop
 
+# cumulative trapezoid without scipy because the pi cannot download it
+def cumulative_trapezoid_manual(y, dx=1.0, initial=0):
+    y = np.asarray(y, dtype=np.float64)
+    n = y.shape[0]
+
+    if n < 2:
+        return np.array([initial]) if initial is not None else np.array([])
+
+    # Compute trapezoid integration (without initial)
+    result = np.empty(n - 1, dtype=np.float64)
+    for i in range(n - 1):
+        result[i] = 0.5 * (y[i] + y[i + 1]) * dx
+    cumulative = np.cumsum(result)
+
+    if initial is not None:
+        return np.insert(cumulative, 0, initial)
+    else:
+        return cumulative
 # data
 def start_combined_data_thread():
     global combined_data_thread, combined_data_running
@@ -221,9 +238,9 @@ def estimate_jump_height(accel_data_str):
     print("accel_corrected: {}".format(accel_data))
     #accel_data = accel_corrected
     
-    velocity = cumulative_trapezoid(accel_data, dx=dt, initial=0)
+    velocity = cumulative_trapezoid_manual(accel_data, dx=dt, initial=0)
     print("velocity: {}".format(velocity))
-    displacement = cumulative_trapezoid(velocity, dx=dt, initial=0)
+    displacement = cumulative_trapezoid_manual(velocity, dx=dt, initial=0)
     print("displacement: {}".format(displacement))
     
     return round(np.max(displacement), 5)
@@ -329,6 +346,45 @@ def balancing():
     global totalTime
     return jsonify({'data': totalTime})
 
+'''@app.route('/button_click', methods=['POST'])
+def button_click():
+    global recording_time, totalTime, CountSound
+    CountSound.play()
+    recording_time = True
+    totalTime = "0"
+    thread = threading.Thread(target=balancing_pressure)
+    thread.daemon = True
+    thread.start()
+    return jsonify({"status": "Data transmission started"})'''
+@app.route('/button_click', methods=['POST'])
+def button_click():
+    global recording_time, totalTime, CountSound
+    CountSound.play()
+    time.sleep(3.12) #sleeps so countdown can run before timer begins
+    recording_time = True
+    totalTime = "0"
+    thread = threading.Thread(target=balancing_pressure)
+    thread.daemon = True
+    thread.start()
+    return jsonify({"status": "Data transmission started"})
+'''
+def play_countdown_sound():
+    try:
+        CountSound.play()
+    except Exception as e:
+        print("Sound error:", e)
+
+@app.route('/button_click', methods=['POST'])
+def button_click():
+    global recording_time, totalTime
+    threading.Thread(target=play_countdown_sound, daemon=True).start()
+    recording_time = True
+    totalTime = "0"
+    thread = threading.Thread(target=balancing_pressure)
+    thread.daemon = True
+    thread.start()
+    return jsonify({"status": "Data transmission started"})'''
+
 # reaction time
 @app.route('/start_reaction')
 def start_reaction():
@@ -350,9 +406,9 @@ def start_reaction():
             reaction_data["status"] = "invalid"
             stop_combined_data_thread()
             return jsonify({"status": "invalid"})
-        time.sleep(0.01)
+        time.sleep(0.005)
     beep = pygame.mixer.Sound("beep.wav")
-    beep.set_volume(0.025) 
+    beep.set_volume(0.005) 
     beep.play()
     print("[Reaction] Beep")
     reaction_data["status"] = "timing"
@@ -517,8 +573,10 @@ def estimate_distance_from_ax(ax_values): #later may want to add decay/kalman fo
     dt_adjusted = 15.0 / len(ax_values) #adjust dt based on num of packets actually received
     print(f"dt_adjusted: {dt_adjusted}")
     ax_array = np.array(ax_values)
-    velocity = cumulative_trapezoid(ax_array, dx=dt_adjusted, initial=0)
-    displacement = cumulative_trapezoid(velocity, dx=dt_adjusted, initial=0)
+    displacement = 0
+    velocity = cumulative_trapezoid_manual(ax_array, dx=dt_adjusted, initial=0)
+    displacement = cumulative_trapezoid_manual(velocity, dx=dt_adjusted, initial=0)
+
     return float(round(displacement[-1], 3))
 
 # webpage routes
@@ -745,16 +803,6 @@ def send_udp_data(): #unsure what this is for
 def button():
     send_udp_data()
     return redirect(url_for('jump'))
-
-@app.route('/button_click', methods=['POST'])
-def button_click():
-    global recording_time, totalTime
-    recording_time = True
-    totalTime = "0"
-    thread = threading.Thread(target=balancing_pressure)
-    thread.daemon = True
-    thread.start()
-    return jsonify({"status": "Data transmission started"})
 
 # main
 if __name__ == '__main__':

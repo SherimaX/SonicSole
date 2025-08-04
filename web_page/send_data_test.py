@@ -26,7 +26,7 @@ def send_combined_test_data(fore, heel, ax, ay, az):
         time.sleep(0.01) 
 
 # Example: Fore=900, Heel=850, Simulated accel values
-send_combined_test_data(100.0, 100.0, 2.00, 0.01, 9.81)
+send_combined_test_data(1000.0, 100.0, 2.00, 0.01, 9.81)
 
 
 print("Done sending", flush=True)
