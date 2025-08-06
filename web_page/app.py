@@ -144,12 +144,12 @@ def read_combined_data(): # Combine heel, forefoot, and accelerometer readings o
             if len(data) < 20:
                 continue  
             fore_pressure, heel_pressure, ax_val, ay_val, az_val = struct.unpack('5f', data)
-            az_val = round(az_val, 3)
+            ay_val = round(ay_val, 3)
             received_fore_data = int(fore_pressure)
             received_heel_data = int(heel_pressure)
             ax, ay, az = ax_val, ay_val, az_val
-            received_vertical_raw = az_val
-            vertical_raw_data_UDP.append(az_val)
+            received_vertical_raw = ay_val
+            vertical_raw_data_UDP.append(ay_val)
             update_fore_color(received_fore_data)
             update_heel_color(received_heel_data)
             print("combined_data_running in read thread: {}".format(combined_data_running))
