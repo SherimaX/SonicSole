@@ -80,7 +80,58 @@ pygame.init()
 pygame.mixer.init()
 CountSound = pygame.mixer.Sound("countdown.wav")
 CountSound.set_volume(0.5) 
+'''
+# piano attempt 1
+distance_from_origin = 0.0
+az_history = []
+last_step_time = None
+origin_set = False
+note_thresholds = [0.2, 0.4, 0.6, 0.8]  # meters
+note_sounds = []
+note_files = ["beep.wav", "beep.wav", "beep.wav", "beep.wav", "beep.wav"]
+note_sounds = [pygame.mixer.Sound(f) for f in note_files]
 
+def handle_horizontal_movement():
+    global az_history, dt, origin_set, distance_from_origin, last_step_time, threshold
+
+    if not origin_set:
+        if int(received_heel_data) > threshold or int(received_fore_data) > threshold:
+            print("[Piano] Origin step detected.")
+            az_history = []
+            origin_set = True
+            last_step_time = time.time()
+        return
+
+    if int(received_heel_data) < threshold and int(received_fore_data) < threshold:
+        az_history.append(az)
+
+    if origin_set and (int(received_heel_data) > threshold or int(received_fore_data) > threshold):
+        print("[Piano] Foot down again, estimating distance.")
+        if len(az_history) < 2:
+            return
+
+        dt_adjusted = (time.time() - last_step_time) / len(az_history)
+        velocity = cumulative_trapezoid_manual(az_history, dx=dt_adjusted, initial=0)
+        displacement = cumulative_trapezoid_manual(velocity, dx=dt_adjusted, initial=0)
+
+        distance_from_origin = abs(displacement[-1])
+        print(f"[Piano] Horizontal distance: {distance_from_origin:.3f} m")
+
+        play_note_based_on_distance(distance_from_origin)
+
+        az_history = []
+        last_step_time = time.time()
+
+def play_note_based_on_distance(distance):
+    for i, threshold in enumerate(note_thresholds):
+        if distance < threshold:
+            note_sounds[i].play()
+            print(f"[Piano] Played note {i} for distance {distance:.2f} m")
+            return
+    note_sounds[-1].play()
+    print(f"[Piano] Played highest note for distance {distance:.2f} m")
+'''
+# sound
 @app.route("/play", methods=["GET", "POST"])
 def play():
     # play sound using py

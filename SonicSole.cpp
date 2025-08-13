@@ -68,7 +68,8 @@ SonicSole::SonicSole() {
 
     // INITIALIZING UART1
     printf("Initializing UART0...\n\n");
-    if ((IMU = serialOpen ("/dev/ttyS0", 921600)) < 0) {
+    if ((IMU = serialOpen("/dev/ttyS0", 115200)) < 0) {  //set to original port (ttyS0)
+    //if ((IMU = serialOpen("/dev/ttyAMA0", 115200)) < 0) { //The factory default baud rate is 115200
   		fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
   	}
     else {
@@ -283,7 +284,7 @@ bool SonicSole::detectHeelThreshold() {
         updateThresholdCounter();
     }
     return thresholdDetected;
-} 
+}
 
 void SonicSole::updateThresholdCounter() {
     thresholdCross++;
@@ -338,11 +339,21 @@ void SonicSole::readIMU() {
       {
         // GET IMU DATA
         YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
-        while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
-        {
+        //while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
+        //{
           // If no IMU data received, do nothing (print 0 infinitely)
         //   cout << serialDataAvail(IMU) << endl; 
+        //}
+        int waitCounter = 0;
+        while (serialDataAvail(IMU) < IMU_PACKET_LENGTH) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            waitCounter++;
+            if (waitCounter > 100) {
+                std::cerr << "Timeout waiting for IMU data" << std::endl;
+                return;
+            }
         }
+
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
         reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
 

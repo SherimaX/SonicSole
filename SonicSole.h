@@ -62,6 +62,7 @@ using namespace std;
 static int SPI_CHANNEL = 0;
 static int CS = 17; 
 static const int IMU_PACKET_LENGTH = 52;
+// static const int IMU_PACKET_LENGTH = 15;
 // static const int IMU_PACKET_LENGTH = 28;
 
 
@@ -165,4 +166,4 @@ private:
     // uint64_t getCurrentTime();
 };
 
-#endif //SONICSOLE_H
+#endif //SONICSOLE_Ht

@@ -40,12 +40,13 @@ int main(int argc, char* argv[])
       sole->updateCurrentTime();
       sole->updatePressure();
 
+      sole->readIMU();
+      
       double time = sole->getRunningTime();
       cout << "\ntime: " << time << endl;
       cout << "Cycle: " << cycle << endl;
       cycle++;
       
-      // sole->readIMU();
       sole->getAccelVectorData(sole->az, azData);
       sole->toCSV(time, sole->currForePressure, sole->currHeelPressure, sole->az);
 
@@ -103,6 +104,8 @@ int main(int argc, char* argv[])
 
       cout << "\nFore Pressure: " << sole->currForePressure << endl;
       cout << "Heel Pressure: " << sole->currHeelPressure << endl;
+
+      cout << "IMU Data (ax, ay, az): " << sole->ax << ", " << sole->ay << ", " << sole->az << endl;
 
       // sole->sendFlexSensorData((int)sole->currForePressure, 20000); 
       // sole->sendFlexSensorData((int)sole->currHeelPressure, 21000); 
