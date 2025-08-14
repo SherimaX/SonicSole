@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
       cout << "\nFore Pressure: " << sole->currForePressure << endl;
       cout << "Heel Pressure: " << sole->currHeelPressure << endl;
 
-      cout << "IMU Data (ax, ay, az): " << sole->ax << ", " << sole->ay << ", " << sole->az << endl;
+      cout << "IMU Data (g) (ax, ay, az): " << sole->ax << ", " << sole->ay << ", " << sole->az << endl;
 
       // sole->sendFlexSensorData((int)sole->currForePressure, 20000); 
       // sole->sendFlexSensorData((int)sole->currHeelPressure, 21000); 
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
     
       sole->sendSensorData(sensorData, 21000, 5);
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(500)); //delay 0.5 seconds
+      std::this_thread::sleep_for(std::chrono::milliseconds(250)); //delay 0.25 seconds
 
       // delay(100);
       // if (sole->getRunningTime() > MAX_RUN_TIME) { 

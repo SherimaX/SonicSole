@@ -97,7 +97,8 @@ SonicSole::SonicSole() {
         YEIwriteCommandValue(IMU, CMD_SET_GYROSCOPE_RANGE, GYROSCOPE_RANGE_2000);
         YEIwriteCommandValue(IMU, CMD_SET_COMPASS_RANGE, COMPASS_RANGE_1_3);
         YEIwriteCommandValue(IMU, CMD_SET_CALIBRATION_MODE, CALIBRATION_MODE_BIAS_SCALE);
-        YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XR_YF_ZU);
+        //YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XR_YF_ZU); //original
+        YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XF_YU_ZL); //standard operation/natural axes
         YEIwriteCommandValue(IMU, CMD_SET_REFERENCE_VECTOR_MODE, REFERENCE_VECTOR_MULTI_REFERENCE_MODE);
         YEIwriteCommandValue(IMU, CMD_SET_COMPASS_ENABLE, FALSE);
         YEIwriteCommandValue(IMU, CMD_SET_FILTER_MODE, FILTER_KALMAN);

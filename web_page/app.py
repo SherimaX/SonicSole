@@ -25,6 +25,7 @@ received_fore_data = "0"
 ax = 0.0 #m/s^2
 ay = 0.0
 az = 0.0
+g = 9.81 #m/s^2
 received_vertical_raw = "0.0" 
 
 airtime=0
@@ -73,39 +74,60 @@ reaction_data = {
 }
 reaction_time = "0"
 
-threshold = 500
-dt = 0.01 #time between samples
+threshold_fore = 500
+threshold_heel = 500
+dt = 0.25 #time between samples, 4hz
 
 pygame.init()
 pygame.mixer.init()
 CountSound = pygame.mixer.Sound("countdown.wav")
 CountSound.set_volume(0.5) 
+
+# cumulative trapezoid without scipy because the pi cannot download it
+def cumulative_trapezoid_manual(y, dx=1.0, initial=0):
+    y = np.asarray(y, dtype=np.float64)
+    n = y.shape[0]
+
+    if n < 2:
+        return np.array([initial]) if initial is not None else np.array([])
+
+    # Compute trapezoid integration (without initial)
+    result = np.empty(n - 1, dtype=np.float64)
+    for i in range(n - 1):
+        result[i] = 0.5 * (y[i] + y[i + 1]) * dx
+    cumulative = np.cumsum(result)
+
+    if initial is not None:
+        return np.insert(cumulative, 0, initial)
+    else:
+        return cumulative
+
 '''
 # piano attempt 1
 distance_from_origin = 0.0
 az_history = []
 last_step_time = None
 origin_set = False
-note_thresholds = [0.2, 0.4, 0.6, 0.8]  # meters
+note_thresholds = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4]  # meters
 note_sounds = []
-note_files = ["beep.wav", "beep.wav", "beep.wav", "beep.wav", "beep.wav"]
+note_files = ["a.wav", "b.wav", "c.wav", "d.wav", "e.wav", "f.wav", "g.wav"]
 note_sounds = [pygame.mixer.Sound(f) for f in note_files]
 
 def handle_horizontal_movement():
-    global az_history, dt, origin_set, distance_from_origin, last_step_time, threshold
+    global az_history, dt, origin_set, distance_from_origin, last_step_time, threshold_heel, threshold_fore
 
     if not origin_set:
-        if int(received_heel_data) > threshold or int(received_fore_data) > threshold:
+        if int(received_heel_data) > threshold_heel or int(received_fore_data) > threshold_fore:
             print("[Piano] Origin step detected.")
             az_history = []
             origin_set = True
             last_step_time = time.time()
         return
 
-    if int(received_heel_data) < threshold and int(received_fore_data) < threshold:
+    if int(received_heel_data) < threshold_heel and int(received_fore_data) < threshold_fore:
         az_history.append(az)
 
-    if origin_set and (int(received_heel_data) > threshold or int(received_fore_data) > threshold):
+    if origin_set and (int(received_heel_data) > threshold_heel or int(received_fore_data) > threshold_fore):
         print("[Piano] Foot down again, estimating distance.")
         if len(az_history) < 2:
             return
@@ -127,9 +149,46 @@ def play_note_based_on_distance(distance):
         if distance < threshold:
             note_sounds[i].play()
             print(f"[Piano] Played note {i} for distance {distance:.2f} m")
+            time.sleep(0.2)
             return
     note_sounds[-1].play()
     print(f"[Piano] Played highest note for distance {distance:.2f} m")
+    time.sleep(0.2)
+
+@app.route('/piano')
+def piano_activity():
+    print("[Piano] Starting activity...")
+    
+    # Start the combined data thread if not already running
+    start_combined_data_thread()
+    
+    # Reset any piano-specific variables
+    global distance_from_origin, az_history, origin_set
+    distance_from_origin = 0.0
+    az_history = []
+    origin_set = False
+    
+    # Start piano loop in a thread
+    threading.Thread(target=piano_loop, daemon=True).start()
+    
+    return jsonify({"status": "Piano activity started"})
+
+def piano_loop():
+    global distance_from_origin
+    while True:
+        # Only run if origin is set
+        if origin_set:
+            handle_horizontal_movement()
+        time.sleep(0.01)  
+
+def stop_piano_activity():
+    print("[Piano] Stopping activity...")
+    stop_combined_data_thread()  
+    global origin_set, az_history, distance_from_origin
+    origin_set = False
+    az_history = []
+    distance_from_origin = 0.0
+    print("[Piano] Activity stopped")
 '''
 # sound
 @app.route("/play", methods=["GET", "POST"])
@@ -142,25 +201,7 @@ def play():
         return jsonify({"error": str(e)}), 500
     return send_file("countdown.wav") #to also play on laptop
 
-# cumulative trapezoid without scipy because the pi cannot download it
-def cumulative_trapezoid_manual(y, dx=1.0, initial=0):
-    y = np.asarray(y, dtype=np.float64)
-    n = y.shape[0]
-
-    if n < 2:
-        return np.array([initial]) if initial is not None else np.array([])
-
-    # Compute trapezoid integration (without initial)
-    result = np.empty(n - 1, dtype=np.float64)
-    for i in range(n - 1):
-        result[i] = 0.5 * (y[i] + y[i + 1]) * dx
-    cumulative = np.cumsum(result)
-
-    if initial is not None:
-        return np.insert(cumulative, 0, initial)
-    else:
-        return cumulative
-# data
+#data
 def start_combined_data_thread():
     global combined_data_thread, combined_data_running
     if not combined_data_running:
@@ -176,8 +217,7 @@ def stop_combined_data_thread():
     print("combined_data_running in stop thread: {}".format(combined_data_running))
 
 def read_combined_data(): # Combine heel, forefoot, and accelerometer readings on one UDP port
-    global received_heel_data, received_fore_data, received_vertical_raw
-    global ax, ay, az, vertical_raw_data_UDP, combined_data_running
+    global received_heel_data, received_fore_data, received_vertical_raw,ax, ay, az, g, vertical_raw_data_UDP, combined_data_running
     print("[UDP Thread] Started reading data")
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
@@ -195,17 +235,17 @@ def read_combined_data(): # Combine heel, forefoot, and accelerometer readings o
             if len(data) < 20:
                 continue  
             fore_pressure, heel_pressure, ax_val, ay_val, az_val = struct.unpack('5f', data)
-            ay_val = round(ay_val, 3)
+            #ay_val = round(ay_val, 3)
             received_fore_data = int(fore_pressure)
             received_heel_data = int(heel_pressure)
-            ax, ay, az = ax_val, ay_val, az_val
+            ax, ay, az = ax_val * g, ay_val * g, az_val * g #convert to m/s^2 from g
             received_vertical_raw = ay_val
             vertical_raw_data_UDP.append(ay_val)
             update_fore_color(received_fore_data)
             update_heel_color(received_heel_data)
             print("combined_data_running in read thread: {}".format(combined_data_running))
             print("[UDP Thread] Receiving data...")
-            print(f"Fore Pressure: {received_fore_data}, Heel Pressure: {received_heel_data}")
+            print(f"Fore Pressure: {received_fore_data}, Heel Pressure: {received_heel_data}, Acceleration (m/s^2): {ax}, {ay}, {az}")
         except socket.timeout:
             continue
         except Exception:
@@ -297,17 +337,16 @@ def estimate_jump_height(accel_data_str):
     return round(np.max(displacement), 5)
 
 def get_airtime_and_height():
-    global received_heel_data, received_fore_data, received_vertical_raw, vertical_raw_data_UDP
-    global threshold, dt
+    global received_heel_data, received_fore_data, received_vertical_raw, vertical_raw_data_UDP, threshold_heel, threshold_fore, dt
     vertical_raw_data = []
     while True:
-        if int(received_heel_data) < threshold and int(received_fore_data) < threshold:
+        if int(received_heel_data) < threshold_heel and int(received_fore_data) < threshold_fore:
             start_time = time.time()
             print("Takeoff detected")
             break
         time.sleep(0.05)
     while True:
-        if int(received_heel_data) >= threshold or int(received_fore_data) >= threshold:
+        if int(received_heel_data) >= threshold_heel or int(received_fore_data) >= threshold_fore:
             end_time = time.time()
             print("Landing detected")
             break
@@ -353,9 +392,7 @@ def jump_metrics():
 
 # balance
 def balancing_pressure():
-    global totalTime, submitted_name, recording_time
-    global received_heel_data, received_fore_data
-    global threshold
+    global totalTime, submitted_name, recording_time, received_heel_data, received_fore_data, threshold_heel, threshold_fore
     print("[balancing_pressure] Called")
     received_heel_data = "0"
     received_fore_data = "0"
@@ -376,7 +413,7 @@ def balancing_pressure():
             heel = int(received_heel_data)
             fore = int(received_fore_data)
 
-            if heel < threshold and fore < threshold:
+            if heel < threshold_heel and fore < threshold_fore:
                 totalTime = "{:.3f}".format(now - start_time)
             else:
                 recording_time = False
@@ -439,7 +476,7 @@ def button_click():
 # reaction time
 @app.route('/start_reaction')
 def start_reaction():
-    global reaction_data, threshold, received_fore_data, received_heel_data, submitted_name2, reaction_time
+    global reaction_data, threshold_heel, threshold_fore, received_fore_data, received_heel_data, submitted_name2, reaction_time
     received_fore_data = "0"
     received_heel_data = "0"
     reaction_time = "0"
@@ -452,7 +489,7 @@ def start_reaction():
     print(f"[Reaction] Waiting for {delay:.2f}s")
     start_time = time.time()
     while time.time() - start_time < delay:
-        if int(received_heel_data) > threshold or int(received_fore_data) > threshold:
+        if int(received_heel_data) > threshold_heel or int(received_fore_data) > threshold_fore:
             print("[Reaction] Too early")
             reaction_data["status"] = "invalid"
             stop_combined_data_thread()
@@ -465,7 +502,7 @@ def start_reaction():
     reaction_data["status"] = "timing"
     reaction_start = time.time()
     while True:
-        if int(received_heel_data) > threshold or int(received_fore_data) > threshold:
+        if int(received_heel_data) > threshold_heel or int(received_fore_data) > threshold_fore:
             reaction_end = time.time()
             reaction_time = round(reaction_end - reaction_start, 4)
             reaction_data["reaction_time"] = reaction_time
@@ -581,7 +618,7 @@ def force_trainer_results():
 #ForeWalk
 @app.route('/start_forefoot', methods=['POST']) 
 def start_forefoot():
-    global forefoot_status, forefoot_dist, threshold, dt, forefoot_elapsed_time, received_heel_data, submitted_name2
+    global forefoot_status, forefoot_dist, threshold_heel, dt, forefoot_elapsed_time, received_heel_data, submitted_name2
     forefoot_status = "running"
     received_heel_data = "0"
     forefoot_dist = 0
@@ -589,10 +626,9 @@ def start_forefoot():
     duration = 15.0
     start_time = time.time()
     ax_list = []
-   
     while time.time() - start_time < duration:
         heel = int(received_heel_data)
-        if heel > threshold:
+        if heel > threshold_heel:
             forefoot_status = "invalid"
             stop_combined_data_thread()
             forefoot_elapsed_time = round(time.time() - start_time, 1)

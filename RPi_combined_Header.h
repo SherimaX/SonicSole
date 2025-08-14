@@ -35,7 +35,7 @@
 #define CMD_SET_COMPASS_ENABLE 109
 #define CMD_RESET_FILTER 120
 #define CMD_SET_ACCELEROMETER_RANGE 121
-#define CMD_SET_FILTER_MODE 123
+#define CMD_SET_FILTER_MODE 123 // in user manual I dont see command 123
 #define CMD_SET_GYROSCOPE_RANGE 125
 #define CMD_SET_COMPASS_RANGE 126
 
@@ -95,6 +95,7 @@
 #define CALIBRATION_MODE_ORTHO 2
 
 #define CMD_SET_AXIS_DIRECTIONS 116
+#define AXIS_XF_YU_ZL 0x00 // Standard operation/natural axes
 #define AXIS_XR_YF_ZU 0x01 // Right-handed system
 #define AXIS_XU_YR_ZF 0x02
 #define AXIS_XF_YU_ZR 0x05
