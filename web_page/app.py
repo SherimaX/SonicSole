@@ -15,8 +15,7 @@ from threading import Thread #
 logging.getLogger('werkzeug').disabled = True #Suppress werkzeug logs
 
 app = Flask(__name__)
-#UDP_IP = "127.0.0.1"
-#UDP_IP = "192.168.0.101" #pi's ip on wifi2
+#UDP_IP = "127.0.0.1" 
 UDP_IP = "0.0.0.0" # accept connections on any available network interface of the server
 UDP_PORT = 21000 
 bufferSize = 1024
@@ -76,7 +75,7 @@ reaction_time = "0"
 
 threshold_fore = 500
 threshold_heel = 500
-dt = 0.25 #time between samples, 4hz
+dt = 0.01 #time (s) between samples from udp (about 100hz)
 
 pygame.init()
 pygame.mixer.init()

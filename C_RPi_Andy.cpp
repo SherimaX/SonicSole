@@ -44,6 +44,13 @@ int main(int argc, char* argv[])
       
       double time = sole->getRunningTime();
       cout << "\ntime: " << time << endl;
+      struct timeval tv_start, tv_end;
+	    gettimeofday(&tv_start,NULL);
+      sole->readIMU();
+      gettimeofday(&tv_end,NULL);
+      long elapsed_microS = (tv_end.tv_sec - tv_start.tv_sec) * 1000000L + (tv_end.tv_usec - tv_start.tv_usec);
+      double elapsed_seconds = elapsed_microS / 1e6;
+      std::cout << "\ntime: " << elapsed_seconds << " s" << std::endl;
       cout << "Cycle: " << cycle << endl;
       cycle++;
       
@@ -101,7 +108,6 @@ int main(int argc, char* argv[])
       
     // }
 
-
       cout << "\nFore Pressure: " << sole->currForePressure << endl;
       cout << "Heel Pressure: " << sole->currHeelPressure << endl;
 
@@ -119,7 +125,7 @@ int main(int argc, char* argv[])
     
       sole->sendSensorData(sensorData, 21000, 5);
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(250)); //delay 0.25 seconds
+     // std::this_thread::sleep_for(std::chrono::milliseconds(250)); //delay 0.25 seconds
 
       // delay(100);
       // if (sole->getRunningTime() > MAX_RUN_TIME) { 

@@ -120,10 +120,10 @@ public:
 
     SonicSole();
     ~SonicSole();
-    void motorVibrate();
-    // void detectModeChange();
-    void runSoundMode();
-    void runVibrateMode();
+    // void motorVibrate(); //no longer in use
+    // void detectModeChange(); //no longer in use
+    // void runSoundMode(); //no longer in use
+    // void runVibrateMode(); //no longer in use
 
     // void toCSV();
     void toCSV(double time, double heelpresh, double forepresh, float az);
@@ -135,15 +135,15 @@ public:
     void updateCurrentTime();
     void updatePressure();
     int getSensorReadings(unsigned char signal);
-    bool getMode();
-    void switchMode();
+    //bool getMode(); //no longer in use
+    //void switchMode(); //no longer in use
     uint64_t getCurrentTime(); 
     int getCurrForePressure();
     int getCurrHeelPressure();
     void sendFlexSensorData(int flexSensorData);
     void sendFlexSensorData(int flexSensorData, int port);
-    bool detectHeelThreshold();
-    void updateThresholdCounter();
+    //bool detectHeelThreshold(); //no longer in use
+    //void updateThresholdCounter(); //no longer in use
 
     // void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector);
     void getAccelVectorData(float az, vector<float>& azVector);
@@ -158,11 +158,11 @@ private:
     double currentHeelThresholdTime = 0;
     unsigned char SPIbuff[3];
 
-    // void updateHeelThresholdInterval();
+    // void updateHeelThresholdInterval(); //no longer in use
     ofstream outFile;
-    bool detectThreshold(int prevReading, int currReading, int minReading, int maxReading);
-    bool detectCombinedThreshold();
-    void playSound();
+    // bool detectThreshold(int prevReading, int currReading, int minReading, int maxReading); //no longer in use
+    // bool detectCombinedThreshold(); //no longer in use
+    // void playSound(); //no longer in use
     // uint64_t getCurrentTime();
 };
 

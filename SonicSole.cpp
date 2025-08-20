@@ -20,7 +20,6 @@ uint64_t getSecondsTimeStamp() {
       //     sizeof(servaddr));
 //}
 
-
 void UDPSendArray(int sockfd, const float* data, size_t numElements, const struct sockaddr_in& servaddr) {
     size_t numBytes = numElements * sizeof(float);
 
@@ -35,8 +34,6 @@ void UDPSendArray(int sockfd, const float* data, size_t numElements, const struc
     }
 }
 
-
-
 SonicSole::SonicSole() {
     // startTime = getSecondsTimeStamp();
     // previousHeelThresholdTime = getSecondsTimeStamp();
@@ -49,10 +46,8 @@ SonicSole::SonicSole() {
 
     pinMode(20, OUTPUT);
     pinMode(3, OUTPUT);
-
-    
-
-    // INITIALIZING SPI
+   
+    // INITIALIZING SPI (SPI used for pressure, UART used for IMU)
     printf("Initializing SPI...\n\n");
     int fd = wiringPiSPISetupMode(SPI_CHANNEL, 1000000, 0);
     if (fd == -1) {
@@ -76,7 +71,6 @@ SonicSole::SonicSole() {
         printf("UART1 initialized successfully!\n\n");
     }
 
-
     // INITIALIZING GPIO (Use wPi pins, not BCM)
     printf("Initializing GPIO...\n\n");
     if (wiringPiSetupGpio () == -1)
@@ -87,7 +81,7 @@ SonicSole::SonicSole() {
         printf("GPIO initialized successfully!\n\n"); 
     } 
 
-	// CONFIGURING IMU
+	// CONFIGURING IMU (UART)
     try {
         printf("Configuring IMU...\n\n");
         YEIsettingsHeader(IMU);
@@ -97,8 +91,10 @@ SonicSole::SonicSole() {
         YEIwriteCommandValue(IMU, CMD_SET_GYROSCOPE_RANGE, GYROSCOPE_RANGE_2000);
         YEIwriteCommandValue(IMU, CMD_SET_COMPASS_RANGE, COMPASS_RANGE_1_3);
         YEIwriteCommandValue(IMU, CMD_SET_CALIBRATION_MODE, CALIBRATION_MODE_BIAS_SCALE);
+
         //YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XR_YF_ZU); //original
         YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XF_YU_ZL); //standard operation/natural axes
+
         YEIwriteCommandValue(IMU, CMD_SET_REFERENCE_VECTOR_MODE, REFERENCE_VECTOR_MULTI_REFERENCE_MODE);
         YEIwriteCommandValue(IMU, CMD_SET_COMPASS_ENABLE, FALSE);
         YEIwriteCommandValue(IMU, CMD_SET_FILTER_MODE, FILTER_KALMAN);
@@ -107,14 +103,20 @@ SonicSole::SonicSole() {
         YEIwriteCommandNoDelay(IMU, CMD_RESET_FILTER);
         this_thread::sleep_for(chrono::milliseconds(500));
         YEIsetStreamingMode(IMU, READ_TARED_ORIENTATION_AS_QUATERNION, READ_CORRECTED_LINEAR_ACCELERATION, READ_CORRECTED_GYROSCOPE_VECTOR, READ_CORRECTED_ACCELEROMETER_VECTOR, NO_SLOT, NO_SLOT, NO_SLOT, NO_SLOT);
-
         YEIwriteCommandNoDelay(IMU, CMD_TARE_WITH_CURRENT_ORIENTATION);
+
+        printf("Current Streaming Interval: %d", sStreamingTime.interval);
+        sStreamingTime.interval = 1000; //4000
+        sStreamingTime.duration = 0xFFFFFFFF;
+        sStreamingTime.delay = 0;
+        printf("Updated Streaming Interval: %d", sStreamingTime.interval);
+        YEIsetStreamingTime(IMU);
+
         printf("IMU configured successfully!\n\n");
     }
     catch (...) {
         printf("IMU not configured successfully: Error. \n\n");
     }
-
 	bool recordState = true; 
 }
 
@@ -143,7 +145,6 @@ string generateFileName() {
                    << setw (2) << setfill ('0') << localTime->tm_min << ":"
                    << setw (2) << setfill ('0') << localTime->tm_sec
                    << ".csv";
-
     return filenameStream.str();
 }
 
@@ -194,6 +195,7 @@ void SonicSole::updatePressure() {
     currForePressure = getSensorReadings(foreSensorAddr);
     currCombinedPressure = currHeelPressure + currForePressure;
 
+    // not sure if these are still used
     if (currCombinedPressure < minCombinedPressure)
         minCombinedPressure = currCombinedPressure;
 
@@ -244,7 +246,7 @@ int SonicSole::getSensorReadings(unsigned char signal) {
     return sensorReading;
 }
 
-// void SonicSole::detectModeChange() {
+// void SonicSole::detectModeChange() { //no longer in use
 //     startInterval = getSecondsTimeStamp();
 //     detectHeelThreshold();    
 //     if (thresholdCross == 3 && heelThresholdInterval < 3) { //&& (endInterval - startInterval < 1)) {
@@ -254,72 +256,69 @@ int SonicSole::getSensorReadings(unsigned char signal) {
 //     }
 // }
 
-void SonicSole::switchMode() {
-    mode = !mode;
-    thresholdCross = 0;
-    string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
-}
+// void SonicSole::switchMode() { //no longer in use
+//     mode = !mode;
+//     thresholdCross = 0;
+//     string text = mode ? "Switched to Sound Mode" : "Switched to Vibration Mode";
+// }
 
-bool SonicSole::getMode() {
-    return mode;
-}
+// bool SonicSole::getMode() { //no longer in use
+//     return mode;
+// }
 
-// void SonicSole::updateHeelThresholdInterval() {
+// void SonicSole::updateHeelThresholdInterval() { //no longer in use
 //     previousHeelThresholdTime = currentHeelThresholdTime;
 //     currentHeelThresholdTime = getRunningTime();
 //     heelThresholdInterval = currentHeelThresholdTime - previousHeelThresholdTime;    
 // }
 
-bool SonicSole::detectThreshold(int prevReading, int currReading, int minReading, int maxReading) {
-    double threshold = 0.1 * (maxReading - minReading) + minReading; // threshold of device is 10% or 0.1
-    if ((prevReading < threshold) && (currReading > threshold)) {
-        // endInterval = getSecondsTimeStamp();
-        return true;
-    }
-    return false;
-}
+// bool SonicSole::detectThreshold(int prevReading, int currReading, int minReading, int maxReading) { //no longer in use
+//     double threshold = 0.1 * (maxReading - minReading) + minReading; // threshold of device is 10% or 0.1
+//     if ((prevReading < threshold) && (currReading > threshold)) {
+//         // endInterval = getSecondsTimeStamp();
+//         return true;
+//     }
+//     return false;
+// }
 
-bool SonicSole::detectHeelThreshold() {
-    bool thresholdDetected = detectThreshold(prevHeelPressure, currHeelPressure, minHeelPressure, maxHeelPressure);
-    if (thresholdDetected) {
-        updateThresholdCounter();
-    }
-    return thresholdDetected;
-}
+// bool SonicSole::detectHeelThreshold() { //no longer in use
+//     bool thresholdDetected = detectThreshold(prevHeelPressure, currHeelPressure, minHeelPressure, maxHeelPressure);
+//     if (thresholdDetected) {
+//         updateThresholdCounter();
+//     }
+//     return thresholdDetected;
+// }
 
-void SonicSole::updateThresholdCounter() {
-    thresholdCross++;
-}
+// void SonicSole::updateThresholdCounter() { //no longer in use
+//     thresholdCross++;
+// }
 
-bool SonicSole::detectCombinedThreshold() {
-    return detectThreshold(prevCombinedPressure, currCombinedPressure, minCombinedPressure, maxCombinedPressure);
-}
+// bool SonicSole::detectCombinedThreshold() { //no longer in use
+//     return detectThreshold(prevCombinedPressure, currCombinedPressure, minCombinedPressure, maxCombinedPressure);
+// }
 
-void SonicSole::runSoundMode() {
-    cout << "Sound Mode on" << endl;
-}
+// void SonicSole::runSoundMode() { //no longer in use
+//     cout << "Sound Mode on" << endl;
+// }
 
-void SonicSole::playSound() {
-    cout << "Played Sound" << endl;
-}
+// void SonicSole::playSound() { //no longer in use
+//     cout << "Played Sound" << endl;
+// }
 
-void SonicSole::runVibrateMode() {
-    // if (detectCombinedThreshold()) {
-    //     playSound();
-    // }
-    cout << "Vibrate Mode on" << endl;
-}
+// void SonicSole::runVibrateMode() { //no longer in use
+//     // if (detectCombinedThreshold()) {
+//     //     playSound();
+//     // }
+//     cout << "Vibrate Mode on" << endl;
+// }
 
-void SonicSole::motorVibrate() {
-    
-    pinMode(20, OUTPUT);
-    pinMode(3, OUTPUT);
-    digitalWrite(3, LOW); //Turn motors on and off to show device is on
-    digitalWrite(20, LOW);
-    delay(1000);
-}
-
-
+// void SonicSole::motorVibrate() { //no longer in use
+//     pinMode(20, OUTPUT);
+//     pinMode(3, OUTPUT);
+//     digitalWrite(3, LOW); //Turn motors on and off to show device is on
+//     digitalWrite(20, LOW);
+//     delay(1000);
+// }
 
 void SonicSole::readIMU() {
     // https://www.telesens.co/2017/03/11/imu-sampling-using-the-raspberry-pi/
@@ -336,24 +335,25 @@ void SonicSole::readIMU() {
     for (int i = 0 ; i < sizeof(dataIMUPacket) ; i++) dataIMUPacket[i] = 0x00; 
 
       // FILL UP BUFFER BLOCK
-      for (int i = 0; i < NUMBER_BUFFER_PACKET; i++)
-      {
+    //   for (int i = 0; i < NUMBER_BUFFER_PACKET; i++)
+    //   {
         // GET IMU DATA
         YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
-        //while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
-        //{
-          // If no IMU data received, do nothing (print 0 infinitely)
-        //   cout << serialDataAvail(IMU) << endl; 
-        //}
-        int waitCounter = 0;
-        while (serialDataAvail(IMU) < IMU_PACKET_LENGTH) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            waitCounter++;
-            if (waitCounter > 100) {
-                std::cerr << "Timeout waiting for IMU data" << std::endl;
-                return;
-            }
+        while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
+        {
+           // If no IMU data received, do nothing (print 0 infinitely)
         }
+
+        //timeout (waits for 100 for data and if no data arrives, it prints timeout so the pressure data can still send, introduces potential delay of up to 1 second per read depending on how quickly data becomes available)
+        // int waitCounter = 0;
+        // while (serialDataAvail(IMU) < IMU_PACKET_LENGTH) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        //     waitCounter++;
+        //     if (waitCounter > 100) {
+        //         std::cerr << "Timeout waiting for IMU data" << std::endl;
+        //         return;
+        //     }
+        // }
 
       	read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
         reconstructIMUPacket(dataIMUPacket, dataQuat, dataAcce, dataGyro, dataRAcc);
@@ -361,7 +361,7 @@ void SonicSole::readIMU() {
         // uint64_t currentTime = getMicrosTimeStamp() - timestampStart;
         // currentTime = (getMicrosTimeStamp() - timestampStart) / 1000;
         // currentTime = getMicrosTimeStamp() / 1000;
-      }
+    //   }
 
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n\n", dataRAcc.r_ax, dataRAcc.r_ay, dataRAcc.r_az);
     ax = dataAcce.ax;

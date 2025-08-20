@@ -5,7 +5,7 @@
 #define N_STR 512
 #define LENGTH_SINGLE_PACKET 57
 #define LENGTH_BUFFER_BLOCK 40926 // 28500//4047
-#define NUMBER_BUFFER_PACKET 25   // 718 //71
+#define NUMBER_BUFFER_PACKET s   // 718 //71
 
 // UDP Parameters
 #define PORT 25000
