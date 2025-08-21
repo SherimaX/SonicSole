@@ -12,14 +12,14 @@
 #define RADTODEG 57.295779f
 
 #define NO_SLOT	255
-#define READ_TARED_ORIENTATION_AS_QUATERNION 0
-#define READ_TARED_ORIENTATION_AS_EULER_ANGLES 1
-#define READ_UNTARED_ORIENTATION_AS_QUATERNION 6
-#define READ_UNTARED_ORIENTATION_AS_EULER_ANGLES 7
-#define READ_NORMALIZED_ACCELEROMETER_VECTOR  34
-#define READ_CORRECTED_GYROSCOPE_VECTOR   38
-#define READ_CORRECTED_ACCELEROMETER_VECTOR   39
-#define READ_CORRECTED_LINEAR_ACCELERATION    41
+#define READ_TARED_ORIENTATION_AS_QUATERNION 0 // return data which has been filtered using the QGRAD2 filter
+#define READ_TARED_ORIENTATION_AS_EULER_ANGLES 1 //  return data which has been filtered using the QGRAD2 filter
+#define READ_UNTARED_ORIENTATION_AS_QUATERNION 6 //  return data which has been filtered using the QGRAD2 filter
+#define READ_UNTARED_ORIENTATION_AS_EULER_ANGLES 7 //  return data which has been filtered using the QGRAD2 filter.
+#define READ_NORMALIZED_ACCELEROMETER_VECTOR  34 // return data  has been converted from a raw to a form that represents real world quantit but has not been used with the Kalman filter
+#define READ_CORRECTED_GYROSCOPE_VECTOR   38 // return data which has been converted from a raw form to a form that represents a real world quantity
+#define READ_CORRECTED_ACCELEROMETER_VECTOR   39 // return data which has been converted from a raw form to a form that represents a real world quantity
+#define READ_CORRECTED_LINEAR_ACCELERATION    41 // return data which has been converted from a raw form to a form that represents a real world quantity
 #define READ_RAW_GYROSCOPE_VECTOR 65
 #define READ_RAW_ACCELEROMETER_VECTOR 66
 #define	READ_RAW_COMPASS_VECTOR 67

@@ -96,7 +96,7 @@ SonicSole::SonicSole() {
         YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XF_YU_ZL); //standard operation/natural axes
 
         YEIwriteCommandValue(IMU, CMD_SET_REFERENCE_VECTOR_MODE, REFERENCE_VECTOR_MULTI_REFERENCE_MODE);
-        YEIwriteCommandValue(IMU, CMD_SET_COMPASS_ENABLE, FALSE);
+        YEIwriteCommandValue(IMU, CMD_SET_COMPASS_ENABLE, FALSE); // default true
         YEIwriteCommandValue(IMU, CMD_SET_FILTER_MODE, FILTER_KALMAN);
         YEIwriteCommandNoDelay(IMU, CMD_BEGIN_GYROSCOPE_AUTOCALIBRATION);
         this_thread::sleep_for(chrono::milliseconds(500));

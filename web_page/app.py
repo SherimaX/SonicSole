@@ -74,13 +74,13 @@ reaction_data = {
 reaction_time = "0"
 
 threshold_fore = 500
-threshold_heel = 500
-dt = 0.01 #time (s) between samples from udp (about 100hz)
+threshold_heel = 800
+dt = 0.01 #time (s) between samples from udp (100hz)
 
 pygame.init()
 pygame.mixer.init()
 CountSound = pygame.mixer.Sound("countdown.wav")
-CountSound.set_volume(0.5) 
+CountSound.set_volume(0.0) 
 
 # cumulative trapezoid without scipy because the pi cannot download it
 def cumulative_trapezoid_manual(y, dx=1.0, initial=0):
@@ -271,10 +271,10 @@ def stop_data():
 # color
 def update_heel_color(pressure):
     global R_heel, G_heel
-    if pressure < 1000:
+    if pressure < 1500:
         G_heel = 255
         R_heel = int((pressure / 1000) * 255)
-    elif pressure < 2000:
+    elif pressure < 3000:
         R_heel = 255
         G_heel = int(255 - ((pressure - 1000) / 1000) * 255)
 
@@ -495,7 +495,7 @@ def start_reaction():
             return jsonify({"status": "invalid"})
         time.sleep(0.005)
     beep = pygame.mixer.Sound("beep.wav")
-    beep.set_volume(0.005) 
+    beep.set_volume(0.0) 
     beep.play()
     print("[Reaction] Beep")
     reaction_data["status"] = "timing"
