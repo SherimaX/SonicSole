@@ -10,15 +10,20 @@ import pygame
 #from scipy.integrate import cumulative_trapezoid
 import numpy as np
 import logging
-from threading import Thread #
+from threading import Thread 
+
+import queue 
 
 logging.getLogger('werkzeug').disabled = True #Suppress werkzeug logs
 
 app = Flask(__name__)
-#UDP_IP = "127.0.0.1" 
-UDP_IP = "0.0.0.0" # accept connections on any available network interface of the server
+UDP_IP = "127.0.0.1" #accept data from localhost
+#UDP_IP = "0.0.0.0" # accept connections on any available network interface of the server
 UDP_PORT = 21000 
 bufferSize = 1024
+
+udp_queue = queue.Queue(maxsize=1) #hold latest packet only
+
 received_heel_data = "0"
 received_fore_data = "0"
 ax = 0.0 #m/s^2
@@ -73,9 +78,9 @@ reaction_data = {
 }
 reaction_time = "0"
 
-threshold_fore = 500
-threshold_heel = 800
-dt = 0.01 #time (s) between samples from udp (100hz)
+threshold_fore = 300
+threshold_heel = 300
+dt = 0.009 #time (s) between samples from udp (its not really 100hz its closer to about 0.009s between samples (111hz))
 
 pygame.init()
 pygame.mixer.init()
@@ -102,7 +107,7 @@ def cumulative_trapezoid_manual(y, dx=1.0, initial=0):
         return cumulative
 
 '''
-# piano attempt 1
+# piano activity attempt 1 (in progress)
 distance_from_origin = 0.0
 az_history = []
 last_step_time = None
@@ -209,12 +214,14 @@ def start_combined_data_thread():
         combined_data_thread.daemon = True
         combined_data_thread.start()
 
+        threading.Thread(target=process_udp_data, daemon=True).start()
+
 def stop_combined_data_thread():
     global combined_data_running
     print("Stopped")
     combined_data_running = False
     print("combined_data_running in stop thread: {}".format(combined_data_running))
-
+'''
 def read_combined_data(): # Combine heel, forefoot, and accelerometer readings on one UDP port
     global received_heel_data, received_fore_data, received_vertical_raw,ax, ay, az, g, vertical_raw_data_UDP, combined_data_running
     print("[UDP Thread] Started reading data")
@@ -251,6 +258,56 @@ def read_combined_data(): # Combine heel, forefoot, and accelerometer readings o
             continue
     print("[UDP Thread] Stopped reading data")
     sock.close()
+'''
+def read_combined_data(): #this function to read data and other function to "process" data
+    global received_heel_data, received_fore_data, received_vertical_raw, ax, ay, az, g, combined_data_running
+    
+    print("[UDP Thread] Started reading data")
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1<<20)
+    sock.settimeout(0.1)
+    try:
+        sock.bind((UDP_IP, UDP_PORT))
+    except OSError as e:
+        print(f"[UDP Thread] Could not bind socket: {e}")
+        combined_data_running = False
+        sock.close()
+        return
+    while combined_data_running:
+        try:
+            data, addr = sock.recvfrom(1024)
+            if len(data) < 20:
+                continue
+            fore_pressure, heel_pressure, ax_val, ay_val, az_val = struct.unpack('5f', data)
+            # fast updates only
+            received_fore_data = int(fore_pressure)
+            received_heel_data = int(heel_pressure)
+            ax, ay, az = ax_val * g, ay_val * g, az_val * g
+            received_vertical_raw = ay_val
+            # push to queue (drop old if full)
+            if not udp_queue.full():
+                udp_queue.put_nowait((received_fore_data, received_heel_data, ax, ay, az))
+        except (socket.timeout, BlockingIOError):
+            continue
+        except Exception as e:
+            print(f"[UDP Thread] Error: {e}")
+            continue
+    sock.close()
+    print("[UDP Thread] Stopped reading data")
+
+def process_udp_data(): #this function to do the slow work and the other to read as attampt to improve how fast can read data
+    global received_heel_data, received_fore_data, ax, ay, az
+    while combined_data_running:
+        try:
+            fore, heel, ax_val, ay_val, az_val = udp_queue.get(timeout=0.1)
+            # do slow work here
+            update_fore_color(fore)
+            update_heel_color(heel)
+            # print (slow)
+            print(f"Fore:{fore}, Heel:{heel}, ax:{ax_val:.2f}, ay:{ay_val:.2f}, az:{az_val:.2f}")
+        except queue.Empty:
+            continue
 
 @app.route('/heel_data', methods=['GET'])
 def heel_data():
@@ -347,10 +404,11 @@ def get_airtime_and_height():
     while True:
         if int(received_heel_data) >= threshold_heel or int(received_fore_data) >= threshold_fore:
             end_time = time.time()
+            stop_combined_data_thread()
             print("Landing detected")
             break
         vertical_raw_data.append(received_vertical_raw)
-        time.sleep(dt)
+        time.sleep(dt) #soem time.sleep is needed but this way is not ideal
     airtime = end_time - start_time
     # print(f"Airtime: {airtime:.4f} seconds")
     #print(f"Samples collected vrdudp: {len(vertical_raw_data_UDP)}")
@@ -358,8 +416,8 @@ def get_airtime_and_height():
     if len(vertical_raw_data) < 10:
         print("Not enough samples for jump height. Returning 0.")
         return round(airtime, 5), 0.0
-    # jump_height = estimate_jump_height(vertical_raw_data) #double integration approach
-    jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics approach
+    jump_height = estimate_jump_height(vertical_raw_data) #double integration of acceleration approach (IMU)
+    #jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics formula approach. I htink this works pretty well.
     # print(f"Estimated height: {jump_height:.5f} m")
     #vertical_raw_data_UDP = []
     return round(airtime, 4), jump_height
@@ -371,7 +429,7 @@ def start_jump():
     jump_metrics_ready = False
     #start_combined_data_thread()
     airtime, height = get_airtime_and_height()
-    stop_combined_data_thread()
+    #stop_combined_data_thread()
     last_airtime = airtime
     last_jump_height = height
     jump_metrics_ready = True
@@ -519,28 +577,6 @@ def start_reaction():
 def reaction_status():
     return jsonify(reaction_data)
 
-'''
-def read_heel_pressure():
-    global received_heel_data
-    print(f"Read Heel Pressure")
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((UDP_IP, UDP_PORT))
-    while True:
-        data, addr = sock.recvfrom(1024)
-        received_heel_data = int.from_bytes(data, byteorder='little')
-        update_heel_color(received_heel_data)
-        print(f"Heel Pressure: {received_heel_data}")
-def read_fore_pressure():
-    global received_fore_data
-    print(f"Read Fore Pressure")
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((UDP_IP, UDP_PORT2))
-    while True:
-        data, addr = sock.recvfrom(1024)
-        received_fore_data = int.from_bytes(data, byteorder='little')
-        update_fore_color(received_fore_data)
-        print(f"Fore Pressure: {received_fore_data}")
-'''
 # force sensitivity
 @app.route('/start_force_trainer')
 def start_force_trainer():

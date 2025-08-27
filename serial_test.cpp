@@ -6,9 +6,9 @@
 
 int main() {
     SonicSole* sole = new SonicSole();
-    //int fd = serialOpen("/dev/ttyS0", 115200); 
+    int fd = serialOpen("/dev/ttyS0", 115200); 
 
-    int fd = serialOpen("/dev/ttyS0", 115200);
+    //int fd = serialOpen("/dev/ttyS0", 921600);
     //int fd = serialOpen("/dev/ttyAMA0", 921600);
 
     if (fd < 0) {

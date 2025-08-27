@@ -341,6 +341,7 @@ void SonicSole::readIMU() {
         YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
         while(serialDataAvail(IMU) < IMU_PACKET_LENGTH)
         {
+           //printf("%d\n", serialDataAvail(IMU));
            // If no IMU data received, do nothing (print 0 infinitely)
         }
 
@@ -418,10 +419,9 @@ void SonicSole::sendSensorData(float flexSensorData[], int port, size_t numEleme
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(port);
-    serverAddr.sin_addr.s_addr = inet_addr("192.168.0.101"); // pi ip on tplink
-    //serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
+    //serverAddr.sin_addr.s_addr = inet_addr("192.168.0.101"); // pi ip on tplink
+    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
     //serverAddr.sin_addr.s_addr = inet_addr("192.168.50.109"); // ip on wrsl wifi
-    //serverAddr.sin_addr.s_addr = inet_addr("192.168.0.100"); //ip on tplink
 
     try {
         UDPSendArray(sockfd, flexSensorData, numElements, serverAddr);

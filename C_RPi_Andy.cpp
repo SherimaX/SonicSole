@@ -1,3 +1,4 @@
+// compile command = g++ -o C_RPi_Andy C_RPi_Andy.cpp SonicSole.cpp -lwiringPi -lpthread -std=c++17
 #include <iostream>
 #include "SonicSole.h"
 // #include "boost/asio.hpp"
@@ -50,7 +51,7 @@ int main(int argc, char* argv[])
       gettimeofday(&tv_end,NULL);
       long elapsed_microS = (tv_end.tv_sec - tv_start.tv_sec) * 1000000L + (tv_end.tv_usec - tv_start.tv_usec);
       double elapsed_seconds = elapsed_microS / 1e6;
-      std::cout << "\ntime: " << elapsed_seconds << " s" << std::endl;
+      std::cout << "\ntime (since last): " << elapsed_seconds << " s" << std::endl;
       cout << "Cycle: " << cycle << endl;
       cycle++;
       
