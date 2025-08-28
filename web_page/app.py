@@ -7,7 +7,6 @@ import csv
 import random
 import struct
 import pygame
-#from scipy.integrate import cumulative_trapezoid
 import numpy as np
 import logging
 from threading import Thread 
@@ -162,7 +161,7 @@ def play_note_based_on_distance(distance):
     print(f"[Piano] Played highest note for distance {distance:.2f} m")
     time.sleep(0.2)
 
-@app.route('/piano')
+@app.route('/piano_start')
 def piano_activity():
     print("[Piano] Starting activity...")
     
@@ -224,44 +223,7 @@ def stop_combined_data_thread():
     print("Stopped")
     combined_data_running = False
     print("combined_data_running in stop thread: {}".format(combined_data_running))
-'''
-def read_combined_data(): # Combine heel, forefoot, and accelerometer readings on one UDP port
-    global received_heel_data, received_fore_data, received_vertical_raw,ax, ay, az, g, vertical_raw_data_UDP, combined_data_running
-    print("[UDP Thread] Started reading data")
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
-    sock.settimeout(0.5)  
-    try:
-        sock.bind((UDP_IP, UDP_PORT))
-    except OSError as e:
-        print(f"[UDP Thread] Could not bind socket: {e}")
-        combined_data_running = False
-        sock.close()
-        return
-    while combined_data_running:
-        try:
-            data, addr = sock.recvfrom(1024)
-            if len(data) < 20:
-                continue  
-            fore_pressure, heel_pressure, ax_val, ay_val, az_val = struct.unpack('5f', data)
-            #ay_val = round(ay_val, 3)
-            received_fore_data = int(fore_pressure)
-            received_heel_data = int(heel_pressure)
-            ax, ay, az = ax_val * g, ay_val * g, az_val * g #convert to m/s^2 from g
-            received_vertical_raw = ay_val
-            vertical_raw_data_UDP.append(ay_val)
-            update_fore_color(received_fore_data)
-            update_heel_color(received_heel_data)
-            print("combined_data_running in read thread: {}".format(combined_data_running))
-            print("[UDP Thread] Receiving data...")
-            print(f"Fore Pressure: {received_fore_data}, Heel Pressure: {received_heel_data}, Acceleration (m/s^2): {ax}, {ay}, {az}")
-        except socket.timeout:
-            continue
-        except Exception:
-            continue
-    print("[UDP Thread] Stopped reading data")
-    sock.close()
-'''
+
 def read_combined_data(): #this function to read data and other function to "process" data
     global received_heel_data, received_fore_data, received_vertical_raw, ax, ay, az, g, combined_data_running
     
@@ -298,19 +260,6 @@ def read_combined_data(): #this function to read data and other function to "pro
             continue
     sock.close()
     print("[UDP Thread] Stopped reading data")
-'''
-def process_udp_data(): #this function to do the slow work and the other to read as attampt to improve how fast can read data
-    global received_heel_data, received_fore_data, ax, ay, az
-    while combined_data_running:
-        try:
-            fore, heel, ax_val, ay_val, az_val = udp_queue.get(timeout=0.1)
-            # do slow work here
-            update_fore_color(fore)
-            update_heel_color(heel)
-            # print (slow)
-            print(f"Fore:{fore}, Heel:{heel}, ax:{ax_val:.2f}, ay:{ay_val:.2f}, az:{az_val:.2f}")
-        except queue.Empty:
-            continue'''
 
 def process_udp_data(): #this function to do the slow work and the other to read as attampt to improve how fast can read data
     global received_heel_data, received_fore_data, ax, ay, az, jump_vertical_buffer, jump_collecting
@@ -370,13 +319,6 @@ def color_data():
     return jsonify({'R_heel': R_heel, 'G_heel': G_heel, 'R_fore': R_fore, 'G_fore': G_fore})
 
 # jump
-
-def jumpingScoreInformation():
-    global submitted_name2, last_jump_height
-    with open("SonicSoleJump.txt", "a") as f:
-        f.write(f"{submitted_name2},{last_jump_height}\n")
-
-
 def estimate_jump_height(accel_data_str):
     global dt;
     print("accel_data_str: {}".format(accel_data_str))
@@ -433,6 +375,7 @@ def get_airtime_and_height():
     # print(f"Estimated height: {jump_height:.5f} m")
     #vertical_raw_data_UDP = []
     return round(airtime, 4), jump_height'''
+
 def get_airtime_and_height():
     global received_heel_data, received_fore_data, jump_vertical_buffer, jump_collecting
     while True:
@@ -459,13 +402,15 @@ def get_airtime_and_height():
     if len(samples) < 10:
         print("Not enough samples for jump height. Returning 0.")
         return round(airtime, 5), 0.0
-    jump_height = estimate_jump_height(samples)
+    jump_height = estimate_jump_height(samples) #double acceleration integration approach
+    #jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics formula approach. I think this works pretty well
+    #print(f"Estimated height: {jump_height:.5f} m")
     return round(airtime, 4), jump_height
 
 @app.route('/start_jump')
 def start_jump():
     print("start_jump clicked")
-    global last_airtime, last_jump_height, jump_metrics_ready
+    global last_airtime, last_jump_height, jump_metrics_ready, submitted_name2
     jump_metrics_ready = False
     #start_combined_data_thread()
     airtime, height = get_airtime_and_height()
@@ -474,7 +419,8 @@ def start_jump():
     last_jump_height = height
     jump_metrics_ready = True
 
-    jumpingScoreInformation()
+    with open("SonicSoleJump.txt", "a") as f:
+        f.write(f"{submitted_name2},{last_jump_height}\n")
 
     return jsonify({'status': 'jump measured'})
 
@@ -705,7 +651,7 @@ def get_forefoot_status():
         'distance_meters': forefoot_dist,
         'time': forefoot_elapsed_time
     })
-
+'''
 def estimate_distance_from_ax(ax_values): #later may want to add decay/kalman/low pass filter for drift
     if len(ax_values) < 2:
         return 0.0
@@ -715,53 +661,55 @@ def estimate_distance_from_ax(ax_values): #later may want to add decay/kalman/lo
     displacement = 0
     velocity = cumulative_trapezoid_manual(ax_array, dx=dt_adjusted, initial=0)
     speed = np.abs(velocity) 
-    displacement = cumulative_trapezoid_manual(speed, dx=dt_adjusted, initial=0)
-   # displacement = cumulative_trapezoid_manual(speed, dx=dt_adjusted, initial=0)
+    displacement = cumulative_trapezoid_manual(velocity, dx=dt_adjusted, initial=0)
+   # displacement = cumulative_trapezoid_manual(speed, dx=dt_adjusted, initial=0) #distance not displacement
 
     return float(round(displacement[-1], 3))
-'''  function by chatgpt
-def estimate_distance_from_ax(ax_values):
-    """
-    Returns TOTAL DISTANCE (meters) by integrating |velocity|.
-    Assumes ax_values are in m/s^2 
-    """
-    n = len(ax_values)
-    if n < 2:
-        return 0.0
-    # 1) Use avg dt for capture window
-    dt = 15.0 / n
-    a = np.asarray(ax_values, dtype=float)
-    # ---- helpers ----
-    def moving_average(x, win):
-        win = max(1, int(win))
-        if win <= 1 or win >= len(x):
-            return x
-        k = np.ones(win) / win
-        return np.convolve(x, k, mode='same')
-    # 2) Low-pass to reduce high-frequency noise (≈0.1 s window)
-    lp_win = max(3, int(0.10 / dt))         # ~10 Hz cutoff feel
-    a_lp = moving_average(a, lp_win)
 
-    # 3) High-pass (bias/gravity removal) via subtracting a slow moving average (≈1 s)
-    hp_win = max(3, int(1.0 / dt))
-    a_bias = moving_average(a_lp, hp_win)
-    a_hp = a_lp - a_bias
-
-    # 4) Integrate to velocity
-    v = cumulative_trapezoid_manual(a_hp, dx=dt, initial=0.0)
-
-    # 5) Enforce v(0)=v(T)=0 (drift removal by linear detrend)
-    drift = np.linspace(0.0, v[-1], len(v))
-    v_corr = v - drift
-
-    # 6) Small deadband to kill tiny residuals before taking |v|
-    speed = np.abs(v_corr)
-    speed[speed < 0.02] = 0.0   # tune: 0.01–0.05 m/s depending on noise
-
-    # 7) Integrate speed -> distance
-    dist = cumulative_trapezoid_manual(speed, dx=dt, initial=0.0)
-    return float(round(dist[-1], 3))
 '''
+
+def estimate_distance_from_ax(ax_values):
+    #Includes  sections for: Bias calibration, Low-pass filtering, High-pass filtering
+    if len(ax_values) < 2:
+        return 0.0
+    dt_adjusted = 15.0 / len(ax_values) #adjust dt based on num of packets actually received
+    ax_array = np.array(ax_values, dtype=np.float64)
+
+    # 1. Bias Calibration (remove constant offset)
+
+    # bias = np.mean(ax_array[:100])  # estimate bias from first N samples
+    # ax_array = ax_array - bias
+
+    # 2. Low-Pass Filter (smooth out high-frequency noise)
+
+    # alpha = 0.1  # 0 < alpha < 1, smaller = smoother
+    # ax_filtered = np.zeros_like(ax_array)
+    # ax_filtered[0] = ax_array[0]
+    # for i in range(1, len(ax_array)):
+    #     ax_filtered[i] = alpha * ax_array[i] + (1 - alpha) * ax_filtered[i - 1]
+    # ax_array = ax_filtered
+
+
+    # 3. High-Pass Filter (remove drift / very low frequency bias)
+
+    # hp_alpha = 0.95  # closer to 1 keeps high freq, removes drift
+    # ax_hp = np.zeros_like(ax_array)
+    # ax_hp[0] = ax_array[0]
+    # for i in range(1, len(ax_array)):
+    #     ax_hp[i] = hp_alpha * (ax_hp[i-1] + ax_array[i] - ax_array[i-1])
+    # ax_array = ax_hp
+
+
+    # 4. Integration: accel -> velocity -> path distance
+
+    velocity = cumulative_trapezoid_manual(ax_array, dx=dt_adjusted, initial=0)
+
+    speed = np.abs(velocity) 
+    path_distance = cumulative_trapezoid_manual(speed, dx=dt_adjusted, initial=0)
+    return float(round(path_distance[-1], 3))
+    #displacement = cumulative_trapezoid_manual(velocity, dt=dt_adjusted, initial=0)
+    #return float(round(displacement[-1], 3))
+
 # webpage routes
 @app.route('/')
 def home():
@@ -795,6 +743,10 @@ def reaction():
 @app.route('/foreWalk')
 def foreWalk():
     return render_template('foreWalk.html')
+
+@app.route('/piano')
+def piano():
+    return render_template('piano.html')
 
 # scoreboards
 @app.route('/bScoreboard')
@@ -973,8 +925,8 @@ def submit2():
     return jsonify({"status": "Name submitted successfully"})
 recording_time = True
 
-# misc
-def send_udp_data(): #unsure what this is for
+# misc (not sure what these are for)
+def send_udp_data(): 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     n = 1
     sock.sendto(n.to_bytes(1, byteorder='big'), (UDP_IP, UDP_PORT))
@@ -986,15 +938,4 @@ def button():
 
 # main
 if __name__ == '__main__':
-    # udp_thread_jumping = threading.Thread(target=jumpingScoreInformation)
-    # udp_thread_jumping.daemon = True
-    # udp_thread_jumping.start()
-    #udp_thread_combined = threading.Thread(target=read_combined_data)
-    #udp_thread_combined.daemon = True
-    #udp_thread_combined.start()
-    # ForeWalk: start thread
-    # ForeWalk: start thread
-    # udp_thread_forefoot = threading.Thread(target=forefoot_walk_session)
-    # udp_thread_forefoot.daemon = True
-    # udp_thread_forefoot.start()
     app.run(host='0.0.0.0', port=5000, debug=False)
