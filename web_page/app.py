@@ -37,6 +37,10 @@ jump_metrics_ready = False
 last_jump_height = 0.0
 last_airtime = 0.0
 
+jump_vertical_buffer = []
+jump_collecting = False
+jump_lock = threading.Lock()
+
 # heel_list = [0 for _ in range(100)]
 totalTime = "0"
 
@@ -47,7 +51,6 @@ G_fore = 255
 
 submitted_name = "User1"
 eyes_open = False
-greatest_total = 50
 first_name = "first"
 last_name = "last"
 
@@ -78,8 +81,8 @@ reaction_data = {
 }
 reaction_time = "0"
 
-threshold_fore = 300
-threshold_heel = 300
+threshold_fore = 350
+threshold_heel = 350
 dt = 0.009 #time (s) between samples from udp (its not really 100hz its closer to about 0.009s between samples (111hz))
 
 pygame.init()
@@ -295,7 +298,7 @@ def read_combined_data(): #this function to read data and other function to "pro
             continue
     sock.close()
     print("[UDP Thread] Stopped reading data")
-
+'''
 def process_udp_data(): #this function to do the slow work and the other to read as attampt to improve how fast can read data
     global received_heel_data, received_fore_data, ax, ay, az
     while combined_data_running:
@@ -305,6 +308,23 @@ def process_udp_data(): #this function to do the slow work and the other to read
             update_fore_color(fore)
             update_heel_color(heel)
             # print (slow)
+            print(f"Fore:{fore}, Heel:{heel}, ax:{ax_val:.2f}, ay:{ay_val:.2f}, az:{az_val:.2f}")
+        except queue.Empty:
+            continue'''
+
+def process_udp_data(): #this function to do the slow work and the other to read as attampt to improve how fast can read data
+    global received_heel_data, received_fore_data, ax, ay, az, jump_vertical_buffer, jump_collecting
+    while combined_data_running:
+        try:
+            fore, heel, ax_val, ay_val, az_val = udp_queue.get(timeout=0.1)
+            # received_fore_data = fore
+            # received_heel_data = heel
+            # ax, ay, az = ax_val, ay_val, az_val
+            if jump_collecting:  # If jump recording is active, collect ay_val
+                with jump_lock:
+                    jump_vertical_buffer.append(ay_val)
+            update_fore_color(fore)
+            update_heel_color(heel)
             print(f"Fore:{fore}, Heel:{heel}, ax:{ax_val:.2f}, ay:{ay_val:.2f}, az:{az_val:.2f}")
         except queue.Empty:
             continue
@@ -350,20 +370,12 @@ def color_data():
     return jsonify({'R_heel': R_heel, 'G_heel': G_heel, 'R_fore': R_fore, 'G_fore': G_fore})
 
 # jump
+
 def jumpingScoreInformation():
-    global received_fore_data, received_heel_data, submitted_name2, greatest_total
-    curr_submitted_name = submitted_name2
-    greatest_total = 50
-    while True:
-            if(submitted_name2 != curr_submitted_name):
-                greatest_total = 50
-                curr_submitted_name = submitted_name2
-            if int(received_heel_data) + int(received_fore_data) > greatest_total:
-                print(submitted_name2)
-                greatest_total = int(received_heel_data) + int(received_fore_data)
-                g = open("SonicSoleJump.txt", "a")
-                g.write(submitted_name2 + "," + str(greatest_total) + "\n")
-                g.close()
+    global submitted_name2, last_jump_height
+    with open("SonicSoleJump.txt", "a") as f:
+        f.write(f"{submitted_name2},{last_jump_height}\n")
+
 
 def estimate_jump_height(accel_data_str):
     global dt;
@@ -387,11 +399,11 @@ def estimate_jump_height(accel_data_str):
     
     velocity = cumulative_trapezoid_manual(accel_data, dx=dt, initial=0)
     print("velocity: {}".format(velocity))
-    displacement = cumulative_trapezoid_manual(velocity, dx=dt, initial=0)
-    print("displacement: {}".format(displacement))
-    
-    return round(np.max(displacement), 5)
+    dist = cumulative_trapezoid_manual(velocity, dx=dt, initial=0)
+    print("displacement: {}".format(dist))
 
+    return round(np.max(dist), 5)
+'''
 def get_airtime_and_height():
     global received_heel_data, received_fore_data, received_vertical_raw, vertical_raw_data_UDP, threshold_heel, threshold_fore, dt
     vertical_raw_data = []
@@ -420,6 +432,34 @@ def get_airtime_and_height():
     #jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics formula approach. I htink this works pretty well.
     # print(f"Estimated height: {jump_height:.5f} m")
     #vertical_raw_data_UDP = []
+    return round(airtime, 4), jump_height'''
+def get_airtime_and_height():
+    global received_heel_data, received_fore_data, jump_vertical_buffer, jump_collecting
+    while True:
+        if int(received_heel_data) < threshold_heel and int(received_fore_data) < threshold_fore:
+            start_time = time.time()
+            jump_vertical_buffer = []  # Reset buffer
+            jump_collecting = True
+            print("Takeoff detected")
+            break
+        #time.sleep(0.01)
+    while True:
+        if int(received_heel_data) >= threshold_heel or int(received_fore_data) >= threshold_fore:
+            end_time = time.time()
+            jump_collecting = False
+            stop_combined_data_thread()
+            print("Landing detected")
+            break
+        time.sleep(0.01)
+    airtime = end_time - start_time
+    samples = []
+    # Safely copy collected data
+    with jump_lock:
+        samples = jump_vertical_buffer[:]
+    if len(samples) < 10:
+        print("Not enough samples for jump height. Returning 0.")
+        return round(airtime, 5), 0.0
+    jump_height = estimate_jump_height(samples)
     return round(airtime, 4), jump_height
 
 @app.route('/start_jump')
@@ -433,6 +473,9 @@ def start_jump():
     last_airtime = airtime
     last_jump_height = height
     jump_metrics_ready = True
+
+    jumpingScoreInformation()
+
     return jsonify({'status': 'jump measured'})
 
 @app.route('/jump_metrics')
@@ -618,7 +661,7 @@ def run_force_trainer():
     time.sleep(3)
 
     force_trainer_state['status'] = 'measuring' # Step 3: Random target percentage
-    target_percent = random.choice([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95])
+    target_percent = random.choice([20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105])
     force_trainer_state['target_percent'] = target_percent
 
     readings = [] # Step 4: Measure pressure hold
@@ -635,6 +678,7 @@ def run_force_trainer():
     force_trainer_state['measured_force'] = round(percent_applied, 1)
     force_trainer_state['error_percent'] = round(percent_error, 1)
     force_trainer_state['status'] = 'done'
+    time.sleep(1)
     percent_error = round(percent_error, 3)
 
     with open("SonicSoleForceSense.txt", "a") as f:
@@ -689,7 +733,7 @@ def get_forefoot_status():
         'time': forefoot_elapsed_time
     })
 
-def estimate_distance_from_ax(ax_values): #later may want to add decay/kalman for drift
+def estimate_distance_from_ax(ax_values): #later may want to add decay/kalman/low pass filter for drift
     if len(ax_values) < 2:
         return 0.0
     dt_adjusted = 15.0 / len(ax_values) #adjust dt based on num of packets actually received
@@ -697,10 +741,54 @@ def estimate_distance_from_ax(ax_values): #later may want to add decay/kalman fo
     ax_array = np.array(ax_values)
     displacement = 0
     velocity = cumulative_trapezoid_manual(ax_array, dx=dt_adjusted, initial=0)
-    displacement = cumulative_trapezoid_manual(velocity, dx=dt_adjusted, initial=0)
+    speed = np.abs(velocity) 
+    displacement = cumulative_trapezoid_manual(speed, dx=dt_adjusted, initial=0)
+   # displacement = cumulative_trapezoid_manual(speed, dx=dt_adjusted, initial=0)
 
     return float(round(displacement[-1], 3))
+'''  function by chatgpt
+def estimate_distance_from_ax(ax_values):
+    """
+    Returns TOTAL DISTANCE (meters) by integrating |velocity|.
+    Assumes ax_values are in m/s^2 
+    """
+    n = len(ax_values)
+    if n < 2:
+        return 0.0
+    # 1) Use avg dt for capture window
+    dt = 15.0 / n
+    a = np.asarray(ax_values, dtype=float)
+    # ---- helpers ----
+    def moving_average(x, win):
+        win = max(1, int(win))
+        if win <= 1 or win >= len(x):
+            return x
+        k = np.ones(win) / win
+        return np.convolve(x, k, mode='same')
+    # 2) Low-pass to reduce high-frequency noise (≈0.1 s window)
+    lp_win = max(3, int(0.10 / dt))         # ~10 Hz cutoff feel
+    a_lp = moving_average(a, lp_win)
 
+    # 3) High-pass (bias/gravity removal) via subtracting a slow moving average (≈1 s)
+    hp_win = max(3, int(1.0 / dt))
+    a_bias = moving_average(a_lp, hp_win)
+    a_hp = a_lp - a_bias
+
+    # 4) Integrate to velocity
+    v = cumulative_trapezoid_manual(a_hp, dx=dt, initial=0.0)
+
+    # 5) Enforce v(0)=v(T)=0 (drift removal by linear detrend)
+    drift = np.linspace(0.0, v[-1], len(v))
+    v_corr = v - drift
+
+    # 6) Small deadband to kill tiny residuals before taking |v|
+    speed = np.abs(v_corr)
+    speed[speed < 0.02] = 0.0   # tune: 0.01–0.05 m/s depending on noise
+
+    # 7) Integrate speed -> distance
+    dist = cumulative_trapezoid_manual(speed, dx=dt, initial=0.0)
+    return float(round(dist[-1], 3))
+'''
 # webpage routes
 @app.route('/')
 def home():
@@ -777,12 +865,12 @@ def b_scoreboard():
 def j_scoreboard():
     data = []
     try:
-        with open('SonicSoleJump.txt', 'r') as g:
-            reader = csv.reader(g)
+        with open('SonicSoleJump.txt', 'r') as f:
+            reader = csv.reader(f)
             for row in reader:
                 if len(row) >= 2:
                     try:
-                        data.append({'name': row[0], 'total': float(row[1])})
+                        data.append({'name': row[0], 'last_jump_height': float(row[1])})
                     except ValueError:
                         continue
     except FileNotFoundError:
@@ -793,14 +881,11 @@ def j_scoreboard():
     unique_data = {}
     for entry in data:
         name = entry['name']
-        total = entry['total']
-        if name not in unique_data:
+        total = entry['last_jump_height']
+        if name not in unique_data or total > unique_data[name]:
             unique_data[name] = total
-        else:
-            if total > unique_data[name]:
-                unique_data[name] = total
-    leaderboard_data = [{'name': name, 'total': total} for name, total in unique_data.items()]
-    leaderboard_data.sort(key=lambda x: x['total'], reverse=True)
+    leaderboard_data = [{'name': name, 'last_jump_height': total} for name, total in unique_data.items()]
+    leaderboard_data.sort(key=lambda x: x['last_jump_height'], reverse=True)
     return render_template('jScoreboard.html', data=leaderboard_data)
 
 @app.route('/rScoreboard')
@@ -928,9 +1013,9 @@ def button():
 
 # main
 if __name__ == '__main__':
-    udp_thread_jumping = threading.Thread(target=jumpingScoreInformation)
-    udp_thread_jumping.daemon = True
-    udp_thread_jumping.start()
+    # udp_thread_jumping = threading.Thread(target=jumpingScoreInformation)
+    # udp_thread_jumping.daemon = True
+    # udp_thread_jumping.start()
     #udp_thread_combined = threading.Thread(target=read_combined_data)
     #udp_thread_combined.daemon = True
     #udp_thread_combined.start()

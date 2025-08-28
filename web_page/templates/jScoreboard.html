@@ -162,13 +162,13 @@ function updateSortIndicators(table, columnIndex, isAscending) {
           Name <span class="sort-indicator"></span>
         </th>
         <th onclick="sortTable(1, true)" class="sortable">
-          Jump Height <span class="sort-indicator"></span>
+          Jump Height (m) <span class="sort-indicator"></span>
         </th>
       </tr>
       {% for entry in data %}
       <tr>
         <td>{{ entry.name }}</td>
-        <td>{{ entry.total }}</td>
+        <td>{{ entry.last_jump_height }}</td>
       </tr>
       {% endfor %}
     </table>

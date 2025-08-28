@@ -203,7 +203,6 @@
         const cooldownRemaining = Math.max(0, 3 - cooldownElapsed).toFixed(1);
         timeBox.innerText = `Cooldown: ${cooldownRemaining}s`;
 
-
       } else if (statusText.includes("measuring")) {
         const target = data.target_percent;
         const maxForce = data.max_force;
@@ -212,9 +211,8 @@
         const measuringRemaining = Math.max(0, 10 - measuringElapsed).toFixed(1); // set 10s
         timeBox.innerText = `Measuring: ${measuringRemaining}s`;
 
-
       } else if (statusText.includes("done")) {
-        messageBox.innerText = "Finished! Calculating results...";
+        //messageBox.innerText = "Finished! Calculating results...";
         timeBox.innerText = `Done!`;
         clearInterval(pollingInterval);
         showFinalResults();
@@ -226,7 +224,6 @@
     });
 }
 
-  
     function showFinalResults() {
   fetch("/force_trainer_results")
     .then((response) => response.json())

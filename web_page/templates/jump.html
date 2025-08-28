@@ -168,7 +168,7 @@
         var form = document.getElementById("name-form");
         var formData = new FormData(form);
 
-        fetch("/submit", {
+        fetch("/submit2", {
           method: "POST",
           body: formData,
         }).then((response) => {
@@ -261,13 +261,13 @@
         <div class="name-fields">
           <input
             type="text"
-            name="first_name"
+            name="first_name2"
             required
             placeholder="Enter First Name"
           />
           <input
             type="text"
-            name="last_name"
+            name="last_name2"
             required
             placeholder="Enter Last Name"
           />
