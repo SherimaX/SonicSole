@@ -534,16 +534,6 @@ def balancing():
     global totalTime
     return jsonify({'data': totalTime})
 
-'''@app.route('/button_click', methods=['POST'])
-def button_click():
-    global recording_time, totalTime, CountSound
-    CountSound.play()
-    recording_time = True
-    totalTime = "0"
-    thread = threading.Thread(target=balancing_pressure)
-    thread.daemon = True
-    thread.start()
-    return jsonify({"status": "Data transmission started"})'''
 @app.route('/button_click', methods=['POST'])
 def button_click():
     global recording_time, totalTime, CountSound
@@ -555,23 +545,6 @@ def button_click():
     thread.daemon = True
     thread.start()
     return jsonify({"status": "Data transmission started"})
-'''
-def play_countdown_sound():
-    try:
-        CountSound.play()
-    except Exception as e:
-        print("Sound error:", e)
-
-@app.route('/button_click', methods=['POST'])
-def button_click():
-    global recording_time, totalTime
-    threading.Thread(target=play_countdown_sound, daemon=True).start()
-    recording_time = True
-    totalTime = "0"
-    thread = threading.Thread(target=balancing_pressure)
-    thread.daemon = True
-    thread.start()
-    return jsonify({"status": "Data transmission started"})'''
 
 # reaction time
 @app.route('/start_reaction')
