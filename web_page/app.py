@@ -669,18 +669,17 @@ def estimate_distance_from_ax(ax_values): #later may want to add decay/kalman/lo
 '''
 
 def estimate_distance_from_ax(ax_values):
-    #Includes  sections for: Bias calibration, Low-pass filtering, High-pass filtering
     if len(ax_values) < 2:
         return 0.0
     dt_adjusted = 15.0 / len(ax_values) #adjust dt based on num of packets actually received
     ax_array = np.array(ax_values, dtype=np.float64)
 
-    # 1. Bias Calibration (remove constant offset)
+    #  Bias Calibration (remove constant offset). This assumes user is stationary for first ~100 samples. maybe introduce calibration period.
 
     # bias = np.mean(ax_array[:100])  # estimate bias from first N samples
     # ax_array = ax_array - bias
 
-    # 2. Low-Pass Filter (smooth out high-frequency noise)
+    #  Low-Pass Filter (smooth out high-frequency noise)
 
     # alpha = 0.1  # 0 < alpha < 1, smaller = smoother
     # ax_filtered = np.zeros_like(ax_array)
@@ -689,8 +688,7 @@ def estimate_distance_from_ax(ax_values):
     #     ax_filtered[i] = alpha * ax_array[i] + (1 - alpha) * ax_filtered[i - 1]
     # ax_array = ax_filtered
 
-
-    # 3. High-Pass Filter (remove drift / very low frequency bias)
+    #  High-Pass Filter (remove drift/very low frequency bias)
 
     # hp_alpha = 0.95  # closer to 1 keeps high freq, removes drift
     # ax_hp = np.zeros_like(ax_array)
@@ -699,11 +697,8 @@ def estimate_distance_from_ax(ax_values):
     #     ax_hp[i] = hp_alpha * (ax_hp[i-1] + ax_array[i] - ax_array[i-1])
     # ax_array = ax_hp
 
-
-    # 4. Integration: accel -> velocity -> path distance
-
+    #  Integration
     velocity = cumulative_trapezoid_manual(ax_array, dx=dt_adjusted, initial=0)
-
     speed = np.abs(velocity) 
     path_distance = cumulative_trapezoid_manual(speed, dx=dt_adjusted, initial=0)
     return float(round(path_distance[-1], 3))
