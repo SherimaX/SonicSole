@@ -92,7 +92,7 @@ SonicSole::SonicSole() {
         YEIwriteCommandValue(IMU, CMD_SET_COMPASS_RANGE, COMPASS_RANGE_1_3);
         YEIwriteCommandValue(IMU, CMD_SET_CALIBRATION_MODE, CALIBRATION_MODE_BIAS_SCALE);
 
-        //YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XR_YF_ZU); //original
+        //YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XR_YF_ZU); 
         YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS,AXIS_XF_YU_ZL); //standard operation/natural axes
 
         YEIwriteCommandValue(IMU, CMD_SET_REFERENCE_VECTOR_MODE, REFERENCE_VECTOR_MULTI_REFERENCE_MODE);
@@ -420,7 +420,8 @@ void SonicSole::sendSensorData(float flexSensorData[], int port, size_t numEleme
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(port);
     //serverAddr.sin_addr.s_addr = inet_addr("192.168.0.101"); // pi ip on tplink
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
+    //serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
+    serverAddr.sin_addr.s_addr = inet_addr("192.168.137.90"); // ip on sonicsole wifi
     //serverAddr.sin_addr.s_addr = inet_addr("192.168.50.109"); // ip on wrsl wifi
 
     try {

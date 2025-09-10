@@ -274,7 +274,8 @@ def process_udp_data(): #this function to do the slow work and the other to read
                     jump_vertical_buffer.append(ay_val)
             update_fore_color(fore)
             update_heel_color(heel)
-            print(f"Fore:{fore}, Heel:{heel}, ax:{ax_val:.2f}, ay:{ay_val:.2f}, az:{az_val:.2f}")
+            #print(f"Fore:{fore}, Heel:{heel}, ax:{ax_val:.2f}, ay:{ay_val:.2f}, az:{az_val:.2f}")
+            print(f"Fore:{fore}, Heel:{heel}, ax:{ax:.2f}, ay:{ay:.2f}, az:{az:.2f}")
         except queue.Empty:
             continue
 
@@ -632,6 +633,7 @@ def start_forefoot():
             forefoot_elapsed_time = round(time.time() - start_time, 1)
             return jsonify({"status": "invalid", "time": forefoot_elapsed_time})
         ax_list.append(ax)
+      #  ax_list.append(az)
         time.sleep(dt)
     stop_combined_data_thread()
     print(f"Samples collected: {len(ax_list)}")
@@ -681,21 +683,21 @@ def estimate_distance_from_ax(ax_values):
 
     #  Low-Pass Filter (smooth out high-frequency noise)
 
-    # alpha = 0.1  # 0 < alpha < 1, smaller = smoother
-    # ax_filtered = np.zeros_like(ax_array)
-    # ax_filtered[0] = ax_array[0]
-    # for i in range(1, len(ax_array)):
-    #     ax_filtered[i] = alpha * ax_array[i] + (1 - alpha) * ax_filtered[i - 1]
-    # ax_array = ax_filtered
+    alpha = 0.1  # 0 < alpha < 1, smaller = smoother
+    ax_filtered = np.zeros_like(ax_array)
+    ax_filtered[0] = ax_array[0]
+    for i in range(1, len(ax_array)):
+        ax_filtered[i] = alpha * ax_array[i] + (1 - alpha) * ax_filtered[i - 1]
+    ax_array = ax_filtered
 
     #  High-Pass Filter (remove drift/very low frequency bias)
 
-    # hp_alpha = 0.95  # closer to 1 keeps high freq, removes drift
-    # ax_hp = np.zeros_like(ax_array)
-    # ax_hp[0] = ax_array[0]
-    # for i in range(1, len(ax_array)):
-    #     ax_hp[i] = hp_alpha * (ax_hp[i-1] + ax_array[i] - ax_array[i-1])
-    # ax_array = ax_hp
+    hp_alpha = 0.9  # closer to 1 keeps high freq, removes drift
+    ax_hp = np.zeros_like(ax_array)
+    ax_hp[0] = ax_array[0]
+    for i in range(1, len(ax_array)):
+        ax_hp[i] = hp_alpha * (ax_hp[i-1] + ax_array[i] - ax_array[i-1])
+    ax_array = ax_hp
 
     #  Integration
     velocity = cumulative_trapezoid_manual(ax_array, dx=dt_adjusted, initial=0)
@@ -742,6 +744,39 @@ def foreWalk():
 @app.route('/piano')
 def piano():
     return render_template('piano.html')
+
+#plot routes
+
+
+# Start the combined data thread (safe to call multiple times)
+@app.route('/start_stream', methods=['GET'])
+def start_stream():
+    start_combined_data_thread()
+    return jsonify({"status": "stream started"}), 200
+
+# Stop the combined data thread (reuse your stop endpoint if you like)
+@app.route('/stop_stream', methods=['GET'])
+def stop_stream():
+    stop_combined_data_thread()
+    return jsonify({"status": "stream stopped"}), 200
+
+# Return the most-recent accelerometer values
+@app.route('/accel', methods=['GET'])
+def accel_values():
+    # ax, ay, az are global floats updated by your UDP thread
+    return jsonify({
+        'ax': round(ax, 4),
+        'ay': round(ay, 4),
+        'az': round(az, 4),
+        'ts': time.time()
+    })
+
+# Render the live plotting page
+@app.route('/accel_view')
+def accel_view():
+    start_combined_data_thread()
+    return render_template('accel.html')
+
 
 # scoreboards
 @app.route('/bScoreboard')

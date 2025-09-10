@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Accel Plot</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <canvas id="chart" width="600" height="250"></canvas>
+  <script>
+    const ctx = document.getElementById('chart').getContext('2d');
+    const N = 100, labels = Array(N).fill(""), ax=[], ay=[], az=[];
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {label:"ax", data:ax, borderColor:"red", fill:false},
+          {label:"ay", data:ay, borderColor:"green", fill:false},
+          {label:"az", data:az, borderColor:"blue", fill:false}
+        ]
+      },
+      options: {animation:false, scales:{x:{display:false}}}
+    });
+
+    async function poll(){
+      const r = await fetch('/accel'); const d = await r.json();
+      ax.push(d.ax); ay.push(d.ay); az.push(d.az);
+      if(ax.length>N){ax.shift(); ay.shift(); az.shift();}
+      chart.update();
+    }
+    setInterval(poll, 50); // poll every 50ms
+  </script>
+</body>
+</html>
