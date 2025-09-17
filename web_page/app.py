@@ -625,6 +625,11 @@ def start_forefoot():
     duration = 15.0
     start_time = time.time()
     ax_list = []
+
+    #for vector norm (fvn)
+    ay_list = []
+    az_list = []
+
     while time.time() - start_time < duration:
         heel = int(received_heel_data)
         if heel > threshold_heel:
@@ -633,12 +638,25 @@ def start_forefoot():
             forefoot_elapsed_time = round(time.time() - start_time, 1)
             return jsonify({"status": "invalid", "time": forefoot_elapsed_time})
         ax_list.append(ax)
+
+        ay_list.append(ay) #fvn
+        az_list.append(az) #fvn
+
       #  ax_list.append(az)
         time.sleep(dt)
     stop_combined_data_thread()
     print(f"Samples collected: {len(ax_list)}")
     print(f"Samples collected: {ax_list}")
-    forefoot_dist = round(estimate_distance_from_ax(ax_list), 3)
+
+    # print(f"Samples collected: {len(ay_list)}") #fvn
+    # print(f"Samples collected: {ay_list}") #fvn
+    # print(f"Samples collected: {len(az_list)}") #fvn
+    # print(f"Samples collected: {az_list}") #fvn
+
+    forefoot_dist = round(estimate_distance_from_ax(ax_list,), 3)
+
+    # forefoot_dist = round(estimate_distance_from_ax_vector_norm(ax_list, ay_list, az_list), 3) #fvn
+
     forefoot_status = "done"
                         
     with open("SonicSoleWalk.txt", "a") as f:
@@ -683,29 +701,82 @@ def estimate_distance_from_ax(ax_values):
 
     #  Low-Pass Filter (smooth out high-frequency noise)
 
-    alpha = 0.1  # 0 < alpha < 1, smaller = smoother
-    ax_filtered = np.zeros_like(ax_array)
-    ax_filtered[0] = ax_array[0]
-    for i in range(1, len(ax_array)):
-        ax_filtered[i] = alpha * ax_array[i] + (1 - alpha) * ax_filtered[i - 1]
-    ax_array = ax_filtered
+    # alpha = 0.1  # 0 < alpha < 1, smaller = smoother
+    # ax_filtered = np.zeros_like(ax_array)
+    # ax_filtered[0] = ax_array[0]
+    # for i in range(1, len(ax_array)):
+    #     ax_filtered[i] = alpha * ax_array[i] + (1 - alpha) * ax_filtered[i - 1]
+    # ax_array = ax_filtered
 
     #  High-Pass Filter (remove drift/very low frequency bias)
 
-    hp_alpha = 0.9  # closer to 1 keeps high freq, removes drift
-    ax_hp = np.zeros_like(ax_array)
-    ax_hp[0] = ax_array[0]
-    for i in range(1, len(ax_array)):
-        ax_hp[i] = hp_alpha * (ax_hp[i-1] + ax_array[i] - ax_array[i-1])
-    ax_array = ax_hp
+    # hp_alpha = 0.9  # closer to 1 keeps high freq, removes drift
+    # ax_hp = np.zeros_like(ax_array)
+    # ax_hp[0] = ax_array[0]
+    # for i in range(1, len(ax_array)):
+    #     ax_hp[i] = hp_alpha * (ax_hp[i-1] + ax_array[i] - ax_array[i-1])
+    # ax_array = ax_hp
 
     #  Integration
     velocity = cumulative_trapezoid_manual(ax_array, dx=dt_adjusted, initial=0)
-    speed = np.abs(velocity) 
-    path_distance = cumulative_trapezoid_manual(speed, dx=dt_adjusted, initial=0)
-    return float(round(path_distance[-1], 3))
-    #displacement = cumulative_trapezoid_manual(velocity, dt=dt_adjusted, initial=0)
-    #return float(round(displacement[-1], 3))
+    #speed = np.abs(velocity) 
+    #path_distance = cumulative_trapezoid_manual(speed, dx=dt_adjusted, initial=0)
+    #return float(round(path_distance[-1], 3))
+    displacement = cumulative_trapezoid_manual(velocity, dx=dt_adjusted, initial=0)
+    return float(round(displacement[-1], 3))
+
+def estimate_distance_from_ax_vector_norm(ax_values, ay_values, az_values): #fvn
+    if len(ax_values) < 2:
+        return 0.0
+    dt_adjusted = 15.0 / len(ax_values) #adjust dt based on num of packets actually received
+    ax_array = np.array(ax_values, dtype=np.float64)
+    ay_array = np.array(ay_values, dtype=np.float64)
+    az_array = np.array(az_values, dtype=np.float64)
+
+    #  Bias Calibration (remove constant offset). This assumes user is stationary for first ~100 samples. maybe introduce calibration period.
+
+    # bias = np.mean(ax_array[:100])  # estimate bias from first N samples
+    # ax_array = ax_array - bias
+
+    #  Low-Pass Filter (smooth out high-frequency noise)
+    # this filter was made for just ax, not vector norm.
+    # alpha = 0.1  # 0 < alpha < 1, smaller = smoother
+    # ax_filtered = np.zeros_like(ax_array)
+    # ax_filtered[0] = ax_array[0]
+    # for i in range(1, len(ax_array)):
+    #     ax_filtered[i] = alpha * ax_array[i] + (1 - alpha) * ax_filtered[i - 1]
+    # ax_array = ax_filtered
+
+    #  High-Pass Filter (remove drift/very low frequency bias)
+    # this filter was made for just ax, not vector norm.
+    # hp_alpha = 0.9  # closer to 1 keeps high freq, removes drift
+    # ax_hp = np.zeros_like(ax_array)
+    # ax_hp[0] = ax_array[0]
+    # for i in range(1, len(ax_array)):
+    #     ax_hp[i] = hp_alpha * (ax_hp[i-1] + ax_array[i] - ax_array[i-1])
+    # ax_array = ax_hp
+
+    #  Integration
+    velocity_x = cumulative_trapezoid_manual(ax_array, dx=dt_adjusted, initial=0)
+    velocity_y = cumulative_trapezoid_manual(ay_array, dx=dt_adjusted, initial=0)
+    velocity_z = cumulative_trapezoid_manual(az_array, dx=dt_adjusted, initial=0)
+    # velocity = np.sqrt(velocity_x**2 + velocity_y**2 + velocity_z**2) #vector norm for velocity
+    # displacement = cumulative_trapezoid_manual(velocity, dx=dt_adjusted, initial=0)
+    # return float(round(displacement[-1], 3))
+    displacement_x = cumulative_trapezoid_manual(velocity_x, dx=dt_adjusted, initial=0)
+    displacement_y = cumulative_trapezoid_manual(velocity_y, dx=dt_adjusted, initial=0)
+    displacement_z = cumulative_trapezoid_manual(velocity_z, dx=dt_adjusted, initial=0)
+    displacement_vector_norm = np.sqrt(displacement_x**2 + displacement_z**2) #vector norm for displacement
+    return float(round(displacement_vector_norm[-1], 3))
+    #speed_x = np.abs(velocity_x) 
+    #speed_y = np.abs(velocity_y) 
+    #speed_z = np.abs(velocity_z) 
+    #path_distance_X = cumulative_trapezoid_manual(speed_x, dx=dt_adjusted, initial=0)
+    #path_distance_Y = cumulative_trapezoid_manual(speed_y, dx=dt_adjusted, initial=0)
+    #path_distance_Z = cumulative_trapezoid_manual(speed_z, dx=dt_adjusted, initial=0)
+    #path_distance_vector_norm = np.sqrt(path_distance_X**2 + path_distance_Y**2 + path_distance_Z**2) #vector norm for path distance
+    #return float(round(path_distance_vector_norm[-1], 3))
+    
 
 # webpage routes
 @app.route('/')
