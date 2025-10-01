@@ -98,6 +98,8 @@ SonicSole::SonicSole() {
         YEIwriteCommandValue(IMU, CMD_SET_REFERENCE_VECTOR_MODE, REFERENCE_VECTOR_MULTI_REFERENCE_MODE);
         YEIwriteCommandValue(IMU, CMD_SET_COMPASS_ENABLE, FALSE); // default true
         YEIwriteCommandValue(IMU, CMD_SET_FILTER_MODE, FILTER_KALMAN);
+        //YEIwriteCommandValue(IMU, CMD_SET_FILTER_MODE, FILTER_KALMAN_ALTERNATING);
+        //YEIwriteCommandValue(IMU, CMD_SET_FILTER_MODE, FILTER_COMPLEMENTARY);
         YEIwriteCommandNoDelay(IMU, CMD_BEGIN_GYROSCOPE_AUTOCALIBRATION);
         this_thread::sleep_for(chrono::milliseconds(500));
         YEIwriteCommandNoDelay(IMU, CMD_RESET_FILTER);

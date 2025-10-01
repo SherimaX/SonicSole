@@ -16,8 +16,8 @@ import queue
 logging.getLogger('werkzeug').disabled = True #Suppress werkzeug logs
 
 app = Flask(__name__)
-UDP_IP = "127.0.0.1" #accept data from localhost
-#UDP_IP = "0.0.0.0" # accept connections on any available network interface of the server
+#UDP_IP = "127.0.0.1" #accept data from localhost
+UDP_IP = "0.0.0.0" # accept connections on any available network interface of the server
 UDP_PORT = 21000 
 bufferSize = 1024
 
@@ -82,7 +82,7 @@ reaction_time = "0"
 
 threshold_fore = 350
 threshold_heel = 350
-dt = 0.009 #time (s) between samples from udp (its not really 100hz its closer to about 0.009s between samples (111hz))
+dt = 0.009 #approx time (s) between samples from udp 
 
 pygame.init()
 pygame.mixer.init()
@@ -403,8 +403,8 @@ def get_airtime_and_height():
     if len(samples) < 10:
         print("Not enough samples for jump height. Returning 0.")
         return round(airtime, 5), 0.0
-    jump_height = estimate_jump_height(samples) #double acceleration integration approach
-    #jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics formula approach. I think this works pretty well
+    jump_height = estimate_jump_height(samples) #calculus approach
+    #jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics formula approach
     #print(f"Estimated height: {jump_height:.5f} m")
     return round(airtime, 4), jump_height
 
