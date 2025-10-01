@@ -36,7 +36,7 @@
 #define CMD_SET_COMPASS_ENABLE 109
 #define CMD_RESET_FILTER 120
 #define CMD_SET_ACCELEROMETER_RANGE 121
-#define CMD_SET_FILTER_MODE 123 // in user manual I dont see command 123
+#define CMD_SET_FILTER_MODE 123 // in user manual for lx embedded command 123 does not exist
 #define CMD_SET_GYROSCOPE_RANGE 125
 #define CMD_SET_COMPASS_RANGE 126
 
