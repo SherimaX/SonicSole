@@ -1,399 +1,337 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <style>
-      body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        height: 100vh;
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
-        background-color: #ffdada;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SonicSole | Balancing Activity</title>
+  <style>
+    :root {
+      --primary: #8a0000;
+      --primary-dark: #210000;
+      --accent: #ffdada;
+      --text: #2b2b2b;
+      --light: #fff;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--accent);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      margin-top: 60px;
+      animation: fadeIn 1.5s ease;
+    }
+
+    header h1 {
+      font-size: 3em;
+      color: var(--primary);
+      margin-bottom: 0.2em;
+    }
+
+    header p {
+      font-size: 1.2em;
+      color: #4a4a4a;
+    }
+
+    .card {
+      background-color: var(--light);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      width: 90%;
+      max-width: 600px;
+      margin: 50px auto;
+      text-align: center;
+      animation: slideUp 1s ease;
+    }
+
+    a {
+      text-decoration: none;
+      border-radius: 7px;
+      padding: 4px 4px;
+    }
+
+    button, .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      font-size: 1.1em;
+      color: var(--light);
+      background-color: var(--primary);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+      transition: 0.3s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    button:hover, .btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--primary);
+      color: var(--light);
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 1.1em;
+      border: 2px solid var(--primary-dark);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      width: 80%;
+      max-width: 300px;
+    }
+
+    label {
+      font-size: 1.1em;
+      color: var(--text);
+    }
+
+    .eye input {
+      margin-right: 8px;
+    }
+
+    #balanceDataLocation {
+      font-size: 2em;
+      font-weight: bold;
+      color: var(--primary-dark);
+      margin: 20px 0;
+    }
+
+    .countdown {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 180px;
+      color: var(--primary);
+      font-weight: bold;
+      z-index: 1000;
+      animation: glow 1s infinite alternate;
+    }
+
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background-color: var(--light);
+      padding: 30px;
+      border-radius: 15px;
+      width: 80%;
+      max-width: 500px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      text-align: left;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .modal-content h2 {
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+
+    .close {
+      float: right;
+      font-size: 1.5em;
+      color: var(--primary);
+      cursor: pointer;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #555;
+      margin-top: auto;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 8px #faaaab, 0 0 15px #faaaab;
       }
-
-      h1 {
-        font-size: 4.5em;
-        margin-top: 2.5em;
-        margin-bottom: 3px;
-        color: #8a0000;
-        font-family: 'Segoe UI', sans-serif;
+      to {
+        text-shadow: 0 0 12px #ff6b6b, 0 0 25px #ff6b6b;
       }
+    }
 
-      .buttons {
-        margin-top: 4em;
-        margin-bottom: 4em;
-      }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-      button {
-        padding: 10px 20px;
-        font-size: 1.3em;
-        color: #fff;
-        background-color: #8a0000;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        margin-top: 5px;
-        margin-bottom: 5px;
-        font-family: Ariel, sans-serif;
-      }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
 
-      button:hover {
-        background-color: #210000;
-      }
-      button:active {
-        transform: scale(0.95);
-      }
+<body>
+  <header>
+    <h1>SonicSole</h1>
+    <!-- <p>Your personal balance and stability trainer</p> -->
+  </header>
 
-      .btn{
-        display: inline-block;
-        margin-top: 20px;
-        font-size: 1.3em;
-        color: #310000;
-        text-decoration: none;
-        border: 2px solid #310000;
-        padding: 10px 20px;
-        border-radius: 5px;
-        transition: background-color 0.3s, color 0.3s;
-      }
-      
-      #res{
-        display: inline-block;
-        margin-top: 20px;
-        background-color: transparent;
-        font-size: 1.3em;
-        color: #310000;
-        text-decoration: none;
-        border: 2px solid #310000;
-        padding: 10px 20px;
-        border-radius: 5px;
-        transition: background-color 0.3s, color 0.3s;
-      }
-      
-      .btn:hover {
-        background-color: #310000;
-        color: #fff;
-      }
+  <div class="card">
+    <h2>Balancing Activity</h2>
+    <p>Test your balance and observe the effect of vision on stability.</p>
+    <div id="countdown" class="countdown"></div>
 
-      #res{
-        margin-top: 20px;
-      }
+    <div class="buttons">
+      <button id="startButton">Start Balancing</button>
+      <button class="btn-outline" onclick="openModal()">Instructions</button>
+    </div>
 
-      #res:hover {
-        background-color: #310000;
-        color: #fff;
-      }
-
-      .Time {
-        margin-bottom: 4em;
-      }
-
-      /* Modal styles */
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
-        align-items: center;
-        justify-content: center;
-      }
-
-      .modal-content {
-        background-color: #ffdada;
-        margin: auto;
-        padding: 20px;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        width: 80%;
-        max-width: 400px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        text-align: center;
-      }
-      .close {
-        color: #333;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-      }
-
-      .close:hover,
-      .close:focus {
-        color: #555;
-        text-decoration: none;
-        cursor: pointer;
-      }
-      .modal-content p {
-        color: #333;
-        font-size: 1.2em;
-        margin: 20px 0;
-        text-align: center;
-      }
-      .modal-content button {
-        font-size: 1em;
-        padding: 10px 20px;
-        background-color: #333;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-
-      .modal-content button:hover {
-        background-color: #555;
-      }
-
-      .information {
-        font-size: 1.3em;
-        text-align: center;
-      }
-
-      .error {
-        color: red;
-      }
-
-      input[type="text"] {
-        padding: 10px;
-        font-size: 1.3em;
-        border: 2px solid #210000;
-        border-radius: 5px;
-        margin-bottom: 10px;
-        width: 250px;
-        font-family: Ariel, sans-serif;
-      }
-
-      .content {
-        /* display: none; */
-        display: block;
-      }
-
-      #name-form {
-        display: none;
-      }
-
-      .a {
-        text-align: center;
-      }
-      #balanceDataLocation {
-        font-size: 2.5em;
-        text-align: center;
-      }
-      .eye {
-        text-align: center;
-        justify-content: center;
-      }
-      .countdown {
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 200px;
-        color: #f57373;
-        z-index: 1000;
-        font-weight: bold;
-        animation: glow 1s infinite alternate;
-      }
-
-      @keyframes glow {
-        from {
-          text-shadow: 0 0 1px #fea8a8, 0 0 2px #fea8a8, 0 0 3px #fea8a8,
-            0 0 4px #fea8a8, 0 0 5px #fea8a8, 0 0 6px #fea8a8, 0 0 7px #fea8a8;
-        }
-        to {
-          text-shadow: 0 0 2px #fea8a8, 0 0 3px #fea8a8, 0 0 4px #fea8a8,
-            0 0 5px #fea8a8, 0 0 6px #fea8a8, 0 0 7px #fea8a8, 0 0 8px #fea8a8;
-        }
-      }
-    </style>
-    <script>
-      // function fetchData() {
-      //   fetch("/balancing")
-      //     .then((response) => response.json())
-      //     .then((data) => {
-      //       document.getElementById("balanceDataLocation").innerText =
-      //         data.data + " seconds";
-      //     });
-      // }
-
-      let formShown = false;
-
-      function fetchData() {
-        fetch("/balancing")
-          .then((response) => response.json())
-          .then((data) => {
-            document.getElementById("balanceDataLocation").innerText = data.data + " seconds";
-            if (data.done && !formShown) {
-              document.getElementById("name-form").style.display = "block";
-              formShown = true;
-            }
-          });
-      }
-
-
-      window.onload = function () {
-        fetchData();
-        setInterval(fetchData, 100);
-      };
-
-      function openModal() {
-        document.getElementById("instructionsModal").style.display = "flex";
-      }
-
-      function closeModal() {
-        document.getElementById("instructionsModal").style.display = "none";
-      }
-
-      function submitForm(event) {
-
-        event.preventDefault();
-        const first = document.getElementById("first_name").value.trim();
-        const last = document.getElementById("last_name").value.trim();
-        const eyes = document.querySelector('input[name="eyes"]:checked');
-
-        if (!first || !last || !eyes) {
-          alert("Please fill out all fields and select eye condition.");
-          return;
-        }
-
-        const form = document.getElementById("name-form");
-        const formData = new FormData(form);
-        fetch("/submitB", {
-          method: "POST",
-          body: formData,
-        }).then((response) => {
-          if (response.ok) {
-            document.querySelector(".content").style.display = "block";
-          }
-        });
-      }
-
-      document.addEventListener("DOMContentLoaded", function () {
-        document
-          .getElementById("name-form")
-          .addEventListener("submit", submitForm);
-
-        document
-          .getElementById("startButton")
-          .addEventListener("click", function () {
-            startCountdown();
- 
-            fetch("/button_click", { method: "POST" })
-              .then((response) => response.json())
-              .then((data) => console.log(data.status))
-              .catch((error) => console.error("Error:", error));
-
-
-
-          });
-      });
-
-      function startCountdown() {
-        const countdownElement = document.getElementById("countdown");
-        countdownElement.style.display = "block";
-
-        let countdownValue = 3;
-        countdownElement.innerHTML = countdownValue;
-
-        const countdownInterval = setInterval(() => {
-          countdownValue -= 1;
-          if (countdownValue > 0) {
-            countdownElement.innerHTML = countdownValue;
-          } else if (countdownValue === 0) {
-            countdownElement.innerHTML = "Go!";
-          } else {
-            clearInterval(countdownInterval);
-            countdownElement.style.display = "none";
-          }
-        }, 1000);
-      }
-      function stopDataAndNavigate(url) {
-        fetch('/stop_data', { method: 'POST' }).then(() => {
-        window.location.href = url;
-      });
-      }
-    </script>
-  </head>
-  <body>
-    <h1>Balancing Activity</h1>
-    
-    <div class="content">
-      <p>If you make any changes, please hit submit again!</p>
-      <div id="countdown" class="countdown"></div>
-      <div class="buttons">
-        <button id="startButton">Start Balancing</button>
-        <button onclick="openModal()">Instructions</button>
-        <div id="instructionsModal" class="modal">
-          <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Instructions</h2>
-            <p>
-              Before beginning, students will first predict whether it will be easier 
-              to balance with their eyes covered or uncovered. Students will observe 
-              the relationship between visual cues and single-leg balance. 
-              Press the "Start Balancing" button. Then, close your eyes and lift
-              your leg with the SonicSole up and off the ground. Keep balancing on one
-              leg for as long as you can. The force sensors will be monitoring if the force exeeds a certain threshold. 
-              As soon as your foot touches the ground, your SonicSole's force sensors will detect the force has exeeded the threshold 
-              and the timer should stop.
-            </p>
-          </div>
-        </div>
-      </div>
-      <div style="text-align: center">
-        <div id="balanceDataLocation">
-          <p class="information">Data</p>
-        </div>
-      </div>
-
-      <form id="name-form">
-        <br />
-        <input
-          type="text"
-          name="first_name"
-          id="first_name"
-          required
-          placeholder="Enter First Name"
-        />
-        <br />
-        <input
-          type="text"
-          name="last_name"
-          id="last_name"
-          required
-          placeholder="Enter Last Name"
-        />
-        <br />
-        <div class="eye">
-          <input type="radio" id="eyesClosed" name="eyes" value="0" />
-          <label for="eyesClosed">Eyes Closed</label><br />
-          <input type="radio" id="eyesOpened" name="eyes" value="1" />
-          <label for="eyesOpened">Eyes Opened</label><br />
-          <br />
-          <input type="submit" style="display: none" />
-          <!-- <button type="submit">Submit</button> -->
-          <button type="button" onclick="submitForm(event)">Submit</button>
-  
-        </div>
-      </form>
-
-      <div style="text-align: center">
-        <a class = "btn" href="/bScoreboard">Scoreboard</a>
+    <div id="instructionsModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Instructions</h2>
+        <p>
+          Predict whether balancing will be easier with your eyes covered or uncovered.  
+          Press <strong>Start Balancing</strong>, close your eyes, and lift your SonicSole leg off the ground.  
+          Keep balancing as long as possible — the timer stops when the sensors detect contact with the floor.
+        </p>
       </div>
     </div>
-    <a class = "btn" href="#" onclick="stopDataAndNavigate('/')">Home</a>
-    <a href="{{ url_for('balance') }}"><button id="res">Reset</button></a>
-  </body>
+
+    <div id="balanceDataLocation">Data</div>
+
+    <form id="name-form" style="display: none;">
+      <input type="text" name="first_name" id="first_name" placeholder="First Name" required><br>
+      <input type="text" name="last_name" id="last_name" placeholder="Last Name" required><br>
+      <div class="eye">
+        <input type="radio" id="eyesClosed" name="eyes" value="0"><label for="eyesClosed">Eyes Closed</label><br>
+        <input type="radio" id="eyesOpened" name="eyes" value="1"><label for="eyesOpened">Eyes Opened</label><br>
+      </div>
+      <button type="button" onclick="submitForm(event)">Submit</button>
+    </form>
+    <div id="thankYouMessage" style="display: none; font-size: 1.3em; color: var(--primary-dark); margin-top: 15px;">
+      Thank you for submitting!
+    </div>
+    <div style="margin-top: 20px;">
+      <a class="btn-outline" href="/bScoreboard">View Scoreboard</a>
+    </div>
+  </div>
+
+  <footer>
+    <a class="btn-outline" href="#" onclick="stopDataAndNavigate('/')">Home</a>
+    <a class="btn-outline" href="{{ url_for('balance') }}">Reload</a>
+  </footer>
+
+  <script>
+    let formShown = false;
+
+    function fetchData() {
+      fetch("/balancing")
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById("balanceDataLocation").innerText = data.data + " seconds";
+          if (data.done && !formShown) {
+            document.getElementById("name-form").style.display = "block";
+            formShown = true;
+          }
+        });
+    }
+
+    window.onload = function () {
+      fetchData();
+      setInterval(fetchData, 100);
+    };
+
+    function openModal() {
+      document.getElementById("instructionsModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("instructionsModal").style.display = "none";
+    }
+
+    function submitForm(event) {
+      event.preventDefault();
+      const first = document.getElementById("first_name").value.trim();
+      const last = document.getElementById("last_name").value.trim();
+      const eyes = document.querySelector('input[name="eyes"]:checked');
+
+      if (!first || !last || !eyes) {
+        alert("Please fill out all fields and select an eye condition.");
+        return;
+      }
+
+      const form = document.getElementById("name-form");
+      const formData = new FormData(form);
+      fetch("/submitB", { method: "POST", body: formData })
+        .then((response) => {
+          if (response.ok) {
+            form.style.display = "none"; // hide the form
+            document.getElementById("thankYouMessage").style.display = "block"; // show thank you
+          }
+        });
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("name-form").addEventListener("submit", submitForm);
+      document.getElementById("startButton").addEventListener("click", function () {
+        startCountdown();
+        fetch("/button_click", { method: "POST" })
+          .then((response) => response.json())
+          .then((data) => console.log(data.status))
+          .catch((error) => console.error("Error:", error));
+      });
+    });
+
+    function startCountdown() {
+      const countdownElement = document.getElementById("countdown");
+      countdownElement.style.display = "block";
+
+      let countdownValue = 3;
+      countdownElement.innerHTML = countdownValue;
+
+      const countdownInterval = setInterval(() => {
+        countdownValue -= 1;
+        if (countdownValue > 0) {
+          countdownElement.innerHTML = countdownValue;
+        } else if (countdownValue === 0) {
+          countdownElement.innerHTML = "Go!";
+        } else {
+          clearInterval(countdownInterval);
+          countdownElement.style.display = "none";
+        }
+      }, 1000);
+    }
+
+    function stopDataAndNavigate(url) {
+      fetch('/stop_data', { method: 'POST' }).then(() => {
+        window.location.href = url;
+      });
+    }
+  </script>
+</body>
 </html>
