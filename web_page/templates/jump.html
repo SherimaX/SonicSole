@@ -86,9 +86,14 @@
       }
 
       .content {
-        display: none;
+        /* display: none; */
+        display: block;
         text-align: center;
         margin-top: 1em;
+      }
+
+      #name-form{
+        display: none;
       }
 
       .buttons {
@@ -168,7 +173,7 @@
         var form = document.getElementById("name-form");
         var formData = new FormData(form);
 
-        fetch("/submit2", {
+        fetch("/submitJ", {
           method: "POST",
           body: formData,
         }).then((response) => {
@@ -225,9 +230,10 @@
             const jumpHeight = data.jump_height_meters.toFixed(2);
             const airtime = data.airtime_seconds.toFixed(2);
 
-            // ✅ Update both UI elements
             document.getElementById("jumpStatus").innerText = `Jump Height: ${jumpHeight} meters\nAirtime: ${airtime} seconds`;
             document.getElementById("jumpMetricsDisplay").innerText = `Jump Height: ${jumpHeight} m\nAirtime: ${airtime} s`;
+
+            document.getElementById("name-form").style.display = "block";
           } else {
             setTimeout(pollJumpData, 300); // retry after 300ms
           }
@@ -256,25 +262,7 @@
   <body>
     <h1>Jumping Activity</h1>
 
-    <form id="name-form">
-      <div style="text-align: center;">
-        <div class="name-fields">
-          <input
-            type="text"
-            name="first_name2"
-            required
-            placeholder="Enter First Name"
-          />
-          <input
-            type="text"
-            name="last_name2"
-            required
-            placeholder="Enter Last Name"
-          />
-        </div>
-        <button type="submit">Submit</button>
-      </div>
-    </form>
+    
 
     <div class="content">
       <p>If you make any changes, please hit submit again!</p>
@@ -306,6 +294,27 @@
           </p>
         </div>
       </div>
+
+      <form id="name-form">
+        <div style="text-align: center;">
+          <div class="name-fields">
+            <input
+              type="text"
+              name="first_name2"
+              required
+              placeholder="Enter First Name"
+            />
+            <input
+              type="text"
+              name="last_name2"
+              required
+              placeholder="Enter Last Name"
+            />
+          </div>
+          <button type="submit">Submit</button>
+        </div>
+      </form>
+      
       <a href="#" onclick="stopDataAndNavigate('/jScoreboard')" class = "btn">Scoreboard</a>
     </div>
     <a href="#" onclick="stopDataAndNavigate('/')" class = "btn">Home</a>

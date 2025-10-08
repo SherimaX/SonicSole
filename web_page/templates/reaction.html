@@ -84,9 +84,14 @@
     }
 
     .content {
-      display: none;
+      /* display: none; */
+      display: block;
       text-align: center;
       margin-top: 1em;
+    }
+
+    #name-form {
+      display: none;
     }
 
     .buttons {
@@ -152,7 +157,7 @@
       event.preventDefault();
       const form = document.getElementById("name-form");
       const formData = new FormData(form);
-      fetch("/submit2", {
+      fetch("/submitR", {
         method: "POST",
         body: formData,
       }).then((response) => {
@@ -197,6 +202,7 @@
                 document.getElementById("timeBox").innerText = `Done!`;
                 clearInterval(pollingInterval);
                 new Audio("/static/success.mp3").play();
+                document.getElementById("name-form").style.display = "block";
 
                 } else if (status === "invalid") {
                 document.getElementById("statusBox").innerText = "Invalid attempt. You moved too early.";
@@ -223,16 +229,6 @@
 <body>
   <h1>Reaction Time Activity</h1>
 
-  <form id="name-form">
-    <div style="text-align: center;">
-      <div class="name-fields">
-        <input type="text" name="first_name2" required placeholder="Enter First Name" />
-        <input type="text" name="last_name2" required placeholder="Enter Last Name" />
-      </div>
-      <button type="submit">Submit</button>
-    </div>
-  </form>
-
   <div class="content">
     <p>If you make any changes, please hit submit again!</p>
     <div class="buttons">
@@ -256,6 +252,17 @@
         </p>
       </div>
     </div>
+
+    <form id="name-form">
+      <div style="text-align: center;">
+        <div class="name-fields">
+          <input type="text" name="first_name2" required placeholder="Enter First Name" />
+          <input type="text" name="last_name2" required placeholder="Enter Last Name" />
+        </div>
+        <button type="submit">Submit</button>
+      </div>
+    </form>
+
     <a href="/rScoreboard" class = "btn">Scoreboard</a>
   </div>
 

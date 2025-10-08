@@ -62,6 +62,7 @@
         border-radius: 5px;
         transition: background-color 0.3s, color 0.3s;
       }
+      
       #res{
         display: inline-block;
         margin-top: 20px;
@@ -107,6 +108,7 @@
         align-items: center;
         justify-content: center;
       }
+
       .modal-content {
         background-color: #ffdada;
         margin: auto;
@@ -125,6 +127,7 @@
         font-weight: bold;
         cursor: pointer;
       }
+
       .close:hover,
       .close:focus {
         color: #555;
@@ -147,6 +150,7 @@
         cursor: pointer;
         transition: background-color 0.3s;
       }
+
       .modal-content button:hover {
         background-color: #555;
       }
@@ -171,6 +175,11 @@
       }
 
       .content {
+        /* display: none; */
+        display: block;
+      }
+
+      #name-form {
         display: none;
       }
 
@@ -246,7 +255,7 @@
 
         const form = document.getElementById("name-form");
         const formData = new FormData(form);
-        fetch("/submit", {
+        fetch("/submitB", {
           method: "POST",
           body: formData,
         }).then((response) => {
@@ -265,23 +274,7 @@
           .getElementById("startButton")
           .addEventListener("click", function () {
             startCountdown();
-            //const audio = document.querySelector("audio");
-            //audio.volume = 0.2;
-            //audio.play();
-           
-            // const audio = new Audio("/play");
-            // audio.volume = 0.2;
-            // audio.play().catch((e) => {
-            //   console.warn("Audio play blocked or failed:", e);
-            // });
-
-
-            // setTimeout(function () {
-            //   fetch("/button_click", { method: "POST" })
-            //     .then((response) => response.json())
-            //     .then((data) => console.log(data.status))
-            //     .catch((error) => console.error("Error:", error));
-            // }, 3120);
+ 
             fetch("/button_click", { method: "POST" })
               .then((response) => response.json())
               .then((data) => console.log(data.status))
@@ -320,36 +313,7 @@
   </head>
   <body>
     <h1>Balancing Activity</h1>
-    <form id="name-form">
-      <br />
-      <input
-        type="text"
-        name="first_name"
-        id="first_name"
-        required
-        placeholder="Enter First Name"
-      />
-      <br />
-      <input
-        type="text"
-        name="last_name"
-        id="last_name"
-        required
-        placeholder="Enter Last Name"
-      />
-      <br />
-      <div class="eye">
-        <input type="radio" id="eyesClosed" name="eyes" value="0" />
-        <label for="eyesClosed">Eyes Closed</label><br />
-        <input type="radio" id="eyesOpened" name="eyes" value="1" />
-        <label for="eyesOpened">Eyes Opened</label><br />
-        <br />
-        <input type="submit" style="display: none" />
-        <!-- <button type="submit">Submit</button> -->
-        <button type="button" onclick="submitForm(event)">Submit</button>
-
-      </div>
-    </form>
+    
     <div class="content">
       <p>If you make any changes, please hit submit again!</p>
       <div id="countdown" class="countdown"></div>
@@ -378,10 +342,38 @@
           <p class="information">Data</p>
         </div>
       </div>
-      <!-- <audio src="play"></audio> -->
 
+      <form id="name-form">
+        <br />
+        <input
+          type="text"
+          name="first_name"
+          id="first_name"
+          required
+          placeholder="Enter First Name"
+        />
+        <br />
+        <input
+          type="text"
+          name="last_name"
+          id="last_name"
+          required
+          placeholder="Enter Last Name"
+        />
+        <br />
+        <div class="eye">
+          <input type="radio" id="eyesClosed" name="eyes" value="0" />
+          <label for="eyesClosed">Eyes Closed</label><br />
+          <input type="radio" id="eyesOpened" name="eyes" value="1" />
+          <label for="eyesOpened">Eyes Opened</label><br />
+          <br />
+          <input type="submit" style="display: none" />
+          <!-- <button type="submit">Submit</button> -->
+          <button type="button" onclick="submitForm(event)">Submit</button>
+  
+        </div>
+      </form>
 
-      <!-- <audio id="signalAudio" src="countdown.mp3"></audio> -->
       <div style="text-align: center">
         <a class = "btn" href="/bScoreboard">Scoreboard</a>
       </div>

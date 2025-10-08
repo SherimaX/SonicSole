@@ -420,8 +420,8 @@ def start_jump():
     last_jump_height = height
     jump_metrics_ready = True
 
-    with open("SonicSoleJump.txt", "a") as f:
-        f.write(f"{submitted_name2},{last_jump_height}\n")
+    # with open("SonicSoleJump.txt", "a") as f:
+    #     f.write(f"{submitted_name2},{last_jump_height}\n")
 
     return jsonify({'status': 'jump measured'})
 
@@ -466,8 +466,8 @@ def balancing_pressure():
                 recording_time = False
                 print("[balancing_pressure] balance_stopped")
                     
-                with open("SonicSoleBalance.txt", "a") as f:
-                    f.write(f"{submitted_name},{totalTime}\n")
+                # with open("SonicSoleBalance.txt", "a") as f:
+                #     f.write(f"{submitted_name},{totalTime}\n")
 
                 stop_combined_data_thread()
                 break
@@ -529,8 +529,8 @@ def start_reaction():
             reaction_data["status"] = "success"
             print(f"[Reaction] Success! Reaction time: {reaction_time}")
           
-            with open("SonicSoleReaction.txt", "a") as f:
-                f.write(f"{submitted_name2},{reaction_time}\n")
+            # with open("SonicSoleReaction.txt", "a") as f:
+            #     f.write(f"{submitted_name2},{reaction_time}\n")
             
             stop_combined_data_thread()
             return jsonify({"status": "success"})
@@ -601,8 +601,8 @@ def run_force_trainer():
     time.sleep(1)
     percent_error = round(percent_error, 3)
 
-    with open("SonicSoleForceSense.txt", "a") as f:
-        f.write(f"{submitted_name2},{percent_error}\n")
+    # with open("SonicSoleForceSense.txt", "a") as f:
+    #     f.write(f"{submitted_name2},{percent_error}\n")
 
     stop_combined_data_thread()
 
@@ -614,7 +614,7 @@ def force_trainer_results():
         target_percent=force_trainer_state.get('target_percent', 0)
     )
 
-#ForeWalk
+# fore walk
 @app.route('/start_forefoot', methods=['POST']) 
 def start_forefoot():
     global forefoot_status, forefoot_dist, threshold_heel, dt, forefoot_elapsed_time, received_heel_data, submitted_name2
@@ -659,8 +659,8 @@ def start_forefoot():
 
     forefoot_status = "done"
                         
-    with open("SonicSoleWalk.txt", "a") as f:
-        f.write(f"{submitted_name2},{forefoot_dist}\n")
+    # with open("SonicSoleWalk.txt", "a") as f:
+    #     f.write(f"{submitted_name2},{forefoot_dist}\n")
 
     return jsonify({"status": "done", "distance_meters": forefoot_dist})
 
@@ -1004,9 +1004,9 @@ def w_scoreboard():
 
     return render_template('wScoreboard.html', data=leaderboard_data)
 
-@app.route('/submit', methods=['POST'])
-def submit():
-    global submitted_name, first_name, last_name, eyes_open
+@app.route('/submitB', methods=['POST'])
+def submitB():
+    global submitted_name, first_name, last_name, eyes_open, totalTime
     first_name = request.form['first_name']
     last_name = request.form['last_name']
     submitted_name = first_name + " " + last_name
@@ -1015,16 +1015,74 @@ def submit():
         submitted_name += "_" + eyes_open
     else:
         pass
+
+    with open("SonicSoleBalance.txt", "a") as f:
+        f.write(f"{submitted_name},{totalTime}\n")
     return jsonify({"status": "Name submitted successfully"})
 
-@app.route('/submit2', methods=['POST'])
-def submit2():
-    global submitted_name2, first_name2, last_name2
+# submit2 is unused
+# @app.route('/submit2', methods=['POST'])
+# def submit2():
+#     global submitted_name2, first_name2, last_name2
+#     first_name2 = request.form['first_name2']
+#     last_name2 = request.form['last_name2']
+#     submitted_name2 = first_name2 + " " + last_name2
+#     return jsonify({"status": "Name submitted successfully"})
+# recording_time = True
+
+@app.route('/submitR', methods=['POST'])
+def submitR():
+    global submitted_name2, first_name2, last_name2, reaction_time, forefoot_dist
     first_name2 = request.form['first_name2']
     last_name2 = request.form['last_name2']
     submitted_name2 = first_name2 + " " + last_name2
+
+    with open("SonicSoleReaction.txt", "a") as f:
+        f.write(f"{submitted_name2},{reaction_time}\n")
+
     return jsonify({"status": "Name submitted successfully"})
 recording_time = True
+
+@app.route('/submitW', methods=['POST'])
+def submitW():
+    global submitted_name2, first_name2, last_name2, reaction_time
+    first_name2 = request.form['first_name2']
+    last_name2 = request.form['last_name2']
+    submitted_name2 = first_name2 + " " + last_name2
+
+    with open("SonicSoleWalk.txt", "a") as f:
+        f.write(f"{submitted_name2},{forefoot_dist}\n")
+
+    return jsonify({"status": "Name submitted successfully"})
+recording_time = True
+
+@app.route('/submitF', methods=['POST'])
+def submitF():
+    global submitted_name2, first_name2, last_name2, percent_error
+    first_name2 = request.form['first_name2']
+    last_name2 = request.form['last_name2']
+    submitted_name2 = first_name2 + " " + last_name2
+
+    with open("SonicSoleForceSense.txt", "a") as f:
+        f.write(f"{submitted_name2},{percent_error}\n")
+
+    return jsonify({"status": "Name submitted successfully"})
+recording_time = True
+
+@app.route('/submitJ', methods=['POST'])
+def submitJ():
+    global submitted_name2, first_name2, last_name2, last_jump_height
+    first_name2 = request.form['first_name2']
+    last_name2 = request.form['last_name2']
+    submitted_name2 = first_name2 + " " + last_name2
+    
+    with open("SonicSoleJump.txt", "a") as f:
+        f.write(f"{submitted_name2},{last_jump_height}\n")
+
+    return jsonify({"status": "Name submitted successfully"})
+recording_time = True
+
+
 
 # misc (not sure what these are for)
 def send_udp_data(): 
