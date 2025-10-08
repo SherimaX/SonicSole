@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Assembly Instructions</title>
+  <title>Device Overview</title>
   <style>
     :root {
       --primary-color: #8a0000;
@@ -13,13 +13,10 @@
       --gray: #666;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 0;
       font-family: 'Segoe UI', sans-serif;
       background-color: var(--accent-color);
       color: var(--text-dark);
@@ -29,9 +26,10 @@
     }
 
     h1 {
-      font-size: 3.5rem;
+      font-size: 3.3rem;
       margin: 2rem 0 1rem;
       color: var(--primary-color);
+      text-align: center;
     }
 
     .panels {
@@ -54,7 +52,7 @@
       border-radius: 15px;
       padding: 2rem;
       scroll-snap-align: start;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
       text-align: center;
     }
 
@@ -76,22 +74,19 @@
       cursor: pointer;
     }
 
-    .clickable:hover {
-      color: var(--text-dark);
-    }
+    .clickable:hover { color: var(--text-dark); }
 
-    .buttons, button, a {
+    button, a {
       font-size: 1.1rem;
       padding: 0.6rem 1.2rem;
       margin: 0.5rem;
-      border: none;
+      border: 2px solid var(--primary-color);
       border-radius: 8px;
       background-color: white;
       color: var(--primary-color);
-      border: 2px solid var(--primary-color);
       cursor: pointer;
-      transition: all 0.3s ease;
       text-decoration: none;
+      transition: all 0.3s ease;
       display: inline-block;
     }
 
@@ -100,15 +95,14 @@
       color: white;
     }
 
+    /* Modals */
     .modal {
       display: none;
       position: fixed;
       z-index: 999;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
       justify-content: center;
       align-items: center;
     }
@@ -118,23 +112,26 @@
       padding: 1.5rem;
       border-radius: 12px;
       width: 90%;
-      max-width: 400px; 
+      max-width: 480px;
       position: relative;
+      text-align: left;
     }
 
     .modal-content h2 {
       color: var(--primary-color);
       margin-bottom: 1rem;
+      text-align: center;
     }
 
     .modal-content p {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: var(--gray);
+      line-height: 1.5;
     }
 
     .modal-content img {
       width: 100%;
-      max-height: 250px; 
+      max-height: 250px;
       object-fit: contain;
       margin-top: 1rem;
       border-radius: 10px;
@@ -149,31 +146,6 @@
       cursor: pointer;
     }
 
-    .gifTwo, .gifFour,.gifFive, .gifSeven, .imgSix {
-      width: 300px;
-      height: 200px;
-      margin: 1rem auto;
-      background-size: auto 250px;
-      background-position: center -50px;
-      background-repeat: no-repeat;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    
-    .gifTwo { background-image: url('/static/image16.gif'); }
-    .gifFour { background-image: url('/static/image19.gif'); }
-    .gifFive { background-image: url('/static/image13.gif'); }
-    .gifSeven { background-image: url('/static/image15.gif'); }
-    .imgSix {
-      width: 175px;
-      height: 260px;
-      background-image: url('/static/image0.jpeg');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: top center;
-      margin-top: 2rem;
-    }
-
     #data-window1, #data-window2 {
       background: #fff;
       padding: 1rem;
@@ -183,7 +155,7 @@
       max-width: 500px;
       text-align: center;
       border: 1px solid #ccc;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       font-size: 1rem;
     }
 
@@ -193,43 +165,8 @@
       color: var(--primary-color);
       margin-top: 1rem;
     }
-
-    @media (max-width: 768px) {
-      .panel h3 {
-        font-size: 1.6rem;
-      }
-
-      .panel p, button, a {
-        font-size: 1rem;
-      }
-    }
-    
-    .material-list {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.7rem;
-      margin-top: 1rem;
-    }
-
-    .material-list div {
-      font-size: 1.1rem;
-      padding: 0.6rem 1.2rem;
-      background-color: white;
-      color: var(--primary-color);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: none;
-      text-align: center;
-    }
-
-    .m:hover {
-      background-color: var(--primary-color);
-      color: white;
-    }
-
   </style>
+
   <script>
     function fetchData() {
       fetch("/color_data")
@@ -242,60 +179,49 @@
 
     window.onload = () => setInterval(fetchData, 200);
 
-    function openModal(id) {
-      document.getElementById(id).style.display = "flex";
-    }
+    function openModal(id){ document.getElementById(id).style.display = "flex"; }
+    function closeModal(id){ document.getElementById(id).style.display = "none"; }
 
-    function closeModal(id) {
-      document.getElementById(id).style.display = "none";
+    function stopDataAndNavigate(url){
+      fetch('/stop_data',{method:'POST'}).then(()=>{window.location.href=url;});
     }
-
-    function stopDataAndNavigate(url) {
-      fetch('/stop_data', { method: 'POST' }).then(() => {
-      window.location.href = url;
-    });
-    }
-
   </script>
 </head>
+
 <body>
-  <h1>Assembly Instructions</h1>
+  <h1>Introduction & Set Up</h1>
+
   <div class="panels">
     <div class="panel-container">
       <div class="panel">
-        <h3>Introduction</h3>
+        <h3>Welcome</h3>
+        <p>The SonicSole integrates pressure sensors, an IMU (inertial measurement unit), and a microcontroller, enabling various activities. Its modular design allows for quick setup and efficient data collection. In industry applications, data from pressure sensors and IMUs can be used for gait analysis, balance assessment, rehabilitation monitoring, and performance optimization in sports and healthcare settings.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Quick Setup</h3>
         <p>
-          The kit is composed of an insole, <span class="clickable" onclick="openModal('logicModal')">logic unit</span>, and the <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span>.
+          1️⃣ Plug the white ribbon cable into the <span class="clickable" onclick="openModal('logicModal')">logic unit</span>.<br>
+          2️⃣ Insert the insole into your shoe.<br>
+          3️⃣ Wear the shoe.<br>
+          4️⃣ Clip the logic unit to the side of your shoe.<br><br>
         </p>
-        <h3>Learning Objectives</h3>
-        <p>Students will learn how to assemble their kit and understand the purpose of each component.</p>
       </div>
 
       <div class="panel">
-        <h3>Materials</h3>
-        <div class="material-list">
-          <div>Shoe Insole</div>
-          <div class="clickable" class="m" onclick="openModal('hardwareModal')">Hardware Assembly</div>
-          <div class="clickable" class="m" onclick="openModal('logicModal')">Logic Unit</div>
-          <div>Scissors and Tape</div>
-        </div>
+        <h3>Learn More</h3>
+        <p>Explore the components that make this possible:</p>
+        <button onclick="openModal('hardwareModal')">Hardware Assembly</button>
+        <button onclick="openModal('logicModal')">Logic Unit</button>
+        <button onclick="openModal('udpModal')">Data Communication (UDP)</button>
       </div>
-      
-
-      <div class="panel"><h3>Step 1</h3><p>Align your foot on the guide to determine your insole size.</p></div>
-      <div class="panel"><h3>Step 2</h3><p>Trim the insole accordingly.</p><div class="gifTwo"></div></div>
-      <div class="panel"><h3>Step 3</h3><p>Lay the <span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> on the insole.</p></div>
-      <div class="panel"><h3>Step 4</h3><p>Align the lower force sensing unit and vibration motor and tape it in place. The lower force sensing unit should rest below your heel.</p><div class="gifFour"></div></div>
-      <div class="panel"><h3>Step 5</h3><p>Fold wires as needed and secure them and the upper force sensing unit with tape. The upper force sensing unit should rest below your forefoot.`</p><div class="gifFive"></div></div>
-      <div class="panel"><h3>Step 6</h3><p>Tape the rest of the<span class="clickable" onclick="openModal('hardwareModal')">hardware assembly</span> to the insole.</p><div class="imgSix"></div></div>
-      <div class="panel"><h3>Step 7</h3><p>Connect to the <span class="clickable" onclick="openModal('logicModal')">logic unit</span>.</p><div class="gifSeven"></div></div>
 
       <div class="panel">
-        <h3>Testing!</h3>
-        <p class="infodata">Heel Data</p>
-        <div id="data-window1"><p></p></div>
-        <p class="infodata">Fore Data</p>
-        <div id="data-window2"><p></p></div>
+        <h3>Pressure Sensor Testing</h3>
+        <p class="infodata">Forefoot Sensor</p>
+        <div id="data-window2"></div>
+        <p class="infodata">Heel Sensor</p>
+        <div id="data-window1"></div>
         <a href="#" onclick="stopDataAndNavigate('/')">I'm Ready!</a>
       </div>
     </div>
@@ -308,9 +234,14 @@
       <span class="close" onclick="closeModal('hardwareModal')">&times;</span>
       <h2>Hardware Assembly</h2>
       <p>
-        The hardware assembly includes two force sensing units that convert mechanical force into electrical signals. These are flexible resistive sensors that detect pressure changes by varying their resistance. Combined with an inertial measurement unit (IMU) which includes accelerometers (measuring acceleration) and gyroscopes (measuring orientation and angular velocity) this system captures both foot pressure and movement during activities.
+        The hardware assembly consists of two Force Sensing Resistors (FSRs) mounted under the heel and forefoot. These sensors vary their resistance inversely with applied pressure, producing analog voltage signals proportional to foot force.  
+        <br><br>
+        The FSRs connect to an Analog-to-Digital Converter (ADC) interface that digitizes the signals for processing. The system uses the Serial Peripheral Interface (SPI) bus to communicate with ADCs that read heel and forefoot pressure sensor data, performing synchronous serial data transfers.  
+        <br><br>
+        The hardware assembly also contains an IMU (inertial measurement unit). An IMU is used to measure position. Specifically, the SonicSole takes advantage of the IMU's accelerometer. The system uses UART (Universal Asynchronous Receiver/Transmitter) communication to receive continuous data from the IMU, transmitting readings to the Raspberry Pi through a serial interface.
+        <br><br>
+        The hardware assembly is embedded within the insole, which was designed in Solidworks (a CAD (computer-aided design) software). and 3D printed using a flexible filament, TPU (Thermoplastic Polyurethane).
       </p>
-      <img src="{{ url_for('static', filename='Hardware.png') }}" alt="Hardware">
     </div>
   </div>
 
@@ -319,11 +250,30 @@
       <span class="close" onclick="closeModal('logicModal')">&times;</span>
       <h2>Logic Unit</h2>
       <p>
-        The logic unit contains printed circuit boards (PCBs) that manage the components of the hardware assembly. It includes a single-board computer that collects data from the sensors and transmits it via UDP (User Datagram Protocol) to a computer for processing and display on this website. The logic unit also houses a small speaker and a battery.
+        The logic unit, housed in a 3D printed case, is the control center of the system. It contains a Raspberry Pi and a HAT (hardware attached on top) for interfacing with the sensors.  
+        <br><br>
+        The Pi runs a script that continuously reads values from the sensors and packages the data into UDP (User Datagram Protocol) packets for transmission.  
+        <br><br>
+        Power is supplied by a rechargeable 3.7V LiPo (Lithium Polymer) battery. The device also includes an audio amplifier and miniature speaker.  
       </p>
-      <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="Logic Board">
+      <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="Logic Unit">
     </div>
   </div>
- 
+
+  <div id="udpModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('udpModal')">&times;</span>
+      <h2>Data Communication (UDP)</h2>
+      <p>
+        The system transmits sensor data using UDP (User Datagram Protocol), a connectionless communication method ideal for real-time applications.  
+        <br><br>
+        Each packet contains the sensor readings encoded as bytes and sent over the local network to the host (also the Raspberry Pi) running the Flask web interface.  
+        <br><br>
+        On the receiving end, the Flask server decodes these packets, uses the data for various applications.
+      </p>
+      <img src="{{ url_for('static', filename='udp_diagram.png') }}" alt="UDP Diagram">
+    </div>
+  </div>
+
 </body>
 </html>

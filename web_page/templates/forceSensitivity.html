@@ -3,140 +3,107 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Force Sensitivity Activity</title>
+  <title>SonicSole | Force Sensitivity Activity</title>
   <style>
+    :root {
+      --primary: #8a0000;
+      --primary-dark: #210000;
+      --accent: #ffdada;
+      --text: #2b2b2b;
+      --light: #fff;
+    }
+
+    a {
+      text-decoration: none;
+      border-radius: 7px;
+      padding: 4px 4px;
+    }
+
     body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--accent);
+      color: var(--text);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      height: 100vh;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background-color: #ffdada;
+      min-height: 100vh;
     }
 
-    h1 {
-      font-size: 4.5em;
-      margin-top: 2.5em;
-      margin-bottom: 3px;
+    header {
+      text-align: center;
+      margin-top: 60px;
+      animation: fadeIn 1.5s ease;
+    }
+
+    header h1 {
+      font-size: 3em;
+      color: var(--primary);
+      margin-bottom: 0.2em;
+    }
+
+    .card {
+      background-color: var(--light);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      width: 90%;
+      max-width: 600px;
+      margin: 50px auto;
+      text-align: center;
+      animation: slideUp 1s ease;
+    }
+
+    button, .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      font-size: 1.1em;
+      color: var(--light);
+      background-color: var(--primary);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+      transition: 0.3s;
       font-family: 'Segoe UI', sans-serif;
-      color: #8a0000;
+    }
+
+    button:hover, .btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--primary);
+      color: var(--light);
     }
 
     input[type="text"] {
       padding: 10px;
-      font-size: 1.3em;
-      border: 2px solid #210000;
-      border-radius: 5px;
-      margin-top: 25px;
+      font-size: 1.1em;
+      border: 2px solid var(--primary-dark);
+      border-radius: 6px;
       margin-bottom: 10px;
-      width: 250px;
-    }
-
-    button {
-      padding: 10px 20px;
-      margin-top: 25px;
-      font-size: 1.3em;
-      color: #fff;
-      background-color: #8a0000;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    button:hover {
-      background-color: #210000;
-    }
-
-    #name-form {
-      display: none;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0, 0, 0, 0.4);
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-content {
-      background-color: #ffdada;
-      margin: auto;
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
       width: 80%;
-      max-width: 400px;
-      text-align: center;
-    }
-
-    .close {
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .content {
-      /* display: none; */
-      display: block;
-      text-align: center;
-      margin-top: 1em;
-    }
-
-    .buttons {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      margin-top: 1em;
-      margin-bottom: 1em;
+      max-width: 250px;
     }
 
     .data-box {
-      font-size: 1.1em;
-      background-color: #fafafa;
-      padding: 10px;
-      border-radius: 10px;
-      margin: 8px auto;
-      width: 280px;
-      height: 80px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      border: 1px solid #ddd;
-    }
-
-    .btn, #res {
-      display: inline-block;
-      margin-top: 25px;
       font-size: 1.3em;
-      color: #310000;
-      text-decoration: none;
-      border: 2px solid #310000;
-      padding: 10px 20px;
-      border-radius: 5px;
-      background-color: transparent;
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    .btn:hover {
-      background-color: #310000;
-      color: #fff;
-    }
-
-    #res:hover {
-      background-color: #310000;
-      color: #fff;
+      background-color: #fafafa;
+      padding: 15px;
+      border-radius: 12px;
+      margin: 15px auto;
+      width: 80%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border: 1px solid #ddd;
+      text-align: center;
     }
 
     .name-fields {
@@ -144,35 +111,139 @@
       justify-content: center;
       gap: 20px;
       flex-wrap: wrap;
+      margin-bottom: 15px;
     }
+
+    .countdown {
+      display: none;
+      font-size: 5em;
+      color: var(--primary);
+      font-weight: bold;
+      margin: 15px 0;
+      animation: glow 1s infinite alternate;
+    }
+
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background-color: var(--light);
+      padding: 30px;
+      border-radius: 15px;
+      width: 80%;
+      max-width: 500px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      text-align: left;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .modal-content h2 {
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+
+    .close {
+      float: right;
+      font-size: 1.5em;
+      color: var(--primary);
+      cursor: pointer;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #555;
+      margin-top: auto;
+    }
+
+    @keyframes glow { from { text-shadow: 0 0 8px #faaaab, 0 0 15px #faaaab; } to { text-shadow: 0 0 12px #ff6b6b, 0 0 25px #ff6b6b; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   </style>
+</head>
+<body>
+  <header>
+    <h1>SonicSole</h1>
+  </header>
+
+  <div class="card">
+    <h2>Force Sensitivity Activity</h2>
+    <p>Test your ability to match a target foot pressure level.</p>
+
+    <div class="buttons">
+      <button id="startButton">Start Force Trainer</button>
+      <button class="btn-outline" onclick="openModal()">Instructions</button>
+    </div>
+
+    <div class="data-box" id="timeBox">Timer: --</div>
+    <div class="data-box" id="statusBox">Waiting for trainer to start...</div>
+
+    <div id="instructionsModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Instructions</h2>
+        <p>
+          This activity tests your ability to match a target pressure level.<br><br>
+          Step 1: Calibration – Apply your maximum force. This sets your 100% force.<br>
+          Step 2: Match the randomly chosen target % of your max. Force is measured in real-time.<br>
+          Step 3: Your accuracy is calculated based on how close your applied force is to the target.<br><br>
+          This activity tests proprioception – your sense of body position and effort – to control pressure precisely.
+        </p>
+      </div>
+    </div>
+
+    <form id="name-form" style="display:none;">
+      <div class="name-fields">
+        <input type="text" name="first_name2" placeholder="First Name" required>
+        <input type="text" name="last_name2" placeholder="Last Name" required>
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+
+    <div id="thankYouMessage" style="display:none; font-size:1.2em; color: var(--primary-dark); margin-top:15px;">
+      Thank you for submitting!
+    </div>
+
+    <div style="margin-top: 20px;">
+      <a href="/fScoreboard" class="btn-outline">View Scoreboard</a>
+    </div>
+  </div>
+
+  <footer>
+    <a class="btn-outline" href="#" onclick="stopDataAndNavigate('/')">Home</a>
+    <a class="btn-outline" href="{{ url_for('forceSensitivity') }}">Reload</a>
+  </footer>
 
   <script>
     let pollingInterval = null;
     let forceTrainerTarget = null;
 
-    function openModal() {
-      document.getElementById("instructionsModal").style.display = "flex";
-    }
-  
-    function closeModal() {
-      document.getElementById("instructionsModal").style.display = "none";
-    }
-  
+    function openModal() { document.getElementById("instructionsModal").style.display = "flex"; }
+    function closeModal() { document.getElementById("instructionsModal").style.display = "none"; }
+
     function submitForm(event) {
       event.preventDefault();
       const form = document.getElementById("name-form");
       const formData = new FormData(form);
-      fetch("/submitF", {
-        method: "POST",
-        body: formData,
-      }).then((response) => {
+      fetch("/submitF", { method: "POST", body: formData }).then((response) => {
         if (response.ok) {
-          document.querySelector(".content").style.display = "block";
+          form.style.display = "none";
+          document.getElementById("thankYouMessage").style.display = "block";
         }
       });
     }
-  
+
     function startForceTrainer() {
       fetch("/start_force_trainer").then((response) => {
         if (response.ok) {
@@ -182,42 +253,40 @@
         }
       });
     }
-  
+
     function startPolling() {
       if (pollingInterval) clearInterval(pollingInterval);
       pollingInterval = setInterval(fetchTrainerStatus, 300);
     }
-  
+
     function fetchTrainerStatus() {
       fetch("/force_trainer_status")
-        .then((response) => response.json())
-        .then((data) => {
+        .then(res => res.json())
+        .then(data => {
           const messageBox = document.getElementById("statusBox");
           const timeBox = document.getElementById("timeBox");
-
           const statusText = data.status;
           const elapsed = data.time;
 
           if (statusText.includes("calibrating")) {
-            messageBox.innerText = "Step 1: Apply full pressure for calibration! This will be 100% pressure.";
+            messageBox.innerText = "Step 1: Apply full pressure for calibration!";
             timeBox.innerText = `Calibrating: ${Math.max(0, 10 - elapsed).toFixed(1)}s`;
 
-        } else if (statusText.includes("cooldown")) {
+          } else if (statusText.includes("cooldown")) {
             messageBox.innerText = "Cooldown: Get ready!";
-            const cooldownElapsed = elapsed - 10; // cooldown starts after calibration (10s)
+            const cooldownElapsed = elapsed - 10;
             const cooldownRemaining = Math.max(0, 3 - cooldownElapsed).toFixed(1);
             timeBox.innerText = `Cooldown: ${cooldownRemaining}s`;
 
           } else if (statusText.includes("measuring")) {
             const target = data.target_percent;
             const maxForce = data.max_force;
-            messageBox.innerText = `Step 2: Match the target pressure level: ${target !== null ? target + "%" : "..."}. Your max pressure was ${maxForce}`;
-            const measuringElapsed = elapsed - 13; // 10 calibration + 3 cooldown
-            const measuringRemaining = Math.max(0, 10 - measuringElapsed).toFixed(1); // set 10s
+            messageBox.innerText = `Step 2: Match target pressure: ${target !== null ? target + "%" : "..."} (Max: ${maxForce})`;
+            const measuringElapsed = elapsed - 13;
+            const measuringRemaining = Math.max(0, 10 - measuringElapsed).toFixed(1);
             timeBox.innerText = `Measuring: ${measuringRemaining}s`;
 
           } else if (statusText.includes("done")) {
-            //messageBox.innerText = "Finished! Calculating results...";
             timeBox.innerText = `Done!`;
             clearInterval(pollingInterval);
             showFinalResults();
@@ -232,8 +301,8 @@
 
     function showFinalResults() {
       fetch("/force_trainer_results")
-        .then((response) => response.json())
-        .then((data) => {
+        .then(res => res.json())
+        .then(data => {
           forceTrainerTarget = data.target_percent;
           const msg = `
             Target: ${data.target_percent}%<br>
@@ -244,61 +313,16 @@
         });
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
-      document.getElementById("name-form").addEventListener("submit", submitForm);
-      document.getElementById("startButton").addEventListener("click", startForceTrainer);
-    });
-
     function stopDataAndNavigate(url) {
-        fetch('/stop_data', { method: 'POST' }).then(() => {
+      fetch('/stop_data', { method: 'POST' }).then(() => {
         window.location.href = url;
       });
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("name-form").addEventListener("submit", submitForm);
+      document.getElementById("startButton").addEventListener("click", startForceTrainer);
+    });
   </script>
-  
-</head>
-<body>
-  <h1>Force Sensitivity Activity</h1>
-
-
-  <div class="content">
-    <p>If you make any changes, please hit submit again!</p>
-    <div class="buttons">
-      <button id="startButton">Start Force Trainer</button>
-      <button onclick="openModal()">Instructions</button>
-    </div>
-
-    <div class="data-box" id="timeBox">Timer: --</div>
-    <div class="data-box" id="statusBox">Waiting for trainer to start...</div>
-
-    <div id="instructionsModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2>Instructions</h2>
-        <p>
-          This activity tests your ability to match a target pressure level. <br />
-          Step 1: Calibration: Apply your maximum forefoot force. During this time, the force sensors will constantly be measuring the force you apply, and the maximum force applied will be saved as 100% force.<br />
-          Step 2: Try to match the randomly chosen target % of your max. During this time, your applied force will be sent to the computer and stored. <br />
-          Step 3: Your accuracy is calculated based on how close your average applied force is to the target force percentage. <br />
-          This activity tests how well you can control your foot pressure without seeing live feedback. Your brain uses proprioception—your sense of body position and effort—to match the target force using only how it feels. It shows how your muscles and brain work together to control movement with precision.
-        </p>
-      </div>
-    </div>
-    <a href="/fScoreboard" class = "btn">Scoreboard</a>
-  </div>
-
-  
-  <form id="name-form">
-    <div style="text-align: center;">
-      <div class="name-fields">
-        <input type="text" name="first_name2" required placeholder="Enter First Name" />
-        <input type="text" name="last_name2" required placeholder="Enter Last Name" />
-      </div>
-      <button type="submit">Submit</button>
-    </div>
-  </form>
-
-  <a class = "btn" href="#" onclick="stopDataAndNavigate('/')">Home</a>
-  <a href="{{ url_for('forceSensitivity') }}"><button id="res">Reset</button></a>
 </body>
 </html>

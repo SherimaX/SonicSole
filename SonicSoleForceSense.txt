@@ -6,3 +6,4 @@ User1,40.0
 User1,70.0
 User1,75.0
 forceSense T1,80.0
+Test Test,55.0
