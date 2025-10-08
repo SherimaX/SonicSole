@@ -219,14 +219,29 @@
       }
     </style>
     <script>
+      // function fetchData() {
+      //   fetch("/balancing")
+      //     .then((response) => response.json())
+      //     .then((data) => {
+      //       document.getElementById("balanceDataLocation").innerText =
+      //         data.data + " seconds";
+      //     });
+      // }
+
+      let formShown = false;
+
       function fetchData() {
         fetch("/balancing")
           .then((response) => response.json())
           .then((data) => {
-            document.getElementById("balanceDataLocation").innerText =
-              data.data + " seconds";
+            document.getElementById("balanceDataLocation").innerText = data.data + " seconds";
+            if (data.done && !formShown) {
+              document.getElementById("name-form").style.display = "block";
+              formShown = true;
+            }
           });
       }
+
 
       window.onload = function () {
         fetchData();

@@ -476,10 +476,20 @@ def balancing_pressure():
         time.sleep(0.01)
     print("[balancing_pressure] thread complete, combined_data_running:", combined_data_running)
 
+# @app.route('/balancing', methods=['GET'])
+# def balancing():
+#     global totalTime
+#     return jsonify({'data': totalTime})
+
 @app.route('/balancing', methods=['GET'])
 def balancing():
-    global totalTime
-    return jsonify({'data': totalTime})
+    done = False
+    try:
+        done = not recording_time and float(totalTime) != 0
+    except ValueError:
+        done = False
+    return jsonify({'data': totalTime, 'done': done})
+
 
 @app.route('/button_click', methods=['POST'])
 def button_click():
@@ -1054,7 +1064,7 @@ def submitW():
         f.write(f"{submitted_name2},{forefoot_dist}\n")
 
     return jsonify({"status": "Name submitted successfully"})
-recording_time = True
+
 
 @app.route('/submitF', methods=['POST'])
 def submitF():
@@ -1067,7 +1077,6 @@ def submitF():
         f.write(f"{submitted_name2},{percent_error}\n")
 
     return jsonify({"status": "Name submitted successfully"})
-recording_time = True
 
 @app.route('/submitJ', methods=['POST'])
 def submitJ():
@@ -1080,8 +1089,6 @@ def submitJ():
         f.write(f"{submitted_name2},{last_jump_height}\n")
 
     return jsonify({"status": "Name submitted successfully"})
-recording_time = True
-
 
 
 # misc (not sure what these are for)

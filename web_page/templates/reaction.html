@@ -202,7 +202,7 @@
                 document.getElementById("timeBox").innerText = `Done!`;
                 clearInterval(pollingInterval);
                 new Audio("/static/success.mp3").play();
-                document.getElementById("name-form").style.display = "block";
+                document.getElementById("name-form").style.display = "block"; //need to find a place for this in balanceActivity
 
                 } else if (status === "invalid") {
                 document.getElementById("statusBox").innerText = "Invalid attempt. You moved too early.";
