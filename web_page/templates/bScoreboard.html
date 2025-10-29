@@ -1,301 +1,318 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Balance Scoreboard</title>
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SonicSole | Balance Scoreboard</title>
+
   <style>
-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    height: 100vh;
-    margin: 0;
-    padding: 0;
-    font-family: Ariel, sans-serif;
-    background-color: #ffdada;
-}
+    :root {
+      --primary: #8a0000;
+      --primary-dark: #210000;
+      --accent: #ffdada;
+      --text: #2b2b2b;
+      --light: #fff;
+    }
 
-h1 {
-    font-size: 4.5em;
-    margin-top: 2.5em;
-    margin-bottom: 0.1em;
-    color: #8a0000;
-}
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--accent);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-p {
-    font-size: 1.3em;
-    margin-bottom: 10em;
-}
+    header {
+      text-align: center;
+      margin-top: 60px;
+      animation: fadeIn 1.2s ease;
+    }
 
-.btn {
-    display: inline-block;
-    margin-top: 20px;
-    font-size: 1.3em;
-    background-color: white;
-    color: #310000;
-    text-decoration: none;
-    border: 2px solid #310000;
-    padding: 10px 20px;
-    border-radius: 5px;
-    transition: background-color 0.3s, color 0.3s;
-}
+    header h1 {
+      font-size: 3em;
+      color: var(--primary);
+      margin-bottom: 0.3em;
+    }
 
-.btn:hover {
-    background-color: #310000;
-    color: #fff;
-}
+    .card {
+      background-color: var(--light);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      width: 90%;
+      max-width: 1000px;
+      margin: 40px auto;
+      text-align: center;
+      animation: slideUp 1s ease;
+    }
 
-.homebutton {
-    margin-bottom: 1em;
-}
+    a.btn-outline, button.btn-outline {
+      display: inline-block;
+      padding: 12px 24px;
+      font-size: 1.1em;
+      color: var(--primary);
+      background-color: transparent;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+      transition: 0.3s;
+      text-decoration: none;
+    }
 
-table {
-    border-collapse: collapse;
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    overflow: hidden;
-    margin-top: 20px;
-    width: 100%;
-}
+    a.btn-outline:hover,
+    button.btn-outline:hover {
+      background-color: var(--primary);
+      color: var(--light);
+      transform: translateY(-2px);
+    }
 
-.leaderboards {
-    display: flex;
-    justify-content: space-around;
-    align-items: flex-start;
-    gap: 20px;
-}
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 1.5em;
+      flex-wrap: wrap;
+    }
 
-th,
-td {
-    padding: 20px 50px;
-    font-size: 1.2em;
-    text-align: center;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--light);
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+      animation: fadeIn 1.5s ease;
+    }
 
-th {
-    background-color: #320000;
-    color: #fff;
-    text-align: center;
-    font-size: 1.4em;
-    cursor: pointer;
-    position: relative;
-    padding-right: 35px;
-    transition: background-color 0.3s;
-}
+    th, td {
+      padding: 15px;
+      font-size: 1.2em;
+      text-align: center;
+    }
 
-th:hover,
-th.sorted {
-    background-color: #5e0000;
-}
+    th {
+      background-color: var(--primary-dark);
+      color: var(--light);
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.3s;
+    }
 
-.sort-indicator {
-    text-align : right;
-    right: 10px;
-    top: 50%;
-    font-size: 0.7em;
-    margin-left: 20px;
-}
+    th.sorted {
+      background-color: var(--primary);
+    }
 
-tr:nth-child(even) {
-    background-color: #ffc2c0;
-}
+    tr:nth-child(even) {
+      background-color: #ffe4e4;
+    }
 
-td:first-child {
-    font-weight: bold;
-    color: #320000;
-}
+    td:first-child {
+      font-weight: bold;
+      color: var(--primary-dark);
+    }
 
-td:empty::after {
-    content: "--";
-    color: #999;
-}
+    .sort-indicator {
+      margin-left: 10px;
+      font-size: 0.9em;
+      position: absolute;
+      right: 12px;
+    }
 
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 999;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
-  align-items: center;
-  justify-content: center;
-}
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.5s ease;
+    }
 
-.modal-content {
-  background-color: #ffdada;
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  width: 70%;
-  max-width: 400px;
-  text-align: center;
-}
+    .modal-content {
+      background-color: var(--accent);
+      margin: auto;
+      padding: 25px 30px;
+      border-radius: 15px;
+      width: 80%;
+      max-width: 450px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      animation: slideUp 0.5s ease;
+    }
 
-.close {
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-}
+    .close {
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: var(--primary-dark);
+    }
 
+    footer {
+      text-align: center;
+      padding: 20px;
+      margin-top: auto;
+      color: #555;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
-<script>
-window.onload = function() {
-    // Default sort by Eyes Opened Time (column index 1)
-    sortTable(1, true);
-    mergeLeaderboardRows();
-};
 
-function sortTable(columnIndex, isNumeric = false) {
-    var table = document.getElementById("combinedLeaderboard");
-    var rows = Array.from(table.rows).slice(1);
-    var isAscending = table.getAttribute("data-sort-order") === "asc";
+  <script>
+    window.onload = function() {
+      sortTable(1, true);
+      mergeLeaderboardRows();
+    };
 
-    rows.sort(function (a, b) {
+    function sortTable(columnIndex, isNumeric = false) {
+      var table = document.getElementById("combinedLeaderboard");
+      var rows = Array.from(table.rows).slice(1);
+      var isAscending = table.getAttribute("data-sort-asc") === "true";
+
+      rows.sort(function (a, b) {
         var cellA = a.cells[columnIndex].textContent.trim();
         var cellB = b.cells[columnIndex].textContent.trim();
 
         if (isNumeric) {
-            cellA = parseFloat(cellA) || 0;
-            cellB = parseFloat(cellB) || 0;
+          cellA = parseFloat(cellA) || 0;
+          cellB = parseFloat(cellB) || 0;
         }
 
-        if (isAscending) {
-            return cellA > cellB ? 1 : -1;
-        } else {
-            return cellA < cellB ? 1 : -1;
-        }
-    });
+        if (cellA < cellB) return isAscending ? -1 : 1;
+        if (cellA > cellB) return isAscending ? 1 : -1;
+        return 0;
+      });
 
-    table.tBodies[0].append(...rows);
-    table.setAttribute("data-sort-order", isAscending ? "desc" : "asc");
+      table.tBodies[0].append(...rows);
+      table.setAttribute("data-sort-asc", !isAscending);
+      updateSortIndicators(table, columnIndex, !isAscending);
+    }
 
-    // Update sort indicators and keep hover effect on the sorted column
-    updateSortIndicators(table, columnIndex, isAscending);
-}
-
-function updateSortIndicators(table, columnIndex, isAscending) {
-    var headers = table.querySelectorAll("th");
-    headers.forEach(function(header, index) {
+    function updateSortIndicators(table, columnIndex, isAscending) {
+      var headers = table.querySelectorAll("th");
+      headers.forEach((header, index) => {
         var indicator = header.querySelector(".sort-indicator");
         if (index === columnIndex) {
-            indicator.textContent = isAscending ? "Ascending" : "Descending";
-            header.classList.add("sorted");  // Keep hover color on the sorted column
+          indicator.textContent = isAscending ? "↓" : "↑";
+          header.classList.add("sorted");
         } else {
-            indicator.textContent = "";
-            header.classList.remove("sorted");  // Remove hover color from unsorted columns
+          indicator.textContent = "";
+          header.classList.remove("sorted");
         }
-    });
-}
+      });
+    }
 
-function mergeLeaderboardRows() {
-    const table = document.getElementById('combinedLeaderboard');
-    const rows = Array.from(table.querySelectorAll('tbody tr'));
-
-    // Object to store the highest times for each name
-    const data = rows.reduce((acc, row) => {
-        const nameCell = row.cells[0].textContent.trim();
-        const eoTime = row.cells[1].textContent.trim();
-        const ecTime = row.cells[2].textContent.trim();
-
-        // Convert "--" to 0 and parse times
-        const eoTimeValue = eoTime === '--' ? 0 : parseFloat(eoTime);
-        const ecTimeValue = ecTime === '--' ? 0 : parseFloat(ecTime);
-
-        if (!acc[nameCell]) {
-            acc[nameCell] = { eoTime: eoTimeValue, ecTime: ecTimeValue };
-        } else {
-            // Merge rows: keep the highest times
-            acc[nameCell].eoTime = Math.max(acc[nameCell].eoTime, eoTimeValue);
-            acc[nameCell].ecTime = Math.max(acc[nameCell].ecTime, ecTimeValue);
+    function mergeLeaderboardRows() {
+      const table = document.getElementById('combinedLeaderboard');
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      const data = rows.reduce((acc, row) => {
+        const name = row.cells[0].textContent.trim();
+        const eo = parseFloat(row.cells[1].textContent) || 0;
+        const ec = parseFloat(row.cells[2].textContent) || 0;
+        if (!acc[name]) acc[name] = { eo, ec };
+        else {
+          acc[name].eo = Math.max(acc[name].eo, eo);
+          acc[name].ec = Math.max(acc[name].ec, ec);
         }
-
         return acc;
-    }, {});
+      }, {});
 
-    // Clear existing rows
-    table.querySelector('tbody').innerHTML = '';
-
-    // Append merged rows
-    Object.keys(data).forEach(name => {
-        const eoTime = data[name].eoTime === 0 ? '--' : data[name].eoTime.toFixed(2) + ' s';
-        const ecTime = data[name].ecTime === 0 ? '--' : data[name].ecTime.toFixed(2) + ' s';
-
+      table.querySelector('tbody').innerHTML = '';
+      for (const [name, { eo, ec }] of Object.entries(data)) {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${name}</td>
-            <td>${eoTime}</td>
-            <td>${ecTime}</td>
-        `;
+          <td>${name}</td>
+          <td>${eo ? eo.toFixed(2) + ' s' : '--'}</td>
+          <td>${ec ? ec.toFixed(2) + ' s' : '--'}</td>`;
         table.querySelector('tbody').appendChild(row);
-    });
-}
-function openModal() {
-  document.getElementById("instructionsModal").style.display = "flex";
-}
+      }
+    }
 
-function closeModal() {
-  document.getElementById("instructionsModal").style.display = "none";
-}
+    function openModal() {
+      document.getElementById("instructionsModal").style.display = "flex";
+    }
 
+    function closeModal() {
+      document.getElementById("instructionsModal").style.display = "none";
+    }
   </script>
-   
-  <body>
-    <h1>Balancing Scoreboard</h1>
-    <div style="display: flex; gap: 10px; margin-bottom: 1em; margin-top: 1em;">
-      <a class = "btn" href="/balance" class="homebutton">Go Back</a>
-      <button class = "btn" onclick="openModal()">Explanation</button>
+</head>
+
+<body>
+  <header>
+    <h1>SonicSole</h1>
+  </header>
+
+  <div class="card">
+    <h2>Balance Scoreboard</h2>
+
+    <div class="button-group">
+      <a href="/balance" class="btn-outline">Go Back</a>
+      <button class="btn-outline" onclick="openModal()">Explanation</button>
     </div>
 
-    <div class="leaderboards">
-      <!-- Combined Table -->
-      <table class="leaderboard" id="combinedLeaderboard">
-          <thead>
-              <tr>
-                  <th onclick="sortTable(0)" class="sortable">Name <span class="sort-indicator"></span></th>
-                  <th onclick="sortTable(1, true)" class="sortable">E.O Time (seconds)<span class="sort-indicator"></span></th>
-                  <th onclick="sortTable(2, true)" class="sortable">E.C Time (seconds)<span class="sort-indicator"></span></th>
-              </tr>
-          </thead>
-          <tbody>
-              {% for entry in data %}
-              <tr>
-                  <td>{{ entry.name | replace('(Eyes Opened)', '') | replace('(Eyes Closed)', '') }}</td>
-                  <td>
-                      {% if "(Eyes Opened)" in entry.name %}
-                      {{ "%.2f" | format(entry.time) }} s
-                      {% else %}
-                      --
-                      {% endif %}
-                  </td>
-                  <td>
-                      {% if "(Eyes Closed)" in entry.name %}
-                      {{ "%.2f" | format(entry.time) }} s
-                      {% else %}
-                      --
-                      {% endif %}
-                  </td>
-              </tr>
-              {% endfor %}
-          </tbody>
-      </table>
+    <table id="combinedLeaderboard">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Name <span class="sort-indicator"></span></th>
+          <th onclick="sortTable(1, true)">E.O Time (seconds) <span class="sort-indicator"></span></th>
+          <th onclick="sortTable(2, true)">E.C Time (seconds) <span class="sort-indicator"></span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in data %}
+        <tr>
+          <td>{{ entry.name | replace('(Eyes Opened)', '') | replace('(Eyes Closed)', '') }}</td>
+          <td>
+            {% if "(Eyes Opened)" in entry.name %}
+              {{ "%.2f" | format(entry.time) }} s
+            {% else %}
+              --
+            {% endif %}
+          </td>
+          <td>
+            {% if "(Eyes Closed)" in entry.name %}
+              {{ "%.2f" | format(entry.time) }} s
+            {% else %}
+              --
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div id="instructionsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>Explanation</h2>
+      <p>
+        You likely noticed balancing was easier with your eyes open. That’s because the brain relies on visual cues to keep your body’s center of mass over your foot. When vision is removed, your body must rely more on muscle feedback to maintain balance. Both systems work together to stabilize posture and prevent falls.
+      </p>
     </div>
-    <div id="instructionsModal" class="modal">
-        <div class="modal-content">
-          <span class="close" onclick="closeModal()">&times;</span>
-          <h2>Explanation</h2>
-          <p>
-            After completing the activity, you should have noticed that you had an easier time balancing on one leg when your eyes were open. This is because the brain relies on visual cues  to  ensure that the projection of your body’s center of mass falls over the standing foot. This occurs through the actions of your muscles. When your eyes are covered, your body has a more difficult time trying to balance because it cannot rely on your sight to help correct your posture to maintain balance. The visual and muscular feedback are both important aspects necessary to maintaining balance. 
-          </p>
-        </div>
-      </div>
-  </body>
+  </div>
+
+  <footer>
+    <a href="/" class="btn-outline">Home</a>
+  </footer>
+</body>
 </html>

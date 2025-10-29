@@ -588,10 +588,12 @@ def run_force_trainer():
     force_trainer_state['max_force'] = max_val if max_val > 0 else 1000 
 
     force_trainer_state['status'] = 'cooldown' # Step 2: Cooldown
+    target_percent = random.choice([20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105])
+    force_trainer_state['target_percent'] = target_percent
     time.sleep(3)
 
     force_trainer_state['status'] = 'measuring' # Step 3: Random target percentage
-    target_percent = random.choice([20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105])
+    # target_percent = random.choice([20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105])
     force_trainer_state['target_percent'] = target_percent
 
     readings = [] # Step 4: Measure pressure hold
