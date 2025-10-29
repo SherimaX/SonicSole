@@ -276,6 +276,11 @@
             messageBox.innerText = "Cooldown: Get ready!";
             const cooldownElapsed = elapsed - 10;
             const cooldownRemaining = Math.max(0, 3 - cooldownElapsed).toFixed(1);
+
+            const target = data.target_percent;
+            const maxForce = data.max_force;
+            messageBox.innerText = `Your target pressure is: ${target !== null ? target + "%" : "..."} (Your maximum pressure was: ${maxForce})`;
+
             timeBox.innerText = `Cooldown: ${cooldownRemaining}s`;
 
           } else if (statusText.includes("measuring")) {

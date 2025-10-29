@@ -201,8 +201,8 @@
       <div class="panel">
         <h3>Quick Setup</h3>
         <p>
-          1️⃣ Plug the white ribbon cable into the <span class="clickable" onclick="openModal('logicModal')">logic unit</span>.<br>
-          2️⃣ Insert the insole into your shoe.<br>
+          1️⃣ Plug the white ribbon cable into the <span class="clickable" onclick="openModal('logicImageModal')">logic unit</span>.<br>
+          2️⃣ Insert the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span> which contains the <span class="clickable" onclick="openModal('HardwareImageModal')">hardware assembly</span> into your shoe.<br>
           3️⃣ Wear the shoe.<br>
           4️⃣ Clip the logic unit to the side of your shoe.<br><br>
         </p>
@@ -210,7 +210,7 @@
 
       <div class="panel">
         <h3>Learn More</h3>
-        <p>Explore the components that make this possible:</p>
+        <p>Explore:</p>
         <button onclick="openModal('hardwareModal')">Hardware Assembly</button>
         <button onclick="openModal('logicModal')">Logic Unit</button>
         <button onclick="openModal('udpModal')">Data Communication (UDP)</button>
@@ -256,7 +256,31 @@
         <br><br>
         Power is supplied by a rechargeable 3.7V LiPo (Lithium Polymer) battery. The device also includes an audio amplifier and miniature speaker.  
       </p>
+      <!-- <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="Logic Unit"> -->
+    </div>
+  </div>
+
+  <div id="logicImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('logicImageModal')">&times;</span>
+      <h2>Logic Unit</h2>
       <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="Logic Unit">
+    </div>
+  </div>
+
+  <div id="HardwareImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('HardwareImageModal')">&times;</span>
+      <h2>Hardware Assembly</h2>
+      <img src="{{ url_for('static', filename='Hardware.png') }}" alt="Hardware Assembly">
+    </div>
+  </div>
+
+  <div id="InsoleImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('InsoleImageModal')">&times;</span>
+      <h2>Custom 3D Printed (TPU) Inole</h2>
+      <img src="{{ url_for('static', filename='insole.png') }}" alt="Custom Insole">
     </div>
   </div>
 

@@ -1,169 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reaction Scoreboard</title>
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SonicSole | Reaction Time Scoreboard</title>
   <style>
+    :root {
+      --primary: #8a0000;
+      --primary-dark: #210000;
+      --accent: #ffdada;
+      --text: #2b2b2b;
+      --light: #fff;
+    }
+
     body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--accent);
+      color: var(--text);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      height: 100vh;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background-color: #ffdada;
+      min-height: 100vh;
     }
 
-    h1 {
-      font-size: 4.5em;
-      margin-top: 2.5em;
-      margin-bottom: 0.1em;
-      color: #8a0000;
-      font-family: 'Segoe UI', sans-serif;
+    header {
+      text-align: center;
+      margin-top: 60px;
+      animation: fadeIn 1.2s ease;
     }
 
-    p {
-      font-size: 1.3em;
-      margin-bottom: 10em;
+    header h1 {
+      font-size: 3em;
+      color: var(--primary);
+      margin-bottom: 0.3em;
     }
 
-    a {
+    .card {
+      background-color: var(--light);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      width: 90%;
+      max-width: 900px;
+      margin: 40px auto;
+      text-align: center;
+      animation: slideUp 1s ease;
+    }
+
+    a.btn-outline {
       display: inline-block;
-      margin-top: 20px;
-      font-size: 1.3em;
-      color: #310000;
+      padding: 12px 24px;
+      font-size: 1.1em;
+      color: var(--primary);
+      background-color: transparent;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+      transition: 0.3s;
       text-decoration: none;
-      border: 2px solid #310000;
-      background-color: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      transition: background-color 0.3s, color 0.3s;
-    }
-    a:hover {
-      background-color: #310000;
-      color: #fff;
     }
 
-    .homebutton {
-      margin-bottom: 1em;
+    a.btn-outline:hover {
+      background-color: var(--primary);
+      color: var(--light);
+      transform: translateY(-2px);
     }
 
     table {
-      width: 80%;
-      max-width: 800px;
+      width: 100%;
       border-collapse: collapse;
-      background-color: #fff;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
+      background-color: var(--light);
+      border-radius: 15px;
       overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       margin-top: 20px;
+      animation: fadeIn 1.5s ease;
     }
 
-    th,
-    td {
+    th, td {
       padding: 15px;
       font-size: 1.2em;
       text-align: center;
     }
 
     th {
-      background-color: #320000;
-      color: #fff;
-      text-align: center;
-      font-size: 1.4em;
-    }
-
-    tr:nth-child(even) {
-      background-color: #ffc2c0;
-    }
-
-    td:first-child {
-      font-weight: bold;
-      color: #320000;
-    }
-
-    th {
-      background-color: #320000;
-      color: #fff;
-      text-align: left;
-      font-size: 1.4em;
+      background-color: var(--primary-dark);
+      color: var(--light);
       cursor: pointer;
       position: relative;
     }
 
     th.sorted {
-      background-color: #8a0000;
-      color: #fff;
+      background-color: var(--primary);
+    }
+
+    tr:nth-child(even) {
+      background-color: #ffe4e4;
+    }
+
+    td:first-child {
+      font-weight: bold;
+      color: var(--primary-dark);
     }
 
     .sort-indicator {
-      margin-left: 20px;
+      margin-left: 10px;
       font-size: 0.9em;
       position: absolute;
-      right: 10px; 
+      right: 12px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      margin-top: auto;
+      color: #555;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
-  <script>
-function sortTable(columnIndex, isNumeric = false) {
-    var table = document.getElementById("leaderboard");
-    var rows = Array.from(table.rows).slice(1);
-    var isAscending = table.getAttribute("data-sort-asc") === "true";
 
-    rows.sort(function (rowA, rowB) {
+  <script>
+    function sortTable(columnIndex, isNumeric = false) {
+      var table = document.getElementById("leaderboard");
+      var rows = Array.from(table.rows).slice(1);
+      var isAscending = table.getAttribute("data-sort-asc") === "true";
+
+      rows.sort(function (rowA, rowB) {
         var cellA = rowA.cells[columnIndex].innerText;
         var cellB = rowB.cells[columnIndex].innerText;
 
         if (isNumeric) {
-            cellA = parseFloat(cellA) || 0;
-            cellB = parseFloat(cellB) || 0;
+          cellA = parseFloat(cellA) || 0;
+          cellB = parseFloat(cellB) || 0;
         }
 
-        if (isNumeric ? (cellA < cellB) : (cellA.toLowerCase() < cellB.toLowerCase())) 
-            return isAscending ? -1 : 1;
-        if (isNumeric ? (cellA > cellB) : (cellA.toLowerCase() > cellB.toLowerCase())) 
-            return isAscending ? 1 : -1;
-        
+        if (isNumeric ? (cellA < cellB) : (cellA.toLowerCase() < cellB.toLowerCase()))
+          return isAscending ? -1 : 1;
+        if (isNumeric ? (cellA > cellB) : (cellA.toLowerCase() > cellB.toLowerCase()))
+          return isAscending ? 1 : -1;
+
         return 0;
-    });
+      });
 
-    rows.forEach(function (row) {
-        table.tBodies[0].appendChild(row);
-    });
+      rows.forEach(row => table.tBodies[0].appendChild(row));
+      table.setAttribute("data-sort-asc", !isAscending);
+      updateSortIndicators(table, columnIndex, !isAscending);
+    }
 
-    table.setAttribute("data-sort-asc", !isAscending);
-    updateSortIndicators(table, columnIndex, !isAscending);
-}
-
-function updateSortIndicators(table, columnIndex, isAscending) {
-    var headers = table.querySelectorAll("th");
-    headers.forEach(function (header, index) {
+    function updateSortIndicators(table, columnIndex, isAscending) {
+      var headers = table.querySelectorAll("th");
+      headers.forEach((header, index) => {
         var indicator = header.querySelector(".sort-indicator");
         if (index === columnIndex) {
-            indicator.textContent = isAscending ? "Descending" : "Ascending";
-            header.classList.add("sorted");
+          indicator.textContent = isAscending ? "↓" : "↑";
+          header.classList.add("sorted");
         } else {
-            indicator.textContent = "";
-            header.classList.remove("sorted");
+          indicator.textContent = "";
+          header.classList.remove("sorted");
         }
-    });
-}
-
+      });
+    }
   </script>
-  <body>
-    <h1>Reaction Time Scoreboard</h1>
-    <a href="/reaction" class="homebutton">Go Back</a>
+</head>
+
+<body>
+  <header>
+    <h1>SonicSole</h1>
+  </header>
+
+  <div class="card">
+    <h2>Reaction Time Scoreboard</h2>
+    <a href="/reaction" class="btn-outline">Go Back</a>
+
     <table id="leaderboard">
       <tr>
-        <th onclick="sortTable(0)" class="sortable">
-          Name <span class="sort-indicator"></span>
-        </th>
-        <th onclick="sortTable(1, true)" class="sortable">
-          Reaction Time <span class="sort-indicator"></span>
-        </th>
+        <th onclick="sortTable(0)">Name <span class="sort-indicator"></span></th>
+        <th onclick="sortTable(1, true)">Reaction Time (ms) <span class="sort-indicator"></span></th>
       </tr>
       {% for entry in data %}
       <tr>
@@ -172,5 +195,10 @@ function updateSortIndicators(table, columnIndex, isAscending) {
       </tr>
       {% endfor %}
     </table>
-  </body>
+  </div>
+
+  <footer>
+    <a href="/" class="btn-outline">Home</a>
+  </footer>
+</body>
 </html>
