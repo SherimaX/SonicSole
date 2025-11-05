@@ -168,7 +168,7 @@
       margin-top: 1rem;
     }
 
-    /* Larger modal for videos */
+    /* Modal for videos */
     #videoLibraryModal .modal-content {
       max-width: 900px;
     }
@@ -183,6 +183,37 @@
       color: var(--primary-color);
       margin-bottom: 0.5rem;
     }
+    
+        /* Fix video modal size and responsiveness */
+    #videoLibraryModal .modal-content {
+      max-width: 95vw;         /* scale to viewport width */
+      max-height: 90vh;        /* keep inside screen height */
+      overflow-y: auto;        /* scroll inside instead of overflowing */
+      padding-bottom: 2rem;
+    }
+
+    /* Make videos resize responsively */
+    #videoLibraryModal video {
+      width: 100%;
+      height: auto;
+      max-height: 250px;
+    }
+
+    /* Stack the videos in one column on small screens */
+    @media (max-width: 900px) {
+      #videoLibraryModal .modal-content > div {
+        display: block;
+      }
+
+      #videoLibraryModal .modal-content div > div {
+        margin-bottom: 1.5rem;
+      }
+
+      #videoLibraryModal .modal-content h3 {
+        font-size: 1.1rem;
+      }
+    }
+
   </style>
 
   <script>
