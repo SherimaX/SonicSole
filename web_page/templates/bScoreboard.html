@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SonicSole | Balance Scoreboard</title>
-
+  
   <style>
     :root {
       --primary: #8a0000;
@@ -165,7 +165,7 @@
       color: #555;
     }
 
-    @keyframes fadeIn {
+    @keyframes fadeIn { 
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
     }
@@ -203,6 +203,7 @@
 
       table.tBodies[0].append(...rows);
       table.setAttribute("data-sort-asc", !isAscending);
+      
       updateSortIndicators(table, columnIndex, !isAscending);
     }
 

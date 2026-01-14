@@ -423,7 +423,7 @@ void SonicSole::sendSensorData(float flexSensorData[], int port, size_t numEleme
     serverAddr.sin_port = htons(port);
     //serverAddr.sin_addr.s_addr = inet_addr("192.168.0.101"); // pi ip on tplink
     //serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // localhost
-    serverAddr.sin_addr.s_addr = inet_addr("192.168.137.90"); // ip on sonicsole wifi
+    serverAddr.sin_addr.s_addr = inet_addr("192.168.137.77"); // ip on sonicsole wifi
     //serverAddr.sin_addr.s_addr = inet_addr("192.168.50.109"); // ip on wrsl wifi
 
     try {
