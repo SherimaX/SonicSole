@@ -87,7 +87,7 @@ dt = 0.009 #approx time (s) between samples from udp
 pygame.init()
 pygame.mixer.init()
 CountSound = pygame.mixer.Sound("countdown.wav")
-CountSound.set_volume(0.0) 
+CountSound.set_volume(0.1) 
 
 # cumulative trapezoid without scipy because the pi cannot download it
 def cumulative_trapezoid_manual(y, dx=1.0, initial=0):
