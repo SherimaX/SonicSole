@@ -248,7 +248,7 @@ def read_combined_data(): #this function to read data and other function to "pro
             # fast updates only
             received_fore_data = int(fore_pressure)
             received_heel_data = int(heel_pressure)
-            ax, ay, az = ax_val * g, ay_val * g, az_val * g
+            ax, ay, az = ax_val * g, ay_val * g, az_val * g # converts g to m/s^2
             received_vertical_raw = ay_val
             # push to queue (drop old if full)
             if not udp_queue.full():
@@ -259,7 +259,7 @@ def read_combined_data(): #this function to read data and other function to "pro
             print(f"[UDP Thread] Error: {e}")
             continue
     sock.close()
-    print("[UDP Thread] Stopped reading data")
+    print("[UDP Thread] Stopped reading data") 
 
 def process_udp_data(): #this function to do the slow work and the other to read as attampt to improve how fast can read data
     global received_heel_data, received_fore_data, ax, ay, az, jump_vertical_buffer, jump_collecting
