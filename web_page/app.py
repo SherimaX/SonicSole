@@ -403,8 +403,8 @@ def get_airtime_and_height():
     if len(samples) < 10:
         print("Not enough samples for jump height. Returning 0.")
         return round(airtime, 5), 0.0
-    jump_height = estimate_jump_height(samples) #calculus approach
-    #jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics formula approach
+    #jump_height = estimate_jump_height(samples) #calculus approach
+    jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics formula approach
     #print(f"Estimated height: {jump_height:.5f} m")
     return round(airtime, 4), jump_height
 
