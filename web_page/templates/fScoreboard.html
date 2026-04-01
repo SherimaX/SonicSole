@@ -6,22 +6,37 @@
   <title>SonicSole | Force Sensitivity Scoreboard</title>
   <style>
     :root {
-      --primary: #8a0000;
-      --primary-dark: #210000;
-      --accent: #ffdada;
-      --text: #2b2b2b;
-      --light: #fff;
+      --primary: #ff8b28;
+      --primary-dark: #8e4310;
+      --accent: #161c24;
+      --text: #eef2f5;
+      --light: rgba(32, 36, 44, 0.92);
     }
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background-color: var(--accent);
+      font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+      background:
+        radial-gradient(circle at 12% 12%, rgba(255, 139, 40, 0.18), transparent 18%),
+        linear-gradient(180deg, #13181f 0%, #20242c 60%, #12161d 100%);
       color: var(--text);
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, rgba(174, 184, 198, 0.08) 0 1px, transparent 1px 44px),
+        repeating-linear-gradient(90deg, rgba(174, 184, 198, 0.08) 0 1px, transparent 1px 44px);
+      opacity: 0.4;
+      pointer-events: none;
     }
 
     header {
@@ -32,20 +47,34 @@
 
     header h1 {
       font-size: 3em;
-      color: var(--primary);
+      color: var(--text);
       margin-bottom: 0.2em;
+      font-family: "Arial Black", "Impact", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .card {
       background-color: var(--light);
       border-radius: 20px;
       padding: 40px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      box-shadow: 0 24px 46px rgba(0, 0, 0, 0.34);
       width: 90%;
       max-width: 800px;
       margin: 50px auto;
       text-align: center;
       animation: slideUp 1s ease;
+      border: 1px solid rgba(174, 184, 198, 0.14);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 16px;
+      background: repeating-linear-gradient(90deg, #ff8b28 0 42px, #aeb8c6 42px 84px, #20242c 84px 126px);
     }
 
     table {
@@ -65,18 +94,18 @@
 
     th {
       background-color: var(--primary);
-      color: var(--light);
+      color: #10161e;
       cursor: pointer;
       position: relative;
     }
 
     td {
-      background-color: var(--light);
+      background-color: rgba(14, 18, 24, 0.62);
       color: var(--text);
     }
 
     tr:nth-child(even) td {
-      background-color: #fff2f2;
+      background-color: rgba(174, 184, 198, 0.08);
     }
 
     th.sorted {
@@ -93,7 +122,7 @@
       display: inline-block;
       padding: 12px 24px;
       font-size: 1.1em;
-      color: var(--light);
+      color: #10161e;
       background-color: var(--primary);
       border: none;
       border-radius: 8px;
@@ -109,20 +138,20 @@
     }
 
     .btn-outline {
-      background-color: transparent;
-      color: var(--primary);
-      border: 2px solid var(--primary);
+      background-color: rgba(174, 184, 198, 0.06);
+      color: var(--text);
+      border: 2px solid rgba(174, 184, 198, 0.3);
     }
 
     .btn-outline:hover {
       background-color: var(--primary);
-      color: var(--light);
+      color: #111820;
     }
 
     footer {
       text-align: center;
       padding: 20px;
-      color: #555;
+      color: rgba(238, 242, 245, 0.78);
       margin-top: auto;
     }
 
@@ -136,6 +165,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
   <script>
     function sortTable(columnIndex, isNumeric = false) {
       var table = document.getElementById("leaderboard");

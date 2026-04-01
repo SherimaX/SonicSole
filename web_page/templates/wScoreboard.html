@@ -3,27 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ForeWalk Scoreboard</title>
+    <title>Forefoot Walk Scoreboard</title>
   </head>
   <style>
+    :root {
+      --primary: #57b65f;
+      --primary-dark: #214a27;
+      --accent: #eef7e6;
+      --text: #203025;
+      --light: rgba(255, 255, 251, 0.92);
+    }
+
     body {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
-      background-color: #ffdada;
+      font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+      background: linear-gradient(180deg, #eef7e6 0%, #d8edcf 26%, #8dbb73 26%, #6ca25f 32%, #30353b 32%, #282d32 100%);
+      color: var(--text);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(180deg, transparent 0 34%, rgba(246, 248, 249, 0.2) 34% 100%),
+        repeating-linear-gradient(90deg, transparent 0 72px, rgba(246, 248, 249, 0.18) 72px 86px, transparent 86px 170px);
+      opacity: 0.8;
+      pointer-events: none;
     }
 
     h1 {
       font-size: 4.5em;
-      margin-top: 2.5em;
-      margin-bottom: 0.1em;
-      color: #8a0000;
-      font-family: 'Segoe UI', sans-serif;
+      margin-top: 1.8em;
+      margin-bottom: 0.2em;
+      color: #f6f8f9;
+      font-family: "Arial Black", "Impact", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-shadow: 0 10px 28px rgba(33, 74, 39, 0.35);
     }
 
     p {
@@ -35,16 +60,16 @@
       display: inline-block;
       margin-top: 20px;
       font-size: 1.3em;
-      color: #310000;
+      color: var(--primary-dark);
       text-decoration: none;
-      border: 2px solid #310000;
-      background-color: none;
+      border: 2px solid rgba(33, 74, 39, 0.28);
+      background-color: rgba(255, 255, 255, 0.35);
       padding: 10px 20px;
-      border-radius: 5px;
+      border-radius: 999px;
       transition: background-color 0.3s, color 0.3s;
     }
     a:hover {
-      background-color: #310000;
+      background-color: var(--primary);
       color: #fff;
     }
 
@@ -56,11 +81,12 @@
       width: 80%;
       max-width: 800px;
       border-collapse: collapse;
-      background-color: #fff;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
+      background-color: var(--light);
+      box-shadow: 0 22px 42px rgba(0, 0, 0, 0.28);
+      border-radius: 20px;
       overflow: hidden;
       margin-top: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
     }
 
     th,
@@ -71,32 +97,32 @@
     }
 
     th {
-      background-color: #320000;
+      background-color: #214a27;
       color: #fff;
       text-align: center;
       font-size: 1.4em;
     }
 
     tr:nth-child(even) {
-      background-color: #ffc2c0;
+      background-color: #edf7e8;
     }
 
     td:first-child {
       font-weight: bold;
-      color: #320000;
+      color: var(--primary-dark);
     }
 
     th {
-      background-color: #320000;
+      background-color: #214a27;
       color: #fff;
-      text-align: left;
+      text-align: center;
       font-size: 1.4em;
       cursor: pointer;
       position: relative;
     }
 
     th.sorted {
-      background-color: #8a0000;
+      background-color: var(--primary);
       color: #fff;
     }
 
@@ -107,6 +133,7 @@
       right: 10px; 
     }
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
   <script>
 function sortTable(columnIndex, isNumeric = false) {
     var table = document.getElementById("leaderboard");
@@ -154,7 +181,7 @@ function updateSortIndicators(table, columnIndex, isAscending) {
 
   </script>
   <body>
-    <h1>ForeWalk Scoreboard</h1>
+    <h1>Forefoot Walk Scoreboard</h1>
     <a href="/foreWalk" class="homebutton">Go Back</a>
     <table id="leaderboard">
       <tr>

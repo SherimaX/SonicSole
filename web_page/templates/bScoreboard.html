@@ -7,22 +7,38 @@
   
   <style>
     :root {
-      --primary: #8a0000;
-      --primary-dark: #210000;
-      --accent: #ffdada;
-      --text: #2b2b2b;
-      --light: #fff;
+      --primary: #284b3e;
+      --primary-dark: #1b2f27;
+      --accent: #e8dfc8;
+      --text: #24322c;
+      --light: rgba(255, 250, 243, 0.94);
     }
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background-color: var(--accent);
+      font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(232, 223, 200, 0.95), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(155, 193, 163, 0.22), transparent 28%),
+        linear-gradient(135deg, #f2ecdd 0%, #e8dfc8 48%, #d9e5da 100%);
       color: var(--text);
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        repeating-radial-gradient(circle at 15% 20%, rgba(40, 75, 62, 0.05) 0 2px, transparent 2px 54px),
+        repeating-radial-gradient(circle at 85% 78%, rgba(40, 75, 62, 0.045) 0 2px, transparent 2px 66px);
+      opacity: 0.55;
+      pointer-events: none;
     }
 
     header {
@@ -35,18 +51,32 @@
       font-size: 3em;
       color: var(--primary);
       margin-bottom: 0.3em;
+      font-family: "Palatino Linotype", "Book Antiqua", serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .card {
       background-color: var(--light);
       border-radius: 20px;
       padding: 40px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 22px 42px rgba(40, 75, 62, 0.14);
       width: 90%;
       max-width: 1000px;
       margin: 40px auto;
       text-align: center;
       animation: slideUp 1s ease;
+      border: 1px solid rgba(40, 75, 62, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 14px;
+      background: linear-gradient(90deg, #284b3e, #9bc1a3, #e8dfc8);
     }
 
     a.btn-outline, button.btn-outline {
@@ -54,8 +84,8 @@
       padding: 12px 24px;
       font-size: 1.1em;
       color: var(--primary);
-      background-color: transparent;
-      border: 2px solid var(--primary);
+      background-color: rgba(255, 255, 255, 0.42);
+      border: 2px solid rgba(40, 75, 62, 0.32);
       border-radius: 8px;
       cursor: pointer;
       margin: 10px;
@@ -66,7 +96,7 @@
     a.btn-outline:hover,
     button.btn-outline:hover {
       background-color: var(--primary);
-      color: var(--light);
+      color: #fff;
       transform: translateY(-2px);
     }
 
@@ -97,7 +127,7 @@
 
     th {
       background-color: var(--primary-dark);
-      color: var(--light);
+      color: #fff;
       cursor: pointer;
       position: relative;
       transition: background-color 0.3s;
@@ -108,7 +138,7 @@
     }
 
     tr:nth-child(even) {
-      background-color: #ffe4e4;
+      background-color: #f2eee3;
     }
 
     td:first-child {
@@ -162,7 +192,7 @@
       text-align: center;
       padding: 20px;
       margin-top: auto;
-      color: #555;
+      color: var(--primary-dark);
     }
 
     @keyframes fadeIn { 
@@ -175,6 +205,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
 
   <script>
     window.onload = function() {

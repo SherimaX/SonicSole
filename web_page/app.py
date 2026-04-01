@@ -1,4 +1,5 @@
 from tkinter import N
+import os
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
 import socket
 import threading
@@ -1106,4 +1107,5 @@ def button():
 
 # main
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    flask_port = int(os.environ.get("SONICSOLE_PORT", os.environ.get("PORT", "5001")))
+    app.run(host='0.0.0.0', port=flask_port, debug=False)
