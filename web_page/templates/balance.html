@@ -6,22 +6,51 @@
   <title>SonicSole | Balancing Activity</title>
   <style>
     :root {
-      --primary: #8a0000;
-      --primary-dark: #210000;
-      --accent: #ffdada;
-      --text: #2b2b2b;
-      --light: #fff;
+      --primary: #284b3e;
+      --primary-dark: #1b2f27;
+      --accent: #e8dfc8;
+      --text: #24322c;
+      --light: rgba(255, 250, 243, 0.92);
     }
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background-color: var(--accent);
+      font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(232, 223, 200, 0.95), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(155, 193, 163, 0.22), transparent 28%),
+        linear-gradient(135deg, #f2ecdd 0%, #e8dfc8 48%, #d9e5da 100%);
       color: var(--text);
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        repeating-radial-gradient(circle at 15% 20%, rgba(40, 75, 62, 0.05) 0 2px, transparent 2px 54px),
+        repeating-radial-gradient(circle at 85% 78%, rgba(40, 75, 62, 0.045) 0 2px, transparent 2px 66px);
+      opacity: 0.55;
+    }
+
+    body::after {
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 35%, rgba(255, 255, 255, 0.08) 65%, transparent);
+    }
+
+    body > * {
+      position: relative;
+      z-index: 1;
     }
 
     header {
@@ -34,6 +63,9 @@
       font-size: 3em;
       color: var(--primary);
       margin-bottom: 0.2em;
+      font-family: "Palatino Linotype", "Book Antiqua", serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     header p {
@@ -45,12 +77,23 @@
       background-color: var(--light);
       border-radius: 20px;
       padding: 40px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      box-shadow: 0 22px 42px rgba(40, 75, 62, 0.14);
       width: 90%;
       max-width: 600px;
       margin: 50px auto;
       text-align: center;
       animation: slideUp 1s ease;
+      border: 1px solid rgba(40, 75, 62, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 14px;
+      background: linear-gradient(90deg, #284b3e, #9bc1a3, #e8dfc8);
     }
 
     a {
@@ -63,40 +106,44 @@
       display: inline-block;
       padding: 12px 24px;
       font-size: 1.1em;
-      color: var(--light);
-      background-color: var(--primary);
+      color: #fff;
+      background: linear-gradient(135deg, #284b3e, #476f5d);
       border: none;
       border-radius: 8px;
       cursor: pointer;
       margin: 10px;
       transition: 0.3s;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+      font-weight: 700;
+      box-shadow: 0 14px 26px rgba(40, 75, 62, 0.18);
     }
 
     button:hover, .btn:hover {
-      background-color: var(--primary-dark);
+      background: linear-gradient(135deg, #355b4b, var(--primary-dark));
       transform: translateY(-2px);
     }
 
     .btn-outline {
-      background-color: transparent;
+      background-color: rgba(255, 255, 255, 0.42);
       color: var(--primary);
-      border: 2px solid var(--primary);
+      border: 2px solid rgba(40, 75, 62, 0.4);
     }
 
     .btn-outline:hover {
       background-color: var(--primary);
-      color: var(--light);
+      color: #fff;
     }
 
     input[type="text"] {
       padding: 10px;
       font-size: 1.1em;
-      border: 2px solid var(--primary-dark);
+      border: 2px solid rgba(40, 75, 62, 0.25);
       border-radius: 6px;
       margin-bottom: 10px;
       width: 80%;
       max-width: 300px;
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--text);
     }
 
     label {
@@ -113,6 +160,7 @@
       font-weight: bold;
       color: var(--primary-dark);
       margin: 20px 0;
+      text-shadow: 0 0 18px rgba(155, 193, 163, 0.35);
     }
 
     .countdown {
@@ -137,20 +185,21 @@
       top: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0,0,0,0.5);
+      background-color: rgba(36, 55, 45, 0.35);
       align-items: center;
       justify-content: center;
     }
 
     .modal-content {
-      background-color: var(--light);
+      background-color: rgba(255, 250, 243, 0.96);
       padding: 30px;
       border-radius: 15px;
       width: 80%;
       max-width: 500px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      box-shadow: 0 20px 34px rgba(40, 75, 62, 0.16);
       text-align: left;
       animation: fadeIn 0.4s ease;
+      border: 1px solid rgba(40, 75, 62, 0.14);
     }
 
     .modal-content h2 {
@@ -168,16 +217,16 @@
     footer {
       text-align: center;
       padding: 20px;
-      color: #555;
+      color: var(--primary-dark);
       margin-top: auto;
     }
 
     @keyframes glow {
       from {
-        text-shadow: 0 0 8px #faaaab, 0 0 15px #faaaab;
+        text-shadow: 0 0 10px rgba(155, 193, 163, 0.5), 0 0 18px rgba(232, 223, 200, 0.55);
       }
       to {
-        text-shadow: 0 0 12px #ff6b6b, 0 0 25px #ff6b6b;
+        text-shadow: 0 0 16px rgba(40, 75, 62, 0.55), 0 0 28px rgba(155, 193, 163, 0.65);
       }
     }
 
@@ -191,6 +240,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
 </head>
 
 <body>

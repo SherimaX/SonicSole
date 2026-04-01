@@ -6,30 +6,58 @@
   <title>Device Overview</title>
   <style>
     :root {
-      --primary-color: #8a0000;
-      --accent-color: #ffdada;
-      --light-color: #fafafa;
-      --text-dark: #310000;
-      --gray: #666;
+      --primary-color: #f2a64a;
+      --accent-color: #153e5c;
+      --light-color: rgba(244, 247, 250, 0.95);
+      --text-dark: #10202d;
+      --gray: #4d6170;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--accent-color);
-      color: var(--text-dark);
+      font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+      background: linear-gradient(180deg, #102a40 0%, #153e5c 70%, #1a4969 100%);
+      color: #e8f3fb;
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        repeating-linear-gradient(0deg, rgba(127, 184, 212, 0.12) 0 1px, transparent 1px 48px),
+        repeating-linear-gradient(90deg, rgba(127, 184, 212, 0.12) 0 1px, transparent 1px 48px);
+      opacity: 0.7;
+    }
+
+    body::after {
+      background: radial-gradient(circle at 20% 10%, rgba(242, 166, 74, 0.18), transparent 18%);
+    }
+
+    body > * {
+      position: relative;
+      z-index: 1;
     }
 
     h1 {
       font-size: 3.3rem;
       margin: 2rem 0 1rem;
-      color: var(--primary-color);
+      color: #f4f7fa;
       text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
     }
 
     .panels {
@@ -52,8 +80,19 @@
       border-radius: 15px;
       padding: 2rem;
       scroll-snap-align: start;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+      box-shadow: 0 18px 34px rgba(8, 26, 40, 0.28);
       text-align: center;
+      border: 1px solid rgba(127, 184, 212, 0.55);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 14px;
+      background: linear-gradient(90deg, #f2a64a, #8bc7e3, #153e5c);
     }
 
     .panel h3 {
@@ -82,7 +121,7 @@
       margin: 0.5rem;
       border: 2px solid var(--primary-color);
       border-radius: 8px;
-      background-color: transparent;
+      background-color: rgba(242, 166, 74, 0.08);
       color: var(--primary-color);
       cursor: pointer;
       text-decoration: none;
@@ -92,7 +131,7 @@
 
     button:hover, a:hover {
       background-color: var(--primary-color);
-      color: white;
+      color: #10202d;
     }
 
     /* Modals */
@@ -110,13 +149,15 @@
     }
 
     .modal-content {
-      background-color: var(--accent-color);
+      background-color: rgba(244, 247, 250, 0.98);
       padding: 1.5rem;
       border-radius: 12px;
       width: 90%;
       max-width: 480px;
       position: relative;
       text-align: left;
+      border: 1px solid rgba(127, 184, 212, 0.4);
+      box-shadow: 0 18px 34px rgba(8, 26, 40, 0.24);
     }
 
     .modal-content h2 {
@@ -149,7 +190,7 @@
     }
 
     #data-window1, #data-window2 {
-      background: #fff;
+      background: rgba(255, 255, 255, 0.95);
       padding: 1rem;
       border-radius: 10px;
       margin: 1rem auto;
@@ -215,6 +256,7 @@
     }
 
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
 
   <script>
     function fetchData() {

@@ -6,12 +6,17 @@
   <title>SonicSole</title>
   <style>
     :root {
-      --main-bg: linear-gradient(135deg, #ffe1e1, #ffdada);
-      --accent: #8a0000;
-      --accent-dark: #4d0000;
-      --card-bg: #fff;
-      --text-dark: #333;
-      --text-subtle: #555;
+      --main-bg:
+        radial-gradient(circle at 15% 15%, rgba(201, 139, 46, 0.22), transparent 20%),
+        radial-gradient(circle at 85% 18%, rgba(122, 28, 28, 0.18), transparent 18%),
+        radial-gradient(circle at 50% 110%, rgba(82, 44, 26, 0.12), transparent 28%),
+        linear-gradient(135deg, #f7f1e8 0%, #efe1c9 52%, #f4ead9 100%);
+      --accent: #7a1c1c;
+      --accent-dark: #341010;
+      --highlight: #c98b2e;
+      --card-bg: rgba(255, 248, 238, 0.88);
+      --text-dark: #2d261d;
+      --text-subtle: #675748;
     }
 
     * {
@@ -21,46 +26,86 @@
     }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: "Trebuchet MS", "Avenir Next", sans-serif;
       background: var(--main-bg);
       color: var(--text-dark);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        repeating-linear-gradient(90deg, rgba(122, 28, 28, 0.05) 0 1px, transparent 1px 120px),
+        repeating-linear-gradient(0deg, rgba(122, 28, 28, 0.035) 0 1px, transparent 1px 120px);
+      opacity: 0.55;
+    }
+
+    body::after {
+      background:
+        radial-gradient(circle at 8% 75%, rgba(122, 28, 28, 0.1), transparent 24%),
+        radial-gradient(circle at 92% 72%, rgba(201, 139, 46, 0.14), transparent 20%);
+    }
+
+    header,
+    .card-grid {
+      position: relative;
+      z-index: 1;
     }
 
     header {
       text-align: center;
-      padding: 60px 20px 30px;
+      padding: 70px 20px 24px;
+      max-width: 760px;
     }
 
     h1 {
-      font-size: 4.5rem;
+      font-family: "Palatino Linotype", "Book Antiqua", serif;
+      font-size: 4.4rem;
       color: var(--accent);
-      margin-bottom: 10px;
+      margin-bottom: 14px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-shadow: 0 12px 24px rgba(82, 44, 26, 0.12);
     }
 
     .sub {
-      font-size: 1.8rem;
+      font-size: 1.45rem;
+      line-height: 1.5;
       margin-bottom: 30px;
       color: var(--text-subtle);
     }
 
     .instructions-button {
-      font-size: 1.1rem;
-      padding: 12px 24px;
+      display: inline-block;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      padding: 14px 28px;
       border: none;
-      background-color: var(--accent);
+      background: linear-gradient(135deg, var(--accent), #a12727);
       color: #fff;
-      border-radius: 8px;
+      border-radius: 999px;
       text-decoration: none;
-      transition: background 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 16px 28px rgba(122, 28, 28, 0.18);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
 
     .instructions-button:hover {
-      background-color: var(--accent-dark);
-      transform: scale(1.05);
+      background: linear-gradient(135deg, #8d2222, var(--accent-dark));
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 20px 34px rgba(122, 28, 28, 0.22);
     }
 
     .card-grid {
@@ -74,34 +119,87 @@
 
     .card {
       background-color: var(--card-bg);
-      border-radius: 16px;
+      border-radius: 24px;
       overflow: hidden;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 18px 36px rgba(65, 43, 26, 0.14);
       text-decoration: none;
       color: inherit;
       display: flex;
       flex-direction: column;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      border: 1px solid rgba(52, 16, 16, 0.12);
+      backdrop-filter: blur(8px);
+      position: relative;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 12px;
+    }
+
+    .card:nth-child(1)::before {
+      background: linear-gradient(90deg, #ff7a00, #ffd166, #17324d);
+    }
+
+    .card:nth-child(2)::before {
+      background: linear-gradient(90deg, #284b3e, #9bc1a3, #e8dfc8);
+    }
+
+    .card:nth-child(3)::before {
+      background: linear-gradient(90deg, #27e1ff, #f1ff6b, #ff5c5c);
+    }
+
+    .card:nth-child(4)::before {
+      background: linear-gradient(90deg, #ff8b28, #aeb8c6, #20242c);
+    }
+
+    .card:nth-child(5)::before {
+      background: linear-gradient(90deg, #57b65f, #d9ff6a, #30353b);
     }
 
     .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      transform: translateY(-10px);
+      box-shadow: 0 24px 42px rgba(65, 43, 26, 0.18);
     }
 
     .card img {
       width: 100%;
-      height: 200px;
+      height: 210px;
       object-fit: cover;
+      filter: saturate(1.05) contrast(1.02);
     }
 
     .card-title {
-      padding: 16px;
-      font-size: 1.2rem;
-      font-weight: 600;
+      padding: 18px;
+      font-size: 1.18rem;
+      font-weight: 700;
       text-align: center;
       color: var(--text-dark);
-      background-color: #ffe1e1;
+      background: rgba(255, 255, 255, 0.68);
+      letter-spacing: 0.02em;
+    }
+
+    .card:nth-child(1) .card-title {
+      background: linear-gradient(135deg, rgba(255, 215, 170, 0.92), rgba(255, 255, 255, 0.82));
+    }
+
+    .card:nth-child(2) .card-title {
+      background: linear-gradient(135deg, rgba(224, 235, 214, 0.95), rgba(255, 252, 245, 0.84));
+    }
+
+    .card:nth-child(3) .card-title {
+      color: #eef6ff;
+      background: linear-gradient(135deg, rgba(16, 19, 24, 0.94), rgba(28, 39, 55, 0.92));
+    }
+
+    .card:nth-child(4) .card-title {
+      background: linear-gradient(135deg, rgba(255, 227, 198, 0.95), rgba(244, 247, 250, 0.84));
+    }
+
+    .card:nth-child(5) .card-title {
+      background: linear-gradient(135deg, rgba(223, 244, 212, 0.96), rgba(255, 255, 251, 0.84));
     }
 
     @media (max-width: 600px) {
@@ -109,7 +207,7 @@
         font-size: 3rem;
       }
       .sub {
-        font-size: 1.4rem;
+        font-size: 1.2rem;
       }
       .instructions-button {
         font-size: 1rem;
@@ -117,6 +215,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
 </head>
 <body>
 
