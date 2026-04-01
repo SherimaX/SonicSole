@@ -106,6 +106,26 @@
       position: absolute;
       right: 10px; 
     }
+
+    .delete-form {
+      margin: 0;
+    }
+
+    .delete-btn {
+      padding: 8px 14px;
+      font-size: 0.95em;
+      color: #fff;
+      background-color: #8a0000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .delete-btn:hover {
+      background-color: #320000;
+      transform: translateY(-1px);
+    }
   </style>
   <script>
 function sortTable(columnIndex, isNumeric = false) {
@@ -143,10 +163,14 @@ function updateSortIndicators(table, columnIndex, isAscending) {
     headers.forEach(function (header, index) {
         var indicator = header.querySelector(".sort-indicator");
         if (index === columnIndex) {
-            indicator.textContent = isAscending ? "Descending" : "Ascending";
+            if (indicator) {
+                indicator.textContent = isAscending ? "Descending" : "Ascending";
+            }
             header.classList.add("sorted");
         } else {
-            indicator.textContent = "";
+            if (indicator) {
+                indicator.textContent = "";
+            }
             header.classList.remove("sorted");
         }
     });
@@ -164,11 +188,19 @@ function updateSortIndicators(table, columnIndex, isAscending) {
         <th onclick="sortTable(1, true)" class="sortable">
           Distance <span class="sort-indicator"></span>
         </th>
+        <th>Actions</th>
       </tr>
       {% for entry in data %}
       <tr>
         <td>{{ entry.name }}</td>
         <td>{{ entry.forefoot_dist }}</td>
+        <td>
+          <form class="delete-form" action="/delete_score_entry" method="POST" onsubmit="return confirm({{ ('Delete all ForeWalk scores for ' ~ entry.name ~ '?') | tojson }});">
+            <input type="hidden" name="scoreboard" value="walk" />
+            <input type="hidden" name="name" value="{{ entry.name }}" />
+            <button type="submit" class="delete-btn">Delete</button>
+          </form>
+        </td>
       </tr>
       {% endfor %}
     </table>

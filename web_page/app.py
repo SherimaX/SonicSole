@@ -16,6 +16,8 @@ import queue
 logging.getLogger('werkzeug').disabled = True #Suppress werkzeug logs
 
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.jinja_env.auto_reload = True
 #UDP_IP = "127.0.0.1" #accept data from localhost
 UDP_IP = "0.0.0.0" # accept connections on any available network interface of the server
 UDP_PORT = 21000 
@@ -861,160 +863,206 @@ def accel_view():
     return render_template('accel.html')
 
 
-# scoreboards
-@app.route('/bScoreboard')
-def b_scoreboard():
+SCOREBOARD_FILES = {
+    'balance': {
+        'file_path': 'SonicSoleBalance.txt',
+        'redirect_endpoint': 'b_scoreboard',
+    },
+    'jump': {
+        'file_path': 'SonicSoleJump.txt',
+        'redirect_endpoint': 'j_scoreboard',
+    },
+    'reaction': {
+        'file_path': 'SonicSoleReaction.txt',
+        'redirect_endpoint': 'r_scoreboard',
+    },
+    'force': {
+        'file_path': 'SonicSoleForceSense.txt',
+        'redirect_endpoint': 'f_scoreboard',
+    },
+    'walk': {
+        'file_path': 'SonicSoleWalk.txt',
+        'redirect_endpoint': 'w_scoreboard',
+    },
+}
+
+
+def parse_balance_name(raw_name):
+    raw_name = raw_name.strip()
+    if "_" not in raw_name:
+        return raw_name, None
+
+    name, eyes_flag = raw_name.rsplit("_", 1)
+    if eyes_flag in {"0", "1"}:
+        return name, eyes_flag
+    return raw_name, None
+
+
+def load_balance_scoreboard():
+    leaderboard = {}
+    with open(SCOREBOARD_FILES['balance']['file_path'], 'r', newline='') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if len(row) < 2:
+                continue
+
+            try:
+                score = float(row[1])
+            except ValueError:
+                continue
+
+            name, eyes_flag = parse_balance_name(row[0])
+            entry = leaderboard.setdefault(
+                name,
+                {'name': name, 'eyes_open_time': None, 'eyes_closed_time': None},
+            )
+
+            if eyes_flag == "0":
+                best_key = 'eyes_closed_time'
+            else:
+                best_key = 'eyes_open_time'
+
+            best_score = entry[best_key]
+            if best_score is None or score > best_score:
+                entry[best_key] = score
+
+    leaderboard_data = list(leaderboard.values())
+    leaderboard_data.sort(
+        key=lambda entry: max(entry['eyes_open_time'] or 0, entry['eyes_closed_time'] or 0),
+        reverse=True,
+    )
+    return leaderboard_data
+
+
+def load_scoreboard(file_path, value_key, keep='max'):
     data = []
-    try:
-        with open('SonicSoleBalance.txt', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if len(row) >= 2:
-                    splitted_name = row[0].split("_")
-                    if len(splitted_name) > 1:
-                        if splitted_name[1] == "0":
-                            data.append({'name': splitted_name[0]+" (Eyes Closed)", 'time':  float(row[1])})
-                        else:
-                            data.append({'name': splitted_name[0]+" (Eyes Opened)", 'time': float(row[1])})
-                    else:
-                        data.append({'name': row[0], 'time':  float(row[1])})
-    except FileNotFoundError:
-        return "Error: SonicSoleBalance.txt file not found."
-    except ValueError:
-        return "Error: Incorrect data format in SonicSoleBalance.txt."
-    except Exception as e:
-        # return f"Error: {e}"
-        return "Error"
-    data.sort(key=lambda x: x['time'], reverse=True)
+    with open(file_path, 'r', newline='') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if len(row) < 2:
+                continue
+
+            try:
+                value = float(row[1])
+            except ValueError:
+                continue
+
+            data.append({'name': row[0].strip(), value_key: value})
+
     unique_data = {}
     for entry in data:
         name = entry['name']
-        time = entry['time']
+        value = entry[value_key]
         if name not in unique_data:
-            unique_data[name] = time
-        else:
-            if time > unique_data[name]:
-                unique_data[name] = time
-    sorted_data = [{'name': name, 'time': time} for name, time in unique_data.items()]
-    sorted_data.sort(key=lambda x: x['time'], reverse=True)
-    return render_template('bScoreboard.html', data=sorted_data)
+            unique_data[name] = value
+            continue
+
+        if keep == 'min' and value < unique_data[name]:
+            unique_data[name] = value
+        elif keep == 'max' and value > unique_data[name]:
+            unique_data[name] = value
+
+    leaderboard_data = [{ 'name': name, value_key: value } for name, value in unique_data.items()]
+    leaderboard_data.sort(key=lambda entry: entry[value_key], reverse=(keep == 'max'))
+    return leaderboard_data
+
+
+def remove_scoreboard_entries(scoreboard_key, entry_name):
+    config = SCOREBOARD_FILES.get(scoreboard_key)
+    if not config:
+        return False
+
+    try:
+        with open(config['file_path'], 'r', newline='') as f:
+            rows = list(csv.reader(f))
+    except FileNotFoundError:
+        return False
+
+    if scoreboard_key == 'balance':
+        filtered_rows = [
+            row for row in rows
+            if not row or parse_balance_name(row[0])[0] != entry_name
+        ]
+    else:
+        filtered_rows = [
+            row for row in rows
+            if not row or row[0].strip() != entry_name
+        ]
+
+    with open(config['file_path'], 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerows(filtered_rows)
+
+    return True
+
+
+@app.route('/delete_score_entry', methods=['POST'])
+def delete_score_entry():
+    scoreboard_key = request.form.get('scoreboard', '').strip()
+    entry_name = request.form.get('name', '').strip()
+    config = SCOREBOARD_FILES.get(scoreboard_key)
+
+    if not config:
+        return redirect('/')
+
+    if entry_name:
+        remove_scoreboard_entries(scoreboard_key, entry_name)
+
+    return redirect(url_for(config['redirect_endpoint']))
+
+
+# scoreboards
+@app.route('/bScoreboard')
+def b_scoreboard():
+    try:
+        data = load_balance_scoreboard()
+    except FileNotFoundError:
+        return "Error: SonicSoleBalance.txt file not found."
+    except Exception as e:
+        # return f"Error: {e}"
+        return "Error"
+    return render_template('bScoreboard.html', data=data)
 
 @app.route('/jScoreboard')
 def j_scoreboard():
-    data = []
     try:
-        with open('SonicSoleJump.txt', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if len(row) >= 2:
-                    try:
-                        data.append({'name': row[0], 'last_jump_height': float(row[1])})
-                    except ValueError:
-                        continue
+        data = load_scoreboard(SCOREBOARD_FILES['jump']['file_path'], 'last_jump_height', keep='max')
     except FileNotFoundError:
         print("Error: SonicSoleJump.txt file not found.")
         return "Error: SonicSoleJump.txt file not found."
     except Exception as e:
         return "Error"
-    unique_data = {}
-    for entry in data:
-        name = entry['name']
-        total = entry['last_jump_height']
-        if name not in unique_data or total > unique_data[name]:
-            unique_data[name] = total
-    leaderboard_data = [{'name': name, 'last_jump_height': total} for name, total in unique_data.items()]
-    leaderboard_data.sort(key=lambda x: x['last_jump_height'], reverse=True)
-    return render_template('jScoreboard.html', data=leaderboard_data)
+    return render_template('jScoreboard.html', data=data)
 
 @app.route('/rScoreboard')
 def r_scoreboard():
-    data = []
     try:
-        with open('SonicSoleReaction.txt', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if len(row) >= 2:
-                    try:
-                        data.append({'name': row[0], 'reaction_time': float(row[1])})
-                    except ValueError:
-                        continue
+        data = load_scoreboard(SCOREBOARD_FILES['reaction']['file_path'], 'reaction_time', keep='min')
     except FileNotFoundError:
         return "Error: SonicSoleReaction.txt file not found."
     except Exception:
         return "Error"
-    
-    # Keep best (lowest) time per user
-    unique_data = {}
-    for entry in data:
-        name = entry['name']
-        time = entry['reaction_time']
-        if name not in unique_data or time < unique_data[name]:
-            unique_data[name] = time
-    
-    leaderboard_data = [{'name': name, 'reaction_time': time} for name, time in unique_data.items()]
-    leaderboard_data.sort(key=lambda x: x['reaction_time'])  # Ascending (lower is better)
-
-    return render_template('rScoreboard.html', data=leaderboard_data)
+    return render_template('rScoreboard.html', data=data)
 
 @app.route('/fScoreboard')
 def f_scoreboard():
-    data = []
     try:
-        with open('SonicSoleForceSense.txt', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if len(row) >= 2:
-                    try:
-                        data.append({'name': row[0], 'percent_error': float(row[1])})
-                    except ValueError:
-                        continue
+        data = load_scoreboard(SCOREBOARD_FILES['force']['file_path'], 'percent_error', keep='min')
     except FileNotFoundError:
         return "Error: SonicSoleForceSense.txt file not found."
     except Exception:
         return "Error"
-    
-    # Keep best (lowest) percent error per user
-    unique_data = {}
-    for entry in data:
-        name = entry['name']
-        error = entry['percent_error']
-        if name not in unique_data or error < unique_data[name]:
-            unique_data[name] = error
-    
-    leaderboard_data = [{'name': name, 'percent_error': error} for name, error in unique_data.items()]
-    leaderboard_data.sort(key=lambda x: x['percent_error'])  # Ascending (lower is better)
-
-    return render_template('fScoreboard.html', data=leaderboard_data)
+    return render_template('fScoreboard.html', data=data)
 
 @app.route('/wScoreboard')
 def w_scoreboard():
-    data = []
     try:
-        with open('SonicSoleWalk.txt', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if len(row) >= 2:
-                    try:
-                        data.append({'name': row[0], 'forefoot_dist': float(row[1])})
-                    except ValueError:
-                        continue
+        data = load_scoreboard(SCOREBOARD_FILES['walk']['file_path'], 'forefoot_dist', keep='max')
     except FileNotFoundError:
         return "Error: SonicSoleWalk.txt file not found."
     except Exception:
         return "Error"
-    
-    # Keep best (highest) distance per user
-    unique_data = {}
-    for entry in data:
-        name = entry['name']
-        dist = entry['forefoot_dist']
-        if name not in unique_data or dist > unique_data[name]:
-            unique_data[name] = dist
-    
-    leaderboard_data = [{'name': name, 'forefoot_dist': dist} for name, dist in unique_data.items()]
-    leaderboard_data.sort(key=lambda x: x['forefoot_dist'], reverse=True)  
-
-    return render_template('wScoreboard.html', data=leaderboard_data)
+    return render_template('wScoreboard.html', data=data)
 
 @app.route('/submitB', methods=['POST'])
 def submitB():

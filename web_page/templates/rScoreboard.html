@@ -112,6 +112,26 @@
       right: 12px;
     }
 
+    .delete-form {
+      margin: 0;
+    }
+
+    .delete-btn {
+      padding: 8px 14px;
+      font-size: 0.95em;
+      color: var(--light);
+      background-color: var(--primary);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .delete-btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
     footer {
       text-align: center;
       padding: 20px;
@@ -163,10 +183,14 @@
       headers.forEach((header, index) => {
         var indicator = header.querySelector(".sort-indicator");
         if (index === columnIndex) {
-          indicator.textContent = isAscending ? "↓" : "↑";
+          if (indicator) {
+            indicator.textContent = isAscending ? "↓" : "↑";
+          }
           header.classList.add("sorted");
         } else {
-          indicator.textContent = "";
+          if (indicator) {
+            indicator.textContent = "";
+          }
           header.classList.remove("sorted");
         }
       });
@@ -187,11 +211,19 @@
       <tr>
         <th onclick="sortTable(0)">Name <span class="sort-indicator"></span></th>
         <th onclick="sortTable(1, true)">Reaction Time (ms) <span class="sort-indicator"></span></th>
+        <th>Actions</th>
       </tr>
       {% for entry in data %}
       <tr>
         <td>{{ entry.name }}</td>
         <td>{{ entry.reaction_time }}</td>
+        <td>
+          <form class="delete-form" action="/delete_score_entry" method="POST" onsubmit="return confirm({{ ('Delete all reaction scores for ' ~ entry.name ~ '?') | tojson }});">
+            <input type="hidden" name="scoreboard" value="reaction" />
+            <input type="hidden" name="name" value="{{ entry.name }}" />
+            <button type="submit" class="delete-btn">Delete</button>
+          </form>
+        </td>
       </tr>
       {% endfor %}
     </table>
