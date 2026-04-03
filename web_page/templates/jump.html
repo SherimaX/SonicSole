@@ -284,6 +284,8 @@
   {% set scoreboard_embed_url = url_for('j_scoreboard', embed=1) %}
   {% include '_scoreboard_modal.html' %}
 
+  {% include '_activity_dock.html' %}
+
   <script>
     let jumpCompleted = false;
     let jumpWaitingTimer = null;

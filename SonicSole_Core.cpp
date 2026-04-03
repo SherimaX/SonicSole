@@ -16,7 +16,6 @@
 
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
-#include <wiringSerial.h>
 
 #include "RPi_combined_Header.h"
 #include "RPi_Raj_Header.h"
@@ -85,12 +84,8 @@ SonicSole::SonicSole()
 
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-    printf("Initializing UART0...\n\n");
-    if ((IMU = serialOpen("/dev/ttyS0", 115200)) < 0) {
-        fprintf(stderr, "Unable to open serial device: %s\n", strerror(errno));
-    } else {
-        printf("UART1 initialized successfully!\n\n");
-    }
+    IMU = -1;
+    printf("IMU serial will be initialized on first read.\n\n");
 
     printf("Initializing GPIO...\n\n");
     if (wiringPiSetupGpio() == -1) {
@@ -99,35 +94,15 @@ SonicSole::SonicSole()
         printf("GPIO initialized successfully!\n\n");
     }
 
-    try {
-        printf("Configuring IMU...\n\n");
-        YEIsettingsHeader(IMU);
-        YEIwriteCommandNoDelay(IMU, CMD_STOP_STREAMING);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        YEIwriteCommandValue(IMU, CMD_SET_ACCELEROMETER_RANGE, ACCELEROMETER_RANGE_8G);
-        YEIwriteCommandValue(IMU, CMD_SET_GYROSCOPE_RANGE, GYROSCOPE_RANGE_2000);
-        YEIwriteCommandValue(IMU, CMD_SET_COMPASS_RANGE, COMPASS_RANGE_1_3);
-        YEIwriteCommandValue(IMU, CMD_SET_CALIBRATION_MODE, CALIBRATION_MODE_BIAS_SCALE);
-        YEIwriteCommandValue(IMU, CMD_SET_AXIS_DIRECTIONS, AXIS_XF_YU_ZL);
-        YEIwriteCommandValue(IMU, CMD_SET_REFERENCE_VECTOR_MODE, REFERENCE_VECTOR_MULTI_REFERENCE_MODE);
-        YEIwriteCommandValue(IMU, CMD_SET_COMPASS_ENABLE, FALSE);
-        YEIwriteCommandValue(IMU, CMD_SET_FILTER_MODE, FILTER_KALMAN);
-        YEIwriteCommandNoDelay(IMU, CMD_BEGIN_GYROSCOPE_AUTOCALIBRATION);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        YEIwriteCommandNoDelay(IMU, CMD_RESET_FILTER);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        YEIwriteCommandNoDelay(IMU, CMD_TARE_WITH_CURRENT_ORIENTATION);
-
-        printf("IMU configured successfully!\n\n");
-    } catch (...) {
-        printf("IMU not configured successfully: Error. \n\n");
-    }
-
     recordState = true;
 }
 
 SonicSole::~SonicSole()
 {
+    if (IMU >= 0) {
+        close(IMU);
+        IMU = -1;
+    }
     closeCSVFile();
 }
 

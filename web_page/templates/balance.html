@@ -289,6 +289,8 @@
   {% set scoreboard_embed_url = url_for('b_scoreboard', embed=1) %}
   {% include '_scoreboard_modal.html' %}
 
+  {% include '_activity_dock.html' %}
+
   <script>
     let formShown = false;
     let countdownInterval = null;

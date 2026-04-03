@@ -1,0 +1,48 @@
+<nav class="pg-activity-dock" aria-label="Activity navigation">
+  <a
+    class="pg-dock__item{% if request.endpoint == 'home' %} is-active{% endif %}"
+    href="{{ url_for('home') }}"
+    aria-label="Home"
+    title="Home"
+  >
+    <span class="pg-dock__icon pg-dock__icon--home" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 10.8 12 3l9 7.8"></path>
+        <path d="M5.5 9.8V21h13V9.8"></path>
+        <path d="M9.5 21v-6h5v6"></path>
+      </svg>
+    </span>
+  </a>
+  <a
+    class="pg-dock__item{% if request.endpoint == 'jump' %} is-active{% endif %}"
+    href="{{ url_for('jump') }}"
+    aria-label="Jumping"
+    title="Jumping"
+  >
+    <img class="pg-dock__icon" src="{{ url_for('static', filename='Jumping.png') }}" alt="" />
+  </a>
+  <a
+    class="pg-dock__item{% if request.endpoint == 'balance' %} is-active{% endif %}"
+    href="{{ url_for('balance') }}"
+    aria-label="Balancing"
+    title="Balancing"
+  >
+    <img class="pg-dock__icon" src="{{ url_for('static', filename='Balancing.png') }}" alt="" />
+  </a>
+  <a
+    class="pg-dock__item{% if request.endpoint == 'reaction' %} is-active{% endif %}"
+    href="{{ url_for('reaction') }}"
+    aria-label="Reaction"
+    title="Reaction"
+  >
+    <img class="pg-dock__icon" src="{{ url_for('static', filename='Reaction.png') }}" alt="" />
+  </a>
+  <a
+    class="pg-dock__item{% if request.endpoint == 'precision' %} is-active{% endif %}"
+    href="{{ url_for('precision') }}"
+    aria-label="Precision"
+    title="Precision"
+  >
+    <img class="pg-dock__icon" src="{{ url_for('static', filename='Pressure.png') }}" alt="" />
+  </a>
+</nav>
