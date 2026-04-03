@@ -62,10 +62,25 @@ int main(int argc, char* argv[])
             static_cast<float>(sole.ay),
             static_cast<float>(sole.az));
 
-        std::cout << "\nFore Pressure: " << sole.currForePressure << std::endl;
-        std::cout << "Heel Pressure: " << sole.currHeelPressure << std::endl;
+        std::cout << "IMU Debug: state=" << sole.imuState
+                  << ", configured=" << (sole.imuConfigured ? "yes" : "no")
+                  << ", port=" << (sole.imuPort.empty() ? "<unset>" : sole.imuPort)
+                  << ", baud=" << sole.imuBaudRate
+                  << ", pending=" << sole.imuPendingBytes
+                  << ", failures=" << sole.imuConsecutiveFailures
+                  << std::endl;
+        std::cout << "IMU Event: " << sole.imuLastEvent << std::endl;
+        std::cout << "IMU Read: request=" << sole.imuLastRequest
+                  << ", requested=" << sole.imuRequestedBytes
+                  << ", read=" << sole.imuBytesRead
+                  << ", chunks=" << sole.imuReadChunks
+                  << ", complete=" << (sole.imuReadComplete ? "yes" : "no")
+                  << ", pending_before=" << sole.imuPendingBeforeRequest
+                  << ", pending_after=" << sole.imuPendingAfterRead
+                  << std::endl;
         std::cout << "IMU Data (g) (ax, ay, az): "
                   << sole.ax << ", " << sole.ay << ", " << sole.az << std::endl;
+        std::cout << "IMU Packet Preview: " << sole.imuPacketPreview << std::endl;
 
         sendCurrentSensorPacket(sole);
     }

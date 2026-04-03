@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
+#include <string>
 #include <vector>
 
 inline constexpr int MAX_RUN_TIME = 600000000;
@@ -53,6 +54,21 @@ public:
     // uint64_t endInterval = 0;
 
     std::uint8_t dataIMUPacket[IMU_PACKET_LENGTH] = {};
+    bool imuConfigured = false;
+    int imuPendingBytes = 0;
+    int imuBaudRate = 0;
+    int imuConsecutiveFailures = 0;
+    int imuRequestedBytes = 0;
+    int imuBytesRead = 0;
+    int imuReadChunks = 0;
+    int imuPendingBeforeRequest = 0;
+    int imuPendingAfterRead = 0;
+    bool imuReadComplete = false;
+    std::string imuPort;
+    std::string imuState = "idle";
+    std::string imuLastEvent = "not initialized";
+    std::string imuLastRequest = "none";
+    std::string imuPacketPreview = "n/a";
     bool recordState = true;
 
     // tss_device_id sensor_id;

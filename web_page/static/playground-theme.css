@@ -1553,11 +1553,18 @@ body.pg-screen.pg-activity {
   padding-bottom: calc(138px + env(safe-area-inset-bottom, 0px));
 }
 
+body.pg-doc-screen {
+  padding-bottom: calc(138px + env(safe-area-inset-bottom, 0px));
+}
+
 .pg-activity-dock {
   position: fixed;
   left: 50%;
   bottom: calc(22px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
+  width: fit-content;
+  max-width: calc(100vw - 22px);
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: clamp(10px, 1.8vw, 16px);
@@ -1580,6 +1587,7 @@ body.pg-screen.pg-activity {
   width: clamp(56px, 8vw, 68px);
   height: clamp(56px, 8vw, 68px);
   padding: 0;
+  margin: 0 !important;
   border: 2px solid rgba(var(--dock-color, 17, 17, 17), 0.68);
   border-radius: 22px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(246, 247, 250, 0.52));
@@ -1633,14 +1641,9 @@ body.pg-screen.pg-activity {
   flex: 0 0 1px;
   align-self: stretch;
   width: 1px;
-  min-height: 42px;
+  min-height: 64px;
   margin: 4px 2px;
-  background: linear-gradient(
-    180deg,
-    rgba(17, 17, 17, 0.08),
-    rgba(17, 17, 17, 0.34),
-    rgba(17, 17, 17, 0.08)
-  );
+  background: rgba(17, 17, 17, 0.34);
   border-radius: 999px;
 }
 

@@ -41,6 +41,16 @@ bool gImuConfigured = false;
 int gImuActiveBaud = 0;
 std::string gImuActivePort;
 int gConsecutiveReadFailures = 0;
+int gLastRequestedBytes = 0;
+int gLastBytesRead = 0;
+int gLastReadChunks = 0;
+int gLastPendingBeforeRequest = 0;
+int gLastPendingAfterRead = 0;
+bool gLastReadComplete = false;
+std::string gImuState = "idle";
+std::string gImuLastEvent = "not initialized";
+std::string gImuLastRequest = "none";
+std::string gImuPacketPreview = "n/a";
 auto gLastInitAttemptTime = std::chrono::steady_clock::time_point::min();
 auto gLastFailureLogTime = std::chrono::steady_clock::time_point::min();
 
@@ -103,6 +113,60 @@ int availableBytes(int serial)
     return std::max(bytesAvailable, 0);
 }
 
+std::string formatPacketPreview(const uint8_t* packet, std::size_t previewBytes = 16)
+{
+    if (packet == nullptr || previewBytes == 0) {
+        return "n/a";
+    }
+
+    std::ostringstream preview;
+    preview << std::hex << std::setfill('0');
+    const std::size_t bytesToPrint = std::min<std::size_t>(previewBytes, IMU_PACKET_LENGTH);
+    for (std::size_t index = 0; index < bytesToPrint; ++index) {
+        if (index > 0) {
+            preview << ' ';
+        }
+        preview << std::setw(2) << static_cast<int>(packet[index]);
+    }
+    return preview.str();
+}
+
+void setImuDebugState(const std::string& state, const std::string& event)
+{
+    gImuState = state;
+    gImuLastEvent = event;
+}
+
+void beginReadStats(int serial, const char* requestName, std::size_t requestedBytes)
+{
+    gImuLastRequest = requestName == nullptr ? "none" : requestName;
+    gLastRequestedBytes = static_cast<int>(requestedBytes);
+    gLastBytesRead = 0;
+    gLastReadChunks = 0;
+    gLastPendingBeforeRequest = serial >= 0 ? availableBytes(serial) : 0;
+    gLastPendingAfterRead = gLastPendingBeforeRequest;
+    gLastReadComplete = false;
+}
+
+void syncImuDebugToSole(SonicSole& sole)
+{
+    sole.imuConfigured = gImuConfigured && IMU >= 0;
+    sole.imuPendingBytes = IMU >= 0 ? availableBytes(IMU) : 0;
+    sole.imuBaudRate = gImuActiveBaud;
+    sole.imuConsecutiveFailures = gConsecutiveReadFailures;
+    sole.imuRequestedBytes = gLastRequestedBytes;
+    sole.imuBytesRead = gLastBytesRead;
+    sole.imuReadChunks = gLastReadChunks;
+    sole.imuPendingBeforeRequest = gLastPendingBeforeRequest;
+    sole.imuPendingAfterRead = gLastPendingAfterRead;
+    sole.imuReadComplete = gLastReadComplete;
+    sole.imuPort = gImuActivePort;
+    sole.imuState = gImuState;
+    sole.imuLastEvent = gImuLastEvent;
+    sole.imuLastRequest = gImuLastRequest;
+    sole.imuPacketPreview = gImuPacketPreview;
+}
+
 void closeImuPort()
 {
     if (IMU >= 0) {
@@ -112,6 +176,7 @@ void closeImuPort()
     gImuConfigured = false;
     gImuActiveBaud = 0;
     gImuActivePort.clear();
+    gImuState = "offline";
 }
 
 void clearInputBuffer(int serial)
@@ -129,12 +194,14 @@ void logImuTimeout(const char* requestName)
     }
 
     const int bytesPending = IMU >= 0 ? availableBytes(IMU) : 0;
-    std::cerr << "Timeout waiting for IMU " << requestName
-              << " on " << (gImuActivePort.empty() ? "<unbound-port>" : gImuActivePort)
-              << " @ " << (gImuActiveBaud == 0 ? -1 : gImuActiveBaud)
-              << " baud"
-              << " (pending bytes: " << bytesPending << ")"
-              << std::endl;
+    std::ostringstream message;
+    message << "Timeout waiting for IMU " << requestName
+            << " on " << (gImuActivePort.empty() ? "<unbound-port>" : gImuActivePort)
+            << " @ " << (gImuActiveBaud == 0 ? -1 : gImuActiveBaud)
+            << " baud"
+            << " (pending bytes: " << bytesPending << ")";
+    setImuDebugState("timeout", message.str());
+    std::cerr << message.str() << std::endl;
     gLastFailureLogTime = now;
 }
 
@@ -143,6 +210,7 @@ void logProbeResult(
     int baudRate,
     const std::string& message)
 {
+    setImuDebugState("probe", port + " @ " + std::to_string(baudRate) + ": " + message);
     std::cout << "[IMU probe] " << port << " @ " << baudRate << ": " << message << std::endl;
 }
 
@@ -194,6 +262,7 @@ bool openImuPort(const std::string& port, int baudRate)
     IMU = fd;
     gImuActivePort = port;
     gImuActiveBaud = baudRate;
+    setImuDebugState("opened", "Opened " + port + " @ " + std::to_string(baudRate) + " baud");
     return true;
 }
 
@@ -211,6 +280,7 @@ bool readExactBytes(
         const int bytesAvailable = availableBytes(serial);
         if (bytesAvailable <= 0) {
             if (std::chrono::steady_clock::now() - waitStart >= timeout) {
+                gLastPendingAfterRead = availableBytes(serial);
                 logImuTimeout(requestName);
                 return false;
             }
@@ -225,16 +295,22 @@ bool readExactBytes(
         const ssize_t bytesRead = ::read(serial, buffer + totalBytesRead, bytesToRead);
         if (bytesRead > 0) {
             totalBytesRead += static_cast<std::size_t>(bytesRead);
+            gLastBytesRead += static_cast<int>(bytesRead);
+            ++gLastReadChunks;
+            gLastPendingAfterRead = availableBytes(serial);
             continue;
         }
 
         if (std::chrono::steady_clock::now() - waitStart >= timeout) {
+            gLastPendingAfterRead = availableBytes(serial);
             logImuTimeout(requestName);
             return false;
         }
         std::this_thread::sleep_for(kImuPollInterval);
     }
 
+    gLastReadComplete = true;
+    gLastPendingAfterRead = availableBytes(serial);
     return true;
 }
 
@@ -244,6 +320,7 @@ bool requestStreamingBatch(
     std::chrono::milliseconds timeout,
     const char* requestName)
 {
+    beginReadStats(serial, requestName, IMU_PACKET_LENGTH);
     clearInputBuffer(serial);
     YEIwriteCommandNoDelay(serial, CMD_GET_STREAMING_BATCH);
     return readExactBytes(serial, buffer, IMU_PACKET_LENGTH, timeout, requestName);
@@ -305,8 +382,13 @@ bool configureStreamingBatchMode()
         return false;
     }
 
-    std::cout << "Configuring IMU streaming on " << gImuActivePort
-              << " @ " << gImuActiveBaud << " baud" << std::endl;
+    {
+        std::ostringstream message;
+        message << "Configuring IMU streaming on " << gImuActivePort
+                << " @ " << gImuActiveBaud << " baud";
+        setImuDebugState("configuring", message.str());
+        std::cout << message.str() << std::endl;
+    }
 
     clearInputBuffer(IMU);
     YEIsettingsHeader(IMU);
@@ -353,6 +435,7 @@ bool configureStreamingBatchMode()
     YEIwriteCommandNoDelay(IMU, CMD_TARE_WITH_CURRENT_ORIENTATION);
     std::this_thread::sleep_for(kImuPostTareDelay);
     clearInputBuffer(IMU);
+    setImuDebugState("configured", "Streaming slots configured and tare command sent");
     return true;
 }
 
@@ -364,12 +447,16 @@ bool probeConfiguredImu(SonicSole& sole)
             continue;
         }
         if (!packetLooksPlausible(packet.data())) {
+            gImuPacketPreview = formatPacketPreview(packet.data());
+            setImuDebugState("probe-invalid", "Received batch bytes that do not decode into a valid IMU packet");
             logProbeResult(gImuActivePort, gImuActiveBaud, "received implausible batch payload");
             continue;
         }
 
         std::copy(packet.begin(), packet.end(), sole.dataIMUPacket);
         updateSoleFromStreamingPacket(sole, packet.data());
+        gImuPacketPreview = formatPacketPreview(packet.data());
+        setImuDebugState("streaming", "Batch probe succeeded");
         logProbeResult(gImuActivePort, gImuActiveBaud, "batch probe succeeded");
         return true;
     }
@@ -380,6 +467,7 @@ bool probeConfiguredImu(SonicSole& sole)
     if (bytesPending > 0) {
         reason << " (pending bytes: " << bytesPending << ")";
     }
+    setImuDebugState("probe-failed", reason.str());
     logProbeResult(gImuActivePort, gImuActiveBaud, reason.str());
     return false;
 }
@@ -392,6 +480,7 @@ bool ensureImuConfigured(SonicSole& sole)
 
     const auto now = std::chrono::steady_clock::now();
     if (now - gLastInitAttemptTime < kImuInitRetryInterval) {
+        setImuDebugState("retry-wait", "Waiting before next IMU reinitialization attempt");
         return false;
     }
     gLastInitAttemptTime = now;
@@ -424,6 +513,9 @@ bool ensureImuConfigured(SonicSole& sole)
               << " Set " << kImuPortEnv << " or " << kImuBaudEnv
               << " if your Nano is on a different UART configuration."
               << std::endl;
+    setImuDebugState(
+        "offline",
+        "Unable to establish IMU communication on tested port/baud settings");
     return false;
 }
 
@@ -431,32 +523,45 @@ bool ensureImuConfigured(SonicSole& sole)
 
 void SonicSole::readIMU()
 {
+    const auto syncDebug = [this]() {
+        syncImuDebugToSole(*this);
+    };
+
     if (!ensureImuConfigured(*this)) {
+        syncDebug();
         return;
     }
 
     std::fill(std::begin(dataIMUPacket), std::end(dataIMUPacket), 0);
     if (!requestStreamingBatch(IMU, dataIMUPacket, kImuReadTimeout, "streaming batch read")) {
         ++gConsecutiveReadFailures;
+        setImuDebugState("read-timeout", "Timed out while waiting for a streaming batch");
         if (gConsecutiveReadFailures >= kMaxConsecutiveReadFailures) {
             std::cerr << "Lost IMU batch stream; will reinitialize IMU link." << std::endl;
             closeImuPort();
         }
+        syncDebug();
         return;
     }
 
     if (!packetLooksPlausible(dataIMUPacket)) {
         ++gConsecutiveReadFailures;
+        gImuPacketPreview = formatPacketPreview(dataIMUPacket);
+        setImuDebugState("invalid-batch", "Received bytes, but they do not decode into a plausible IMU packet");
         logImuTimeout("plausible streaming batch payload");
         if (gConsecutiveReadFailures >= kMaxConsecutiveReadFailures) {
             std::cerr << "Discarding IMU session after repeated invalid packets." << std::endl;
             closeImuPort();
         }
+        syncDebug();
         return;
     }
 
     gConsecutiveReadFailures = 0;
     updateSoleFromStreamingPacket(*this, dataIMUPacket);
+    gImuPacketPreview = formatPacketPreview(dataIMUPacket);
+    setImuDebugState("streaming", "Received valid IMU streaming batch");
+    syncDebug();
 }
 
 void SonicSole::getAccelVectorData(float az, std::vector<float>& azVector)

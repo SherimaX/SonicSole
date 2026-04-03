@@ -1,6 +1,6 @@
 <nav class="pg-activity-dock" aria-label="Activity navigation">
   <a
-    class="pg-dock__item{% if request.endpoint == 'home' %} is-active{% endif %}"
+    class="pg-dock__item{% if request.endpoint in ['home', 'assembly_instructions'] %} is-active{% endif %}"
     href="{{ url_for('home') }}"
     aria-label="Home"
     title="Home"
