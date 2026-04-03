@@ -208,7 +208,7 @@
 
     .hardware-monitor__item {
       display: grid;
-      grid-template-columns: 14px minmax(0, 1fr) auto;
+      grid-template-columns: 14px minmax(0, 1fr);
       gap: 12px;
       align-items: center;
       padding: 10px 12px;
@@ -257,6 +257,13 @@
       gap: 3px;
     }
 
+    .hardware-monitor__headline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
     .hardware-monitor__name {
       font-size: 0.98rem;
       font-weight: 700;
@@ -271,9 +278,8 @@
 
     .hardware-monitor__actions {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
+      align-items: center;
+      flex-shrink: 0;
     }
 
     .hardware-monitor__action {
@@ -488,27 +494,28 @@
       <aside class="hardware-monitor">
         <p class="hardware-monitor__eyebrow">Hardware Monitor</p>
         <h2 class="hardware-monitor__title" id="hardware-monitor-title">Device Connectivity</h2>
-        <p class="hardware-monitor__summary" id="hardwareMonitorSummary">Checking device reachability...</p>
+        <p class="hardware-monitor__summary" id="hardwareMonitorSummary"></p>
 
         <ul class="hardware-monitor__list">
           {% for group in group_options %}
           <li class="hardware-monitor__item is-offline" data-device-id="{{ group.id }}">
             <span class="hardware-monitor__indicator is-offline" aria-hidden="true"></span>
             <div class="hardware-monitor__copy">
-              <span class="hardware-monitor__name">{{ group.label }}</span>
-              <span class="hardware-monitor__ip">{{ group.ip or "No device assigned" }}</span>
-              <div class="hardware-monitor__actions">
-                <button
-                  type="button"
-                  class="hardware-monitor__action"
-                  data-assign-group-id="{{ group.id }}"
-                  onclick="assignLiveDeviceToGroup('{{ group.id }}')"
-                >
-                  Assign Live Device
-                </button>
+              <div class="hardware-monitor__headline">
+                <span class="hardware-monitor__name">{{ group.label }}</span>
+                <div class="hardware-monitor__actions">
+                  <button
+                    type="button"
+                    class="hardware-monitor__action"
+                    data-assign-group-id="{{ group.id }}"
+                    onclick="assignLiveDeviceToGroup('{{ group.id }}')"
+                  >
+                    {{ "Assigned" if group.ip else "Unassigned" }}
+                  </button>
+                </div>
               </div>
+              <span class="hardware-monitor__ip">{{ group.ip or "" }}</span>
             </div>
-            <span class="hardware-monitor__state is-offline"></span>
           </li>
           {% endfor %}
         </ul>
@@ -656,7 +663,7 @@
         const stateLabel = device.connected
           ? "Live"
           : !device.assigned
-            ? ""
+            ? "Unassigned"
             : device.probe_error
             ? "Unavailable"
             : "Offline";
@@ -664,7 +671,7 @@
         const ipLabel = row ? row.querySelector(".hardware-monitor__ip") : null;
         const assignButton = row ? row.querySelector("[data-assign-group-id]") : null;
         if (ipLabel) {
-          ipLabel.textContent = device.ip || "No device assigned";
+          ipLabel.textContent = device.ip || "";
         }
         if (assignButton) {
           assignButton.disabled = !liveDevice;
@@ -686,8 +693,7 @@
       }
 
       if (assignedCount === 0) {
-        hardwareMonitorSummary.textContent =
-          "Waiting for a SonicSole device to start streaming. Once detected, you can assign it to a group here.";
+        hardwareMonitorSummary.textContent = "";
         return;
       }
 

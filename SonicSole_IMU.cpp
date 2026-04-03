@@ -1,9 +1,11 @@
 #include "SonicSole.h"
 
+#include <cstring>
 #include <iostream>
 #include <thread>
 #include <unistd.h>
 
+#include <wiringPi.h>
 #include <wiringSerial.h>
 
 #include "RPi_combined_Header.h"
