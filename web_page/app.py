@@ -152,19 +152,51 @@ def get_group_assignment_ip(group_id):
         return (group_device_assignments.get(group_id) or "").strip()
 
 
+def get_group_assignment_map():
+    with group_assignments_lock:
+        return {
+            assigned_group_id: (assigned_ip or "").strip()
+            for assigned_group_id, assigned_ip in group_device_assignments.items()
+            if (assigned_ip or "").strip()
+        }
+
+
+def get_group_id_for_assigned_ip(device_ip, exclude_group_id=None):
+    normalized_ip = (device_ip or "").strip()
+    if not normalized_ip:
+        return None
+
+    with group_assignments_lock:
+        for assigned_group_id, assigned_ip in group_device_assignments.items():
+            if assigned_group_id == exclude_group_id:
+                continue
+            if (assigned_ip or "").strip() == normalized_ip:
+                return assigned_group_id
+    return None
+
+
 def assign_group_device_ip(group_id, device_ip):
     normalized_ip = (device_ip or "").strip()
     group = GROUP_OPTIONS_BY_ID.get(group_id)
     if group is None:
-        return None
+        return None, None
 
     with group_assignments_lock:
         if normalized_ip:
+            for assigned_group_id, assigned_ip in group_device_assignments.items():
+                if assigned_group_id == group_id:
+                    continue
+                if (assigned_ip or "").strip() == normalized_ip:
+                    conflicting_group = GROUP_OPTIONS_BY_ID.get(assigned_group_id)
+                    return (
+                        None,
+                        build_group_option(conflicting_group, assigned_ip=(assigned_ip or "").strip()),
+                    )
             group_device_assignments[group_id] = normalized_ip
         else:
             group_device_assignments.pop(group_id, None)
 
-    return build_group_option(group, normalized_ip)
+    return build_group_option(group, normalized_ip), None
 
 
 def prune_discovered_devices_locked(current_time=None):
@@ -222,6 +254,26 @@ def get_discovered_devices():
 def get_latest_discovered_device():
     devices = get_discovered_devices()
     return devices[0] if devices else None
+
+
+def get_assignable_discovered_devices(group_id):
+    current_group_ip = get_group_assignment_ip(group_id)
+    assigned_ips = set(get_group_assignment_map().values())
+    if current_group_ip:
+        assigned_ips.discard(current_group_ip)
+
+    assignable_devices = []
+    for device in get_discovered_devices():
+        device_ip = device["ip"]
+        if device_ip in assigned_ips:
+            continue
+        assignable_devices.append(
+            {
+                **device,
+                "selected": device_ip == current_group_ip,
+            }
+        )
+    return assignable_devices
 
 
 def wait_for_discovered_device(timeout_seconds):
@@ -1622,6 +1674,7 @@ def hardware_status():
     checked_at = time.time()
     for device in devices:
         device["selected"] = device["id"] == selected_group_id
+        device["assignable_devices"] = get_assignable_discovered_devices(device["id"])
         device["checked_age_seconds"] = round(checked_at - device["checked_at"], 2)
         device.pop("checked_at", None)
 
@@ -1830,16 +1883,42 @@ def select_group():
 def assign_group_device():
     payload = request.get_json(silent=True) or request.form
     group_id = payload.get("group_id", "").strip()
+    device_ip = payload.get("device_ip", "").strip()
     group = GROUP_OPTIONS_BY_ID.get(group_id)
     if group is None:
         return jsonify({"status": "error", "message": "Unknown group selection."}), 400
 
-    start_combined_data_thread()
-    live_device = wait_for_discovered_device(GROUP_ASSIGNMENT_DISCOVERY_WAIT_SECONDS)
-    if live_device is None:
-        return jsonify({"status": "error", "message": "No live SonicSole device detected yet."}), 400
+    if not device_ip:
+        return jsonify({"status": "error", "message": "Choose a SonicSole device first."}), 400
 
-    assigned_group = assign_group_device_ip(group_id, live_device["ip"])
+    start_combined_data_thread()
+    assignable_devices = get_assignable_discovered_devices(group_id)
+    if not any(device["ip"] == device_ip for device in assignable_devices):
+        conflicting_group_id = get_group_id_for_assigned_ip(device_ip, exclude_group_id=group_id)
+        if conflicting_group_id is not None:
+            conflicting_group = GROUP_OPTIONS_BY_ID.get(conflicting_group_id)
+            return jsonify(
+                {
+                    "status": "error",
+                    "message": f"{device_ip} is already assigned to {conflicting_group['label']}.",
+                }
+            ), 409
+        return jsonify(
+            {
+                "status": "error",
+                "message": f"{device_ip} is not currently available for assignment.",
+            }
+        ), 400
+
+    assigned_group, conflicting_group = assign_group_device_ip(group_id, device_ip)
+    if conflicting_group is not None:
+        return jsonify(
+            {
+                "status": "error",
+                "message": f"{device_ip} is already assigned to {conflicting_group['label']}.",
+            }
+        ), 409
+
     selected_group = get_selected_group()
     if selected_group is not None and selected_group["id"] == group_id:
         set_active_device_ip(assigned_group["ip"])
@@ -1848,8 +1927,8 @@ def assign_group_device():
         {
             "status": "ok",
             "group": assigned_group,
-            "live_device": live_device,
-            "message": f"Assigned {live_device['ip']} to {assigned_group['label']}.",
+            "device_ip": device_ip,
+            "message": f"Assigned {device_ip} to {assigned_group['label']}.",
         }
     )
 

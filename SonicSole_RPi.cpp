@@ -1,5 +1,6 @@
 #include "SonicSole.h"
 
+#include <chrono>
 #include <iostream>
 #include <sys/time.h>
 #include <vector>
@@ -39,20 +40,15 @@ int main(int argc, char* argv[])
         sole.updateCurrentTime();
         sole.updatePressure();
 
+        const auto imuReadStart = std::chrono::steady_clock::now();
         sole.readIMU();
+        const auto imuReadElapsed = std::chrono::steady_clock::now() - imuReadStart;
 
         const double time = sole.getRunningTime();
         std::cout << "\ntime: " << time << std::endl;
 
-        struct timeval tvStart;
-        struct timeval tvEnd;
-        gettimeofday(&tvStart, nullptr);
-        sole.readIMU();
-        gettimeofday(&tvEnd, nullptr);
-
-        const long elapsedMicroseconds =
-            (tvEnd.tv_sec - tvStart.tv_sec) * 1000000L + (tvEnd.tv_usec - tvStart.tv_usec);
-        const double elapsedSeconds = elapsedMicroseconds / 1e6;
+        const double elapsedSeconds =
+            std::chrono::duration_cast<std::chrono::duration<double>>(imuReadElapsed).count();
         std::cout << "\ntime (since last): " << elapsedSeconds << " s" << std::endl;
         std::cout << "Cycle: " << cycle << std::endl;
         ++cycle;

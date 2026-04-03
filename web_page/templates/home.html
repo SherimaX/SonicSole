@@ -265,7 +265,7 @@
     }
 
     .hardware-monitor__name {
-      font-size: 0.98rem;
+      font-size: 0.9rem;
       font-weight: 700;
       color: var(--text-dark);
     }
@@ -288,11 +288,10 @@
       background: rgba(255, 255, 255, 0.92);
       color: var(--accent-dark);
       font: inherit;
-      font-size: 0.74rem;
+      font-size: 0.9rem;
       font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 7px 10px;
+      letter-spacing: 0;
+      padding: 4px 9px;
       cursor: pointer;
       transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
@@ -305,6 +304,37 @@
     .hardware-monitor__action:disabled {
       cursor: not-allowed;
       opacity: 0.55;
+    }
+
+    .hardware-monitor__choices {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .hardware-monitor__choice {
+      border: 1px solid rgba(52, 16, 16, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text-dark);
+      font: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .hardware-monitor__choice:hover {
+      background: rgba(255, 241, 231, 0.96);
+      border-color: rgba(122, 28, 28, 0.2);
+    }
+
+    .hardware-monitor__choice.is-selected {
+      border-color: rgba(43, 155, 83, 0.28);
+      background: rgba(235, 248, 239, 0.96);
+      color: #1f6d3a;
     }
 
     .hardware-monitor__state {
@@ -508,13 +538,14 @@
                     type="button"
                     class="hardware-monitor__action"
                     data-assign-group-id="{{ group.id }}"
-                    onclick="assignLiveDeviceToGroup('{{ group.id }}')"
+                    onclick="toggleAssignmentOptions('{{ group.id }}')"
                   >
                     {{ "Assigned" if group.ip else "Unassigned" }}
                   </button>
                 </div>
               </div>
               <span class="hardware-monitor__ip">{{ group.ip or "" }}</span>
+              <div class="hardware-monitor__choices" data-assign-options-for="{{ group.id }}" hidden></div>
             </div>
           </li>
           {% endfor %}
@@ -587,6 +618,7 @@
         row,
       ])
     );
+    let activeAssignmentMenuGroupId = null;
 
     function formatAgeLabel(seconds) {
       if (typeof seconds !== "number" || Number.isNaN(seconds)) {
@@ -635,6 +667,67 @@
       }
     }
 
+    function closeAssignmentMenus(exceptGroupId = null) {
+      hardwareMonitorRows.forEach((row, groupId) => {
+        if (groupId === exceptGroupId) {
+          return;
+        }
+        const choices = row.querySelector("[data-assign-options-for]");
+        if (choices) {
+          choices.hidden = true;
+        }
+      });
+
+      if (exceptGroupId === null) {
+        activeAssignmentMenuGroupId = null;
+      }
+    }
+
+    function renderAssignmentChoices(row, device) {
+      if (!row) return;
+
+      const choices = row.querySelector("[data-assign-options-for]");
+      if (!choices) return;
+
+      const assignableDevices = Array.isArray(device.assignable_devices)
+        ? device.assignable_devices
+        : [];
+
+      choices.replaceChildren();
+
+      assignableDevices.forEach((assignableDevice) => {
+        const choiceButton = document.createElement("button");
+        choiceButton.type = "button";
+        choiceButton.className = "hardware-monitor__choice";
+        choiceButton.textContent = assignableDevice.ip;
+        if (assignableDevice.selected) {
+          choiceButton.classList.add("is-selected");
+        }
+        choiceButton.addEventListener("click", () => {
+          assignDeviceToGroup(device.id, assignableDevice.ip);
+        });
+        choices.appendChild(choiceButton);
+      });
+
+      choices.hidden =
+        activeAssignmentMenuGroupId !== device.id || assignableDevices.length === 0;
+    }
+
+    function toggleAssignmentOptions(groupId) {
+      const row = hardwareMonitorRows.get(groupId);
+      if (!row) return;
+
+      const choices = row.querySelector("[data-assign-options-for]");
+      if (!choices || !choices.children.length) {
+        return;
+      }
+
+      const shouldOpen = activeAssignmentMenuGroupId !== groupId || choices.hidden;
+      closeAssignmentMenus(shouldOpen ? groupId : null);
+      activeAssignmentMenuGroupId = shouldOpen ? groupId : null;
+      choices.hidden = !shouldOpen;
+    }
+
     function renderHardwareStatus(payload) {
       const devices = Array.isArray(payload.devices) ? payload.devices : [];
       const liveDevice = payload.live_device && payload.live_device.ip ? payload.live_device : null;
@@ -670,13 +763,17 @@
         setHardwareRowState(row, statusVariant, stateLabel);
         const ipLabel = row ? row.querySelector(".hardware-monitor__ip") : null;
         const assignButton = row ? row.querySelector("[data-assign-group-id]") : null;
+        const assignableDevices = Array.isArray(device.assignable_devices)
+          ? device.assignable_devices
+          : [];
         if (ipLabel) {
           ipLabel.textContent = device.ip || "";
         }
         if (assignButton) {
-          assignButton.disabled = !liveDevice;
+          assignButton.disabled = assignableDevices.length === 0;
           assignButton.textContent = device.assigned ? "Assigned" : "Unassigned";
         }
+        renderAssignmentChoices(row, device);
       });
 
       if (!devices.length) {
@@ -726,11 +823,11 @@
       }
     }
 
-    async function postHardwareAssignment(url, groupId) {
+    async function postHardwareAssignment(url, groupId, deviceIp) {
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ group_id: groupId }),
+        body: JSON.stringify({ group_id: groupId, device_ip: deviceIp }),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -739,9 +836,10 @@
       return data;
     }
 
-    async function assignLiveDeviceToGroup(groupId) {
+    async function assignDeviceToGroup(groupId, deviceIp) {
       try {
-        await postHardwareAssignment("{{ url_for('assign_group_device') }}", groupId);
+        activeAssignmentMenuGroupId = null;
+        await postHardwareAssignment("{{ url_for('assign_group_device') }}", groupId, deviceIp);
         await refreshHardwareStatus();
       } catch (error) {
         alert(error.message);
@@ -765,12 +863,24 @@
 
     hardwareMonitorModal.addEventListener("click", (event) => {
       if (event.target === hardwareMonitorModal) {
+        closeAssignmentMenus();
         closeHardwareModal();
       }
     });
 
+    hardwareMonitorDialog.addEventListener("click", (event) => {
+      if (
+        event.target.closest("[data-assign-group-id]") ||
+        event.target.closest("[data-assign-options-for]")
+      ) {
+        return;
+      }
+      closeAssignmentMenus();
+    });
+
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !hardwareMonitorModal.hidden) {
+        closeAssignmentMenus();
         closeHardwareModal();
       }
     });

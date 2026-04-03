@@ -1,5 +1,6 @@
 #include "SonicSole.h"
 
+#include <chrono>
 #include <cstring>
 #include <iostream>
 #include <thread>
@@ -10,6 +11,24 @@
 
 #include "RPi_combined_Header.h"
 #include "RPi_Raj_Header.h"
+
+namespace {
+
+constexpr auto kImuReadTimeout = std::chrono::milliseconds(250);
+constexpr auto kImuPollInterval = std::chrono::milliseconds(2);
+
+void logImuTimeout()
+{
+    static auto lastWarningTime = std::chrono::steady_clock::time_point::min();
+    const auto now = std::chrono::steady_clock::now();
+    if (now - lastWarningTime >= std::chrono::seconds(1)) {
+        std::cerr << "Timeout waiting for IMU data; continuing with previous IMU values"
+                  << std::endl;
+        lastWarningTime = now;
+    }
+}
+
+} // namespace
 
 void SonicSole::readIMU()
 {
@@ -23,7 +42,13 @@ void SonicSole::readIMU()
     }
 
     YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
+    const auto waitStart = std::chrono::steady_clock::now();
     while (serialDataAvail(IMU) < IMU_PACKET_LENGTH) {
+        if (std::chrono::steady_clock::now() - waitStart >= kImuReadTimeout) {
+            logImuTimeout();
+            return;
+        }
+        std::this_thread::sleep_for(kImuPollInterval);
     }
 
     read(IMU, dataIMUPacket, IMU_PACKET_LENGTH);
