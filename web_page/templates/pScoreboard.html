@@ -3,24 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SonicSole | Balance Scoreboard</title>
-  
+  <title>SonicSole | Precision Scoreboard</title>
   <style>
     :root {
-      --primary: #284b3e;
-      --primary-dark: #1b2f27;
-      --accent: #e8dfc8;
-      --text: #24322c;
-      --light: rgba(255, 250, 243, 0.94);
+      --primary: #6d9ea6;
+      --primary-dark: #274047;
+      --accent: #d9e7ea;
+      --text: #243238;
+      --light: rgba(250, 253, 253, 0.92);
     }
 
     body {
       margin: 0;
       font-family: "Trebuchet MS", "Avenir Next", sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(232, 223, 200, 0.95), transparent 30%),
-        radial-gradient(circle at bottom right, rgba(155, 193, 163, 0.22), transparent 28%),
-        linear-gradient(135deg, #f2ecdd 0%, #e8dfc8 48%, #d9e5da 100%);
+        radial-gradient(circle at top left, rgba(217, 231, 234, 0.95), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(141, 196, 204, 0.24), transparent 28%),
+        linear-gradient(135deg, #eef5f6 0%, #d9e7ea 48%, #c3dbe0 100%);
       color: var(--text);
       display: flex;
       flex-direction: column;
@@ -35,8 +34,8 @@
       position: fixed;
       inset: 0;
       background:
-        repeating-radial-gradient(circle at 15% 20%, rgba(40, 75, 62, 0.05) 0 2px, transparent 2px 54px),
-        repeating-radial-gradient(circle at 85% 78%, rgba(40, 75, 62, 0.045) 0 2px, transparent 2px 66px);
+        repeating-radial-gradient(circle at 15% 20%, rgba(39, 64, 71, 0.045) 0 2px, transparent 2px 56px),
+        repeating-radial-gradient(circle at 85% 78%, rgba(39, 64, 71, 0.04) 0 2px, transparent 2px 68px);
       opacity: 0.55;
       pointer-events: none;
     }
@@ -44,14 +43,14 @@
     header {
       text-align: center;
       margin-top: 60px;
-      animation: fadeIn 1.2s ease;
+      animation: fadeIn 1.5s ease;
     }
 
     header h1 {
       font-size: 3em;
-      color: var(--primary);
-      margin-bottom: 0.3em;
-      font-family: "Palatino Linotype", "Book Antiqua", serif;
+      color: var(--text);
+      margin-bottom: 0.2em;
+      font-family: "Arial Black", "Impact", sans-serif;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
@@ -60,13 +59,13 @@
       background-color: var(--light);
       border-radius: 20px;
       padding: 40px;
-      box-shadow: 0 22px 42px rgba(40, 75, 62, 0.14);
+      box-shadow: 0 22px 42px rgba(39, 64, 71, 0.14);
       width: 90%;
-      max-width: 1000px;
-      margin: 40px auto;
+      max-width: 800px;
+      margin: 50px auto;
       text-align: center;
       animation: slideUp 1s ease;
-      border: 1px solid rgba(40, 75, 62, 0.12);
+      border: 1px solid rgba(39, 64, 71, 0.12);
       position: relative;
       overflow: hidden;
     }
@@ -76,16 +75,57 @@
       position: absolute;
       inset: 0 0 auto 0;
       height: 14px;
-      background: linear-gradient(90deg, #284b3e, #9bc1a3, #e8dfc8);
+      background: linear-gradient(90deg, #6d9ea6, #d9e7ea, #274047);
     }
 
-    a.btn-outline, button.btn-outline {
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 20px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: center;
+      font-size: 1.1em;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: #10161e;
+      cursor: pointer;
+      position: relative;
+    }
+
+    td {
+      background-color: rgba(255, 255, 255, 0.74);
+      color: var(--text);
+    }
+
+    tr:nth-child(even) td {
+      background-color: rgba(109, 158, 166, 0.08);
+    }
+
+    th.sorted {
+      background-color: var(--primary-dark);
+    }
+
+    .sort-indicator {
+      margin-left: 8px;
+      font-size: 0.8em;
+      opacity: 0.8;
+    }
+
+    .btn {
       display: inline-block;
       padding: 12px 24px;
       font-size: 1.1em;
-      color: var(--primary);
-      background-color: rgba(255, 255, 255, 0.42);
-      border: 2px solid rgba(40, 75, 62, 0.32);
+      color: #10161e;
+      background-color: var(--primary);
+      border: none;
       border-radius: 8px;
       cursor: pointer;
       margin: 10px;
@@ -93,109 +133,30 @@
       text-decoration: none;
     }
 
-    a.btn-outline:hover,
-    button.btn-outline:hover {
-      background-color: var(--primary);
-      color: #fff;
+    .btn:hover {
+      background-color: var(--primary-dark);
       transform: translateY(-2px);
     }
 
-    .button-group {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 1.5em;
-      flex-wrap: wrap;
+    .btn-outline {
+      background-color: rgba(174, 184, 198, 0.06);
+      color: var(--text);
+      border: 2px solid rgba(174, 184, 198, 0.3);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: var(--light);
-      border-radius: 15px;
-      overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      margin-top: 20px;
-      animation: fadeIn 1.5s ease;
-    }
-
-    th, td {
-      padding: 15px;
-      font-size: 1.2em;
-      text-align: center;
-    }
-
-    th {
+    .btn-outline:hover {
       background-color: var(--primary-dark);
       color: #fff;
-      cursor: pointer;
-      position: relative;
-      transition: background-color 0.3s;
-    }
-
-    th.sorted {
-      background-color: var(--primary);
-    }
-
-    tr:nth-child(even) {
-      background-color: #f2eee3;
-    }
-
-    td:first-child {
-      font-weight: bold;
-      color: var(--primary-dark);
-    }
-
-    .sort-indicator {
-      margin-left: 10px;
-      font-size: 0.9em;
-      position: absolute;
-      right: 12px;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 999;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0, 0, 0, 0.4);
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 0.5s ease;
-    }
-
-    .modal-content {
-      background-color: var(--accent);
-      margin: auto;
-      padding: 25px 30px;
-      border-radius: 15px;
-      width: 80%;
-      max-width: 450px;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-      animation: slideUp 0.5s ease;
-    }
-
-    .close {
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-      color: var(--primary-dark);
     }
 
     footer {
       text-align: center;
       padding: 20px;
+      color: rgba(238, 242, 245, 0.78);
       margin-top: auto;
-      color: var(--primary-dark);
     }
 
-    @keyframes fadeIn { 
+    @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
     }
@@ -207,36 +168,37 @@
   </style>
   <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
   <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
-
   <script>
     function sortTable(columnIndex, isNumeric = false) {
-      var table = document.getElementById("combinedLeaderboard");
+      var table = document.getElementById("leaderboard");
       var rows = Array.from(table.rows).slice(1);
       var isAscending = table.getAttribute("data-sort-asc") === "true";
 
-      rows.sort(function (a, b) {
-        var cellA = a.cells[columnIndex].textContent.trim();
-        var cellB = b.cells[columnIndex].textContent.trim();
+      rows.sort(function (rowA, rowB) {
+        var cellA = rowA.cells[columnIndex].innerText;
+        var cellB = rowB.cells[columnIndex].innerText;
 
         if (isNumeric) {
           cellA = parseFloat(cellA) || 0;
           cellB = parseFloat(cellB) || 0;
         }
 
-        if (cellA < cellB) return isAscending ? -1 : 1;
-        if (cellA > cellB) return isAscending ? 1 : -1;
+        if (isNumeric ? (cellA < cellB) : (cellA.toLowerCase() < cellB.toLowerCase()))
+          return isAscending ? -1 : 1;
+        if (isNumeric ? (cellA > cellB) : (cellA.toLowerCase() > cellB.toLowerCase()))
+          return isAscending ? 1 : -1;
+
         return 0;
       });
 
-      table.tBodies[0].append(...rows);
+      rows.forEach(row => table.tBodies[0].appendChild(row));
       table.setAttribute("data-sort-asc", !isAscending);
-      
       updateSortIndicators(table, columnIndex, !isAscending);
     }
 
     function updateSortIndicators(table, columnIndex, isAscending) {
       var headers = table.querySelectorAll("th");
-      headers.forEach((header, index) => {
+      headers.forEach(function (header, index) {
         var indicator = header.querySelector(".sort-indicator");
         if (index === columnIndex) {
           indicator.textContent = isAscending ? "↓" : "↑";
@@ -248,19 +210,19 @@
       });
     }
 
-    function editBalanceEntry(button) {
+    function editMetricEntry(button, formId) {
       var nextName = prompt("Edit group name", button.dataset.name || "");
       if (nextName === null) return;
       nextName = nextName.trim();
       if (!nextName) return;
 
-      var nextBestTime = prompt("Edit best time (seconds)", button.dataset.bestTime || "");
-      if (nextBestTime === null) return;
+      var nextValue = prompt(button.dataset.label || "Edit value", button.dataset.value || "");
+      if (nextValue === null) return;
 
-      var form = document.getElementById("editBalanceForm");
+      var form = document.getElementById(formId);
       form.elements.entry_key.value = button.dataset.entryKey;
       form.elements.group_name.value = nextName;
-      form.elements.best_time.value = nextBestTime.trim();
+      form.elements.value.value = nextValue.trim();
       form.submit();
     }
 
@@ -273,15 +235,17 @@
     }
   </script>
 </head>
-
 <body class="pg-screen{% if embed %} pg-scoreboard-embed{% endif %}">
+  {% if not embed %}
   <header class="pg-header">
     <h1>SonicSole</h1>
+    <p style="color: var(--primary-dark); font-size: 1.2em;">Precision Scoreboard</p>
   </header>
+  {% endif %}
 
   <div class="card pg-card pg-scoreboard-card">
     {% if not embed %}
-    <h2>Balance Scoreboard</h2>
+    <h2>Precision Scoreboard</h2>
     {% endif %}
 
     <div class="pg-scoreboard-controls">
@@ -297,33 +261,29 @@
     </div>
 
     <div class="pg-table-wrap">
-      <table id="combinedLeaderboard">
-        <thead>
-          <tr>
-            <th onclick="sortTable(0)">Group Name <span class="sort-indicator"></span></th>
-            <th onclick="sortTable(1, true)">Best Time (seconds) <span class="sort-indicator"></span></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for entry in data %}
-          <tr>
-            <td>{{ entry.name }}</td>
-            <td>{{ "%.2f" | format(entry.best_time) }} s</td>
-          </tr>
-          {% endfor %}
-        </tbody>
+      <table id="leaderboard">
+        <tr>
+          <th onclick="sortTable(0)" class="sortable">Group Name <span class="sort-indicator"></span></th>
+          <th onclick="sortTable(1, true)" class="sortable">Percent Error <span class="sort-indicator"></span></th>
+        </tr>
+        {% for entry in data %}
+        <tr>
+          <td>{{ entry.name }}</td>
+          <td>{{ "%.2f" | format(entry.percent_error) }}</td>
+        </tr>
+        {% endfor %}
       </table>
     </div>
 
     <form
-      id="editBalanceForm"
+      id="editPrecisionForm"
       method="post"
-      action="{{ url_for('update_leaderboard_entry', board_key='balance') }}{% if embed %}?embed=1{% endif %}"
+      action="{{ url_for('update_leaderboard_entry', board_key='precision') }}{% if embed %}?embed=1{% endif %}"
       style="display: none;"
     >
       <input type="hidden" name="entry_key">
       <input type="hidden" name="group_name">
-      <input type="hidden" name="best_time">
+      <input type="hidden" name="value">
     </form>
   </div>
 
@@ -335,13 +295,13 @@
           <div class="pg-manage-meta">
             <div class="pg-manage-name">{{ entry.name }}</div>
             <div class="pg-manage-values">
-              <span>Best Time: {{ "%.2f" | format(entry.best_time) }} s</span>
+              <span>Percent Error: {{ "%.2f" | format(entry.percent_error) }}</span>
             </div>
           </div>
           <div class="pg-row-actions">
             <form
               method="post"
-              action="{{ url_for('delete_leaderboard_entry', board_key='balance') }}{% if embed %}?embed=1{% endif %}"
+              action="{{ url_for('delete_leaderboard_entry', board_key='precision') }}{% if embed %}?embed=1{% endif %}"
               onsubmit="return confirm('Remove this entry from the leaderboard?');"
             >
               <input type="hidden" name="entry_key" value="{{ entry.entry_key }}">
@@ -356,8 +316,9 @@
 
   {% if not embed %}
   <footer class="pg-footer pg-footer--wide">
-    <a href="/balance" class="btn-outline">Go Back</a>
+    <a href="/precision" class="btn">Go Back</a>
   </footer>
   {% endif %}
+
 </body>
 </html>

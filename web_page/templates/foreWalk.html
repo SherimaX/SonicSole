@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SonicSole | Forefoot Walk Activity</title>
+<title>SonicSole | Forefoot Walk</title>
 <style>
   :root {
     --primary: #57b65f;
@@ -201,62 +201,60 @@
     margin-top: auto;
   }
 </style>
-<link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
+<script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
+<script defer src="{{ url_for('static', filename='playground-activity-toggle.js') }}"></script>
 </head>
 
-<body>
-<header>
-  <h1>SonicSole</h1>
-</header>
-
-<div class="card">
-  <h2>Forefoot Walk Activity</h2>
-  <p>Walk on your forefeet for 15 seconds without letting your heels touch the ground.</p>
-
-  <div class="buttons">
-    <button id="startButton">Start Walking</button>
-    <button class="btn-outline" onclick="openModal()">Instructions</button>
-  </div>
-
-  <div class="data-box" id="timeBox">Timer: --</div>
-  <div class="data-box" id="statusBox">Waiting for walk to start...</div>
-
-  <div id="instructionsModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <h2>Instructions</h2>
-      <p>
-        Press "Start Walking" to begin. Walk forward on your forefeet—keep your heels completely off the ground.
-        Maintain this for 15 seconds and walk as far as possible. If your heels touch, the trial ends and counts as a failure.
-        Force sensors monitor heel pressure and will stop the timer if contact is detected.
-      </p>
-    </div>
-  </div>
-
-  <form id="name-form" style="display:none;">
-    <div class="name-fields">
-      <input type="text" name="first_name2" placeholder="First Name" required>
-      <input type="text" name="last_name2" placeholder="Last Name" required>
-    </div>
-    <button type="submit">Submit</button>
-  </form>
-
-  <div style="margin-top: 20px;">
-    <a href="/wScoreboard" class="btn-outline">View Scoreboard</a>
-  </div>
+<body class="pg-screen pg-activity">
+<div class="pg-activity-title">
+  <header class="pg-header">
+    <h1>Forefoot Walk</h1>
+  </header>
 </div>
 
-<footer>
-  <a class="btn-outline" href="#" onclick="stopDataAndNavigate('/')">Home</a>
-  <a class="btn-outline" href="{{ url_for('foreWalk') }}">Reload</a>
-</footer>
+<div class="pg-activity-stage">
+  <div class="pg-activity-toolbar">
+    <div class="pg-header-nav">
+      <a href="{{ url_for('w_scoreboard') }}" onclick="openScoreboardModal(); return false;">Scoreboard</a>
+    </div>
+  </div>
+
+  <div class="card pg-card pg-activity-card">
+    <p>Walk on your forefeet for 15 seconds without letting your heels touch the ground.</p>
+
+    <div class="pg-status-grid">
+      <div class="data-box" id="timeBox">Timer: --</div>
+      <div class="data-box" id="statusBox">Waiting for walk to start...</div>
+    </div>
+
+    <div class="buttons pg-actions">
+      <button id="startButton">Start</button>
+    </div>
+
+    <form id="name-form" class="pg-inline-form" style="display:none;">
+      <p class="pg-message" style="margin: 0 0 12px;">
+        Submit this score for <strong data-selected-group-label>your selected group</strong>.
+      </p>
+      <button type="submit">Submit Score</button>
+    </form>
+
+    <div id="thankYouMessage" class="pg-message" style="display:none; font-size:1.2em; color: var(--primary-dark);">
+      Thank you for submitting!
+    </div>
+  </div>
+
+  {% include '_group_selector.html' %}
+</div>
+
+{% set scoreboard_modal_title = "Forefoot Walk Scoreboard" %}
+{% set scoreboard_embed_url = url_for('w_scoreboard', embed=1) %}
+{% include '_scoreboard_modal.html' %}
 
 <script>
   let timerInterval = null;
   let startTime = null;
-
-  function openModal() { document.getElementById("instructionsModal").style.display = "flex"; }
-  function closeModal() { document.getElementById("instructionsModal").style.display = "none"; }
+  let walkActivityToggle = null;
 
   function submitForm(event) {
     event.preventDefault();
@@ -264,49 +262,100 @@
     const formData = new FormData(form);
     fetch("/submitW", { method: "POST", body: formData }).then((res) => {
       if (res.ok) {
-        alert("Submission successful!");
         form.style.display = "none";
+        document.getElementById("thankYouMessage").style.display = "block";
       }
     });
   }
 
-  function startWalk() {
+  function resetWalkUI() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    startTime = null;
+    document.getElementById("timeBox").innerText = "Timer: --";
+    document.getElementById("statusBox").innerText = "Waiting for walk to start...";
+    document.getElementById("name-form").style.display = "none";
+    document.getElementById("thankYouMessage").style.display = "none";
+  }
+
+  async function startWalk({ signal }) {
+    if (!ensureGroupSelected("Please select a group before starting forefoot walk.")) {
+      throw createHandledActivityError("Group selection required.");
+    }
+
+    resetWalkUI();
+    const response = await fetch("/start_forefoot", { method: "POST", signal });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Unable to start forefoot walk.");
+    }
+    if (data.status === "cancelled") {
+      return;
+    }
+
     document.getElementById("timeBox").innerText = "Timer: 0.0s";
     document.getElementById("statusBox").innerText = "Walking...";
     startTime = Date.now();
     startPolling();
-    fetch("/start_forefoot", { method: "POST" });
   }
 
   function startPolling() {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
+      if (!walkActivityToggle || !walkActivityToggle.isActive()) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        return;
+      }
       const elapsed = ((Date.now() - startTime)/1000).toFixed(1);
       document.getElementById("timeBox").innerText = `Timer: ${elapsed}s`;
       fetch("/forefoot_status")
         .then(res => res.json())
         .then(data => {
+          if (!walkActivityToggle || !walkActivityToggle.isActive()) {
+            return;
+          }
           if (data.status === "done") {
             clearInterval(timerInterval);
+            timerInterval = null;
             document.getElementById("statusBox").innerText = `Success! Distance: ${data.distance_meters} m`;
             document.getElementById("timeBox").innerText = `Final Time: 15.0s`;
             document.getElementById("name-form").style.display = "block";
+            walkActivityToggle.setActive(false);
           } else if (data.status === "invalid") {
             clearInterval(timerInterval);
+            timerInterval = null;
             document.getElementById("statusBox").innerText = `Failed! Heel touched down.`;
             document.getElementById("timeBox").innerText = `Final Time: ${data.time} s`;
+            walkActivityToggle.setActive(false);
           }
         });
     }, 200);
   }
 
   function stopDataAndNavigate(url) {
-    fetch('/stop_data', { method: 'POST' }).then(() => { window.location.href = url; });
+    stopActivitySession().then(() => { window.location.href = url; });
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("startButton").addEventListener("click", startWalk);
+    resetWalkUI();
     document.getElementById("name-form").addEventListener("submit", submitForm);
+    walkActivityToggle = createActivityToggle({
+      buttonId: "startButton",
+      idleLabel: "Start",
+      activeLabel: "Stop",
+      start: startWalk,
+      stop: stopActivitySession,
+      onReset: resetWalkUI,
+      onError: (error) => {
+        if (!error || error.handled) {
+          return;
+        }
+        alert(error.message || "Unable to start forefoot walk.");
+      },
+    });
   });
 </script>
 </body>

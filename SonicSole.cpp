@@ -370,6 +370,10 @@ void SonicSole::readIMU() {
     ax = dataAcce.ax;
     ay = dataAcce.ay;
     az = dataAcce.az;
+    qx = dataQuat.qx;
+    qy = dataQuat.qy;
+    qz = dataQuat.qz;
+    qw = dataQuat.qw;
    
     // printf("IMU Acceleration Vector: %0.2f , %0.2f , %0.2f \n", dataAcce.ax, dataAcce.ay, dataAcce.az);
     // printf("IMU Gyroscope Vector: %0.2f , %0.2f , %0.2f \n", dataGyro.gx, dataGyro.gy, dataGyro.gz);

@@ -1,2 +1,5 @@
-jt one,0.48115
-don nod,0.48392
+Group 1,0.42
+Group 2,0.55
+Group 3,0.48
+Group 4,0.51
+Group 5,0.46

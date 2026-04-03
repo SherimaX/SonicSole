@@ -121,10 +121,14 @@ int main(int argc, char* argv[])
         static_cast<float>(sole->currHeelPressure),
         static_cast<float>(sole->ax),
         static_cast<float>(sole->ay),
-        static_cast<float>(sole->az)
+        static_cast<float>(sole->az),
+        static_cast<float>(sole->qx),
+        static_cast<float>(sole->qy),
+        static_cast<float>(sole->qz),
+        static_cast<float>(sole->qw)
       };
     
-      sole->sendSensorData(sensorData, 21000, 5);
+      sole->sendSensorData(sensorData, 21000, 9);
 
      // std::this_thread::sleep_for(std::chrono::milliseconds(250)); //delay 0.25 seconds
 

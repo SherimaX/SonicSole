@@ -1,12 +1,16 @@
 from tkinter import N
+from concurrent.futures import ThreadPoolExecutor
+import math
 import os
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, abort, session
 import socket
 import threading
 import time    
 import csv   
 import random
 import struct
+import subprocess
+import sys
 import pygame
 import numpy as np
 import logging
@@ -17,6 +21,353 @@ import queue
 logging.getLogger('werkzeug').disabled = True #Suppress werkzeug logs
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SONICSOLE_SECRET_KEY", "sonicsole-local-secret")
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+app.jinja_env.auto_reload = True
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+GROUP_OPTIONS = [
+    {
+        "id": f"group_{group_number}",
+        "label": f"Group {group_number}",
+        "ip": os.environ.get(f"SONICSOLE_GROUP_{group_number}_IP", f"192.168.0.10{group_number}"),
+    }
+    for group_number in range(1, 6)
+]
+GROUP_OPTIONS_BY_ID = {group["id"]: group for group in GROUP_OPTIONS}
+HARDWARE_PING_TIMEOUT_SECONDS = 1.0
+
+LEADERBOARD_CONFIG = {
+    "balance": {
+        "file": "SonicSoleBalance.txt",
+        "route": "b_scoreboard",
+        "value_field": "time",
+        "sort_reverse": True,
+    },
+    "jump": {
+        "file": "SonicSoleJump.txt",
+        "route": "j_scoreboard",
+        "value_field": "last_jump_height",
+        "sort_reverse": True,
+    },
+    "reaction": {
+        "file": "SonicSoleReaction.txt",
+        "route": "r_scoreboard",
+        "value_field": "reaction_time",
+        "sort_reverse": False,
+    },
+    "precision": {
+        "file": "SonicSolePrecision.txt",
+        "route": "p_scoreboard",
+        "value_field": "percent_error",
+        "sort_reverse": False,
+    },
+    "walk": {
+        "file": "SonicSoleWalk.txt",
+        "route": "w_scoreboard",
+        "value_field": "forefoot_dist",
+        "sort_reverse": True,
+    },
+}
+
+DUMMY_LEADERBOARD_ROWS = {
+    "balance": [
+        ["Group 1", "48.3"],
+        ["Group 2", "42.6"],
+        ["Group 3", "53.8"],
+        ["Group 4", "37.1"],
+        ["Group 5", "45.2"],
+    ],
+    "jump": [
+        ["Group 1", "0.42"],
+        ["Group 2", "0.55"],
+        ["Group 3", "0.48"],
+        ["Group 4", "0.51"],
+        ["Group 5", "0.46"],
+    ],
+    "reaction": [
+        ["Group 1", "3.24"],
+        ["Group 2", "2.88"],
+        ["Group 3", "3.57"],
+        ["Group 4", "2.94"],
+        ["Group 5", "3.12"],
+    ],
+    "precision": [
+        ["Group 1", "4.8"],
+        ["Group 2", "6.1"],
+        ["Group 3", "3.9"],
+        ["Group 4", "5.2"],
+        ["Group 5", "4.4"],
+    ],
+    "walk": [
+        ["Group 1", "2.8"],
+        ["Group 2", "3.1"],
+        ["Group 3", "2.6"],
+        ["Group 4", "3.4"],
+        ["Group 5", "2.9"],
+    ],
+}
+
+
+def get_leaderboard_config(board_key):
+    config = LEADERBOARD_CONFIG.get(board_key)
+    if config is None:
+        abort(404)
+    return config
+
+
+def get_leaderboard_path(board_key):
+    filename = get_leaderboard_config(board_key)["file"]
+    return os.path.join(PROJECT_ROOT, filename)
+
+
+def parse_score(value, allow_blank=False):
+    text = "" if value is None else str(value).strip()
+    if not text:
+        return None if allow_blank else None
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def get_selected_group():
+    group_id = session.get("selected_group_id")
+    if not group_id:
+        return None
+
+    group = GROUP_OPTIONS_BY_ID.get(group_id)
+    if group is None:
+        session.pop("selected_group_id", None)
+        return None
+    return group
+
+
+def clear_selected_group():
+    session.pop("selected_group_id", None)
+    set_active_device_ip(None)
+
+
+def set_active_device_ip(device_ip):
+    global active_device_ip
+    with active_device_ip_lock:
+        active_device_ip = device_ip.strip() if device_ip else None
+
+
+def get_active_device_ip():
+    with active_device_ip_lock:
+        return active_device_ip
+
+
+def activate_selected_group():
+    selected_group = get_selected_group()
+    if selected_group is None:
+        return None
+
+    set_active_device_ip(selected_group["ip"])
+    return selected_group
+
+
+def require_selected_group():
+    selected_group = activate_selected_group()
+    if selected_group is not None:
+        return selected_group, None
+
+    return None, (
+        jsonify(
+            {
+                "status": "error",
+                "message": "Please select a group before starting the activity.",
+            }
+        ),
+        400,
+    )
+
+
+def get_group_name_from_request(*preferred_fields):
+    field_names = []
+    seen = set()
+
+    for field_name in list(preferred_fields) + ["group_name", "name"]:
+        if field_name and field_name not in seen:
+            field_names.append(field_name)
+            seen.add(field_name)
+
+    for field_name in field_names:
+        value = request.form.get(field_name, "").strip()
+        if value:
+            return value
+
+    selected_group = get_selected_group()
+    if selected_group is not None:
+        return selected_group["label"]
+
+    for first_key, last_key in (("first_name", "last_name"), ("first_name2", "last_name2")):
+        first = request.form.get(first_key, "").strip()
+        last = request.form.get(last_key, "").strip()
+        combined = " ".join(part for part in (first, last) if part).strip()
+        if combined:
+            return combined
+
+    return ""
+
+
+def write_leaderboard_rows(board_key, rows):
+    with open(get_leaderboard_path(board_key), "w", newline="") as file_obj:
+        writer = csv.writer(file_obj)
+        writer.writerows(rows)
+
+
+def append_leaderboard_row(board_key, name, value):
+    with open(get_leaderboard_path(board_key), "a", newline="") as file_obj:
+        writer = csv.writer(file_obj)
+        writer.writerow([name, value])
+
+
+def read_leaderboard_rows(board_key):
+    path = get_leaderboard_path(board_key)
+    if not os.path.exists(path):
+        write_leaderboard_rows(board_key, DUMMY_LEADERBOARD_ROWS[board_key])
+
+    rows = []
+    with open(path, "r", newline="") as file_obj:
+        reader = csv.reader(file_obj)
+        for row in reader:
+            if len(row) >= 2:
+                rows.append([row[0].strip(), row[1].strip()])
+    return rows
+
+
+def load_balance_leaderboard():
+    best_scores = {}
+    for raw_name, raw_value in read_leaderboard_rows("balance"):
+        score = parse_score(raw_value)
+        if score is None or not raw_name:
+            continue
+
+        split_name = raw_name.rsplit("_", 1)
+        display_name = raw_name.strip()
+        if len(split_name) == 2 and split_name[1] in {"0", "1"}:
+            display_name = split_name[0].strip()
+
+        current_best = best_scores.get(display_name)
+        if current_best is None or score > current_best:
+            best_scores[display_name] = score
+
+    entries = [
+        {
+            "entry_key": name,
+            "name": name,
+            "best_time": score,
+        }
+        for name, score in best_scores.items()
+    ]
+    entries.sort(key=lambda entry: entry["best_time"], reverse=True)
+    return entries
+
+
+def serialize_balance_leaderboard(entries):
+    rows = []
+    for entry in entries:
+        name = entry["name"].strip()
+        best_time = parse_score(entry.get("best_time"), allow_blank=True)
+        if not name or best_time is None:
+            continue
+        rows.append([name, f"{best_time:.4f}"])
+    return rows
+
+
+def load_metric_leaderboard(board_key):
+    config = get_leaderboard_config(board_key)
+    value_field = config["value_field"]
+    best_scores = {}
+
+    for raw_name, raw_value in read_leaderboard_rows(board_key):
+        score = parse_score(raw_value)
+        name = raw_name.strip()
+        if score is None or not name:
+            continue
+
+        if name not in best_scores:
+            best_scores[name] = score
+            continue
+
+        if config["sort_reverse"]:
+            best_scores[name] = max(best_scores[name], score)
+        else:
+            best_scores[name] = min(best_scores[name], score)
+
+    entries = [{"entry_key": name, "name": name, value_field: score} for name, score in best_scores.items()]
+    entries.sort(key=lambda entry: entry[value_field], reverse=config["sort_reverse"])
+    return entries
+
+
+def serialize_metric_leaderboard(board_key, entries):
+    value_field = get_leaderboard_config(board_key)["value_field"]
+    rows = []
+    for entry in entries:
+        name = entry["name"].strip()
+        value = entry.get(value_field)
+        if not name or value is None:
+            continue
+        rows.append([name, f"{value:.4f}"])
+    return rows
+
+
+def redirect_to_leaderboard(board_key):
+    route_name = get_leaderboard_config(board_key)["route"]
+    if request.args.get("embed") == "1" or request.form.get("embed") == "1":
+        return redirect(url_for(route_name, embed=1))
+    return redirect(url_for(route_name))
+
+
+@app.context_processor
+def inject_group_selector_context():
+    return {
+        "group_options": GROUP_OPTIONS,
+        "selected_group": get_selected_group(),
+    }
+
+
+def build_hardware_ping_command(device_ip):
+    if sys.platform == "darwin":
+        return ["ping", "-c", "1", "-W", "1000", device_ip]
+    return ["ping", "-c", "1", "-W", "1", device_ip]
+
+
+def probe_hardware_device(group):
+    device_ip = (group.get("ip") or "").strip()
+    connected = False
+    checked_at = time.time()
+    probe_error = None
+
+    if device_ip:
+        try:
+            result = subprocess.run(
+                build_hardware_ping_command(device_ip),
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=HARDWARE_PING_TIMEOUT_SECONDS + 1.0,
+            )
+            connected = result.returncode == 0
+            if not connected:
+                ping_output = f"{result.stdout}\n{result.stderr}".lower()
+                if "operation not permitted" in ping_output or "permission denied" in ping_output:
+                    probe_error = "permissions"
+        except (OSError, subprocess.SubprocessError):
+            probe_error = "unavailable"
+
+    return {
+        "id": group["id"],
+        "label": group["label"],
+        "ip": device_ip,
+        "connected": connected,
+        "probe_error": probe_error,
+        "checked_at": checked_at,
+    }
+
+
 #UDP_IP = "127.0.0.1" #accept data from localhost
 UDP_IP = "0.0.0.0" # accept connections on any available network interface of the server
 UDP_PORT = 21000 
@@ -29,6 +380,11 @@ received_fore_data = "0"
 ax = 0.0 #m/s^2
 ay = 0.0
 az = 0.0
+qx = 0.0
+qy = 0.0
+qz = 0.0
+qw = 1.0
+imu_orientation_mode = "identity"
 g = 9.81 #m/s^2
 received_vertical_raw = "0.0" 
 
@@ -40,6 +396,19 @@ last_airtime = 0.0
 jump_vertical_buffer = []
 jump_collecting = False
 jump_lock = threading.Lock()
+balance_state_lock = threading.Lock()
+activity_session_lock = threading.Lock()
+active_device_ip_lock = threading.Lock()
+balance_session_id = 0
+recording_time = False
+active_device_ip = None
+activity_session_ids = {
+    "balance": 0,
+    "jump": 0,
+    "reaction": 0,
+    "precision": 0,
+    "forefoot": 0,
+}
 
 # heel_list = [0 for _ in range(100)]
 totalTime = "0"
@@ -50,26 +419,22 @@ R_fore = 0
 G_fore = 255
 
 submitted_name = "User1"
-eyes_open = False
-first_name = "first"
-last_name = "last"
 
 submitted_name2 = "User1"
-first_name2 = "first"
-last_name2 = "last"
 
 forefoot_status = "waiting"
 forefoot_dist = 0
 forefoot_elapsed_time = 0
 
-force_trainer_state = {
+precision_trainer_state = {
     'status': 'idle', # 'idle', 'calibrating', 'measuring', 'done'
     'max_force': 1,            
     'target_percent': 0,
     'measured_force': 0,
     'error_percent': 0
 }
-percent_error = 0
+precision_error = 0
+precision_start_time = None
 
 vertical_raw_data_UDP = []
 combined_data_thread = None
@@ -89,6 +454,162 @@ pygame.init()
 pygame.mixer.init()
 CountSound = pygame.mixer.Sound("countdown.wav")
 CountSound.set_volume(0.1) 
+
+
+def create_balance_session():
+    return create_activity_session("balance")
+
+
+def get_balance_session_id():
+    return get_activity_session_id("balance")
+
+
+def cancel_balance_session():
+    global totalTime, recording_time, received_heel_data, received_fore_data
+    cancel_activity_session("balance")
+    recording_time = False
+    totalTime = "0"
+    received_heel_data = "0"
+    received_fore_data = "0"
+    stop_combined_data_thread()
+
+
+def create_activity_session(activity_name):
+    with activity_session_lock:
+        activity_session_ids[activity_name] += 1
+        return activity_session_ids[activity_name]
+
+
+def get_activity_session_id(activity_name):
+    with activity_session_lock:
+        return activity_session_ids[activity_name]
+
+
+def cancel_activity_session(activity_name):
+    with activity_session_lock:
+        activity_session_ids[activity_name] += 1
+        return activity_session_ids[activity_name]
+
+
+def is_activity_session_active(activity_name, session_id):
+    return session_id == get_activity_session_id(activity_name)
+
+
+def clear_udp_queue():
+    while True:
+        try:
+            udp_queue.get_nowait()
+        except queue.Empty:
+            break
+
+
+def reset_jump_state(cancel_session=False):
+    global jump_metrics_ready, last_jump_height, last_airtime, jump_collecting, jump_vertical_buffer
+    if cancel_session:
+        cancel_activity_session("jump")
+    jump_metrics_ready = False
+    last_jump_height = 0.0
+    last_airtime = 0.0
+    jump_collecting = False
+    with jump_lock:
+        jump_vertical_buffer = []
+
+
+def reset_reaction_state(cancel_session=False):
+    global reaction_data, reaction_time
+    if cancel_session:
+        cancel_activity_session("reaction")
+    reaction_data = {
+        "status": "idle",
+        "reaction_time": 0.0
+    }
+    reaction_time = "0"
+
+
+def reset_precision_trainer_state(cancel_session=False):
+    global precision_trainer_state, precision_error, precision_start_time
+    if cancel_session:
+        cancel_activity_session("precision")
+    precision_start_time = None
+    precision_trainer_state = {
+        'status': 'idle',
+        'max_force': 1,
+        'target_percent': 0,
+        'measured_force': 0,
+        'error_percent': 0
+    }
+    precision_error = 0
+
+
+def reset_forefoot_state(cancel_session=False):
+    global forefoot_status, forefoot_dist, forefoot_elapsed_time
+    if cancel_session:
+        cancel_activity_session("forefoot")
+    forefoot_status = "waiting"
+    forefoot_dist = 0
+    forefoot_elapsed_time = 0
+
+
+def stop_all_activities():
+    global R_heel, G_heel, R_fore, G_fore
+    cancel_balance_session()
+    reset_jump_state(cancel_session=True)
+    reset_reaction_state(cancel_session=True)
+    reset_precision_trainer_state(cancel_session=True)
+    reset_forefoot_state(cancel_session=True)
+    clear_udp_queue()
+    R_heel = 0
+    G_heel = 255
+    R_fore = 0
+    G_fore = 255
+
+
+def normalize_quaternion(x_value, y_value, z_value, w_value):
+    components = np.array([x_value, y_value, z_value, w_value], dtype=np.float64)
+    if not np.isfinite(components).all():
+        return 0.0, 0.0, 0.0, 1.0
+
+    magnitude = np.linalg.norm(components)
+    if magnitude < 1e-8:
+        return 0.0, 0.0, 0.0, 1.0
+
+    normalized = components / magnitude
+    return tuple(float(component) for component in normalized)
+
+
+def euler_to_quaternion(roll_radians, pitch_radians, yaw_radians=0.0):
+    half_roll = roll_radians * 0.5
+    half_pitch = pitch_radians * 0.5
+    half_yaw = yaw_radians * 0.5
+
+    sin_roll, cos_roll = math.sin(half_roll), math.cos(half_roll)
+    sin_pitch, cos_pitch = math.sin(half_pitch), math.cos(half_pitch)
+    sin_yaw, cos_yaw = math.sin(half_yaw), math.cos(half_yaw)
+
+    x_value = (sin_roll * cos_pitch * cos_yaw) - (cos_roll * sin_pitch * sin_yaw)
+    y_value = (cos_roll * sin_pitch * cos_yaw) + (sin_roll * cos_pitch * sin_yaw)
+    z_value = (cos_roll * cos_pitch * sin_yaw) - (sin_roll * sin_pitch * cos_yaw)
+    w_value = (cos_roll * cos_pitch * cos_yaw) + (sin_roll * sin_pitch * sin_yaw)
+
+    return normalize_quaternion(x_value, y_value, z_value, w_value)
+
+
+def estimate_quaternion_from_acceleration(ax_value, ay_value, az_value):
+    magnitude = math.sqrt((ax_value * ax_value) + (ay_value * ay_value) + (az_value * az_value))
+    if magnitude < 1e-6:
+        return 0.0, 0.0, 0.0, 1.0
+
+    normalized_x = ax_value / magnitude
+    normalized_y = ay_value / magnitude
+    normalized_z = az_value / magnitude
+
+    safe_z = normalized_z
+    if abs(safe_z) < 1e-6:
+        safe_z = math.copysign(1e-6, safe_z if safe_z != 0 else 1.0)
+
+    roll_radians = math.atan2(normalized_y, safe_z)
+    pitch_radians = math.atan2(-normalized_x, math.sqrt((normalized_y * normalized_y) + (normalized_z * normalized_z)))
+    return euler_to_quaternion(roll_radians, pitch_radians, 0.0)
 
 # cumulative trapezoid without scipy because the pi cannot download it
 def cumulative_trapezoid_manual(y, dx=1.0, initial=0):
@@ -165,6 +686,9 @@ def play_note_based_on_distance(distance):
 @app.route('/piano_start')
 def piano_activity():
     print("[Piano] Starting activity...")
+    _, error_response = require_selected_group()
+    if error_response is not None:
+        return error_response
     
     # Start the combined data thread if not already running
     start_combined_data_thread()
@@ -208,6 +732,15 @@ def play():
         return jsonify({"error": str(e)}), 500
     return send_file("countdown.wav") #to also play on laptop
 
+
+@app.after_request
+def add_no_cache_headers(response):
+    if response.mimetype in ("text/html", "text/css", "application/javascript"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 #data
 def start_combined_data_thread():
     global combined_data_thread, combined_data_running
@@ -226,7 +759,7 @@ def stop_combined_data_thread():
     print("combined_data_running in stop thread: {}".format(combined_data_running))
 
 def read_combined_data(): #this function to read data and other function to "process" data
-    global received_heel_data, received_fore_data, received_vertical_raw, ax, ay, az, g, combined_data_running
+    global received_heel_data, received_fore_data, received_vertical_raw, ax, ay, az, qx, qy, qz, qw, imu_orientation_mode, g, combined_data_running
     
     print("[UDP Thread] Started reading data")
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -245,7 +778,17 @@ def read_combined_data(): #this function to read data and other function to "pro
             data, addr = sock.recvfrom(1024)
             if len(data) < 20:
                 continue
-            fore_pressure, heel_pressure, ax_val, ay_val, az_val = struct.unpack('5f', data)
+            active_ip = get_active_device_ip()
+            if active_ip and addr[0] != active_ip:
+                continue
+            if len(data) >= 36:
+                fore_pressure, heel_pressure, ax_val, ay_val, az_val, qx_val, qy_val, qz_val, qw_val = struct.unpack('9f', data[:36])
+                qx, qy, qz, qw = normalize_quaternion(qx_val, qy_val, qz_val, qw_val)
+                imu_orientation_mode = "quaternion"
+            else:
+                fore_pressure, heel_pressure, ax_val, ay_val, az_val = struct.unpack('5f', data[:20])
+                qx, qy, qz, qw = estimate_quaternion_from_acceleration(ax_val, ay_val, az_val)
+                imu_orientation_mode = "acceleration"
             # fast updates only
             received_fore_data = int(fore_pressure)
             received_heel_data = int(heel_pressure)
@@ -293,7 +836,7 @@ def fore_data():
 @app.route('/stop_data', methods=['GET', 'POST'])
 def stop_data():
     print("[Flask] stop_data called")  
-    stop_combined_data_thread()
+    stop_all_activities()
     return '', 204
 
 # color
@@ -319,6 +862,24 @@ def update_fore_color(pressure):
 def color_data():
     global R_heel, G_heel, R_fore, G_fore
     return jsonify({'R_heel': R_heel, 'G_heel': G_heel, 'R_fore': R_fore, 'G_fore': G_fore})
+
+
+@app.route('/sensor_check_data', methods=['GET'])
+def sensor_check_data():
+    global R_heel, G_heel, R_fore, G_fore, received_heel_data, received_fore_data, qx, qy, qz, qw, imu_orientation_mode
+    return jsonify({
+        'R_heel': R_heel,
+        'G_heel': G_heel,
+        'R_fore': R_fore,
+        'G_fore': G_fore,
+        'heel_pressure': int(received_heel_data),
+        'fore_pressure': int(received_fore_data),
+        'qx': qx,
+        'qy': qy,
+        'qz': qz,
+        'qw': qw,
+        'imu_orientation_mode': imu_orientation_mode,
+    })
 
 # jump
 def estimate_jump_height(accel_data_str):
@@ -378,17 +939,23 @@ def get_airtime_and_height():
     #vertical_raw_data_UDP = []
     return round(airtime, 4), jump_height'''
 
-def get_airtime_and_height():
+def get_airtime_and_height(session_id):
     global received_heel_data, received_fore_data, jump_vertical_buffer, jump_collecting
     while True:
+        if not is_activity_session_active("jump", session_id):
+            jump_collecting = False
+            return 0.0, 0.0, True
         if int(received_heel_data) < threshold_heel and int(received_fore_data) < threshold_fore:
             start_time = time.time()
             jump_vertical_buffer = []  # Reset buffer
             jump_collecting = True
             print("Takeoff detected")
             break
-        #time.sleep(0.01)
+        time.sleep(0.01)
     while True:
+        if not is_activity_session_active("jump", session_id):
+            jump_collecting = False
+            return 0.0, 0.0, True
         if int(received_heel_data) >= threshold_heel or int(received_fore_data) >= threshold_fore:
             end_time = time.time()
             jump_collecting = False
@@ -403,20 +970,25 @@ def get_airtime_and_height():
         samples = jump_vertical_buffer[:]
     if len(samples) < 10:
         print("Not enough samples for jump height. Returning 0.")
-        return round(airtime, 5), 0.0
+        return round(airtime, 5), 0.0, False
     #jump_height = estimate_jump_height(samples) #calculus approach
     jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics formula approach
     #print(f"Estimated height: {jump_height:.5f} m")
-    return round(airtime, 4), jump_height
+    return round(airtime, 4), jump_height, False
 
 @app.route('/start_jump')
 def start_jump():
     print("start_jump clicked")
     global last_airtime, last_jump_height, jump_metrics_ready, submitted_name2
-    jump_metrics_ready = False
-    #start_combined_data_thread()
-    airtime, height = get_airtime_and_height()
-    #stop_combined_data_thread()
+    _, error_response = require_selected_group()
+    if error_response is not None:
+        return error_response
+    session_id = create_activity_session("jump")
+    reset_jump_state(cancel_session=False)
+    start_combined_data_thread()
+    airtime, height, was_cancelled = get_airtime_and_height(session_id)
+    if was_cancelled:
+        return jsonify({'status': 'cancelled'})
     last_airtime = airtime
     last_jump_height = height
     jump_metrics_ready = True
@@ -439,7 +1011,7 @@ def jump_metrics():
     })
 
 # balance
-def balancing_pressure():
+def balancing_pressure(session_id):
     global totalTime, submitted_name, recording_time, received_heel_data, received_fore_data, threshold_heel, threshold_fore
     print("[balancing_pressure] Called")
     received_heel_data = "0"
@@ -451,6 +1023,8 @@ def balancing_pressure():
     start_delay_period = 0.5 #gives grace period so repeated runs are possible 
     start = time.time()
     while True:
+        if session_id != get_balance_session_id():
+            break
         now = time.time()
         if recording_time:
             if start_time is None:
@@ -473,7 +1047,8 @@ def balancing_pressure():
                 stop_combined_data_thread()
                 break
         else:
-            start_time = None
+            stop_combined_data_thread()
+            break
         time.sleep(0.01)
     print("[balancing_pressure] thread complete, combined_data_running:", combined_data_running)
 
@@ -495,11 +1070,17 @@ def balancing():
 @app.route('/button_click', methods=['POST'])
 def button_click():
     global recording_time, totalTime, CountSound
+    _, error_response = require_selected_group()
+    if error_response is not None:
+        return error_response
+    session_id = create_balance_session()
     CountSound.play()
     time.sleep(3.12) #sleeps so countdown can run before timer begins
+    if session_id != get_balance_session_id():
+        return jsonify({"status": "Data transmission cancelled"})
     recording_time = True
     totalTime = "0"
-    thread = threading.Thread(target=balancing_pressure)
+    thread = threading.Thread(target=balancing_pressure, args=(session_id,))
     thread.daemon = True
     thread.start()
     return jsonify({"status": "Data transmission started"})
@@ -508,9 +1089,13 @@ def button_click():
 @app.route('/start_reaction')
 def start_reaction():
     global reaction_data, threshold_heel, threshold_fore, received_fore_data, received_heel_data, submitted_name2, reaction_time
+    _, error_response = require_selected_group()
+    if error_response is not None:
+        return error_response
+    session_id = create_activity_session("reaction")
+    reset_reaction_state(cancel_session=False)
     received_fore_data = "0"
     received_heel_data = "0"
-    reaction_time = "0"
     start_combined_data_thread()
     reaction_data = {
         "status": "waiting",
@@ -520,6 +1105,8 @@ def start_reaction():
     print(f"[Reaction] Waiting for {delay:.2f}s")
     start_time = time.time()
     while time.time() - start_time < delay:
+        if not is_activity_session_active("reaction", session_id):
+            return jsonify({"status": "cancelled"})
         if int(received_heel_data) > threshold_heel or int(received_fore_data) > threshold_fore:
             print("[Reaction] Too early")
             reaction_data["status"] = "invalid"
@@ -533,6 +1120,8 @@ def start_reaction():
     reaction_data["status"] = "timing"
     reaction_start = time.time()
     while True:
+        if not is_activity_session_active("reaction", session_id):
+            return jsonify({"status": "cancelled"})
         if int(received_heel_data) > threshold_heel or int(received_fore_data) > threshold_fore:
             reaction_end = time.time()
             reaction_time = round(reaction_end - reaction_start, 4)
@@ -551,86 +1140,108 @@ def start_reaction():
 def reaction_status():
     return jsonify(reaction_data)
 
-# force sensitivity
-@app.route('/start_force_trainer')
-def start_force_trainer():
-    global trainer_start_time
-    trainer_start_time = time.time()
-    thread = Thread(target=run_force_trainer)
+# precision
+@app.route('/start_precision_trainer')
+def start_precision_trainer():
+    global precision_start_time
+    _, error_response = require_selected_group()
+    if error_response is not None:
+        return error_response
+    session_id = create_activity_session("precision")
+    reset_precision_trainer_state(cancel_session=False)
+    precision_start_time = time.time()
+    thread = Thread(target=run_precision_trainer, args=(session_id,))
     thread.start()
     return '', 200
 
-@app.route('/force_trainer_status')
-def force_trainer_status():
-    global trainer_start_time, force_trainer_state
-    if trainer_start_time is None:
+@app.route('/precision_trainer_status')
+def precision_trainer_status():
+    global precision_start_time, precision_trainer_state
+    if precision_start_time is None:
         return jsonify(status="idle", time=0.0, target_percent=None, max_force=0)
-    elapsed = time.time() - trainer_start_time
+    elapsed = time.time() - precision_start_time
     return jsonify(
-        status=force_trainer_state['status'],
+        status=precision_trainer_state['status'],
         time=elapsed,
-        target_percent=force_trainer_state.get('target_percent', None),
-        max_force=force_trainer_state.get('max_force', 0)
+        target_percent=precision_trainer_state.get('target_percent', None),
+        max_force=precision_trainer_state.get('max_force', 0)
     )
 
-def run_force_trainer():
-    global force_trainer_state, received_fore_data, submitted_name2, percent_error
+def run_precision_trainer(session_id):
+    global precision_trainer_state, received_fore_data, submitted_name2, precision_error
     start_combined_data_thread()
-    force_trainer_state['status'] = 'calibrating' # Step 1: Calibration
-    force_trainer_state['max_force'] = 1
+    precision_trainer_state['status'] = 'calibrating' # Step 1: Calibration
+    precision_trainer_state['max_force'] = 1
     max_val = 0
-    percent_error = 0
+    precision_error = 0
     start_time = time.time()
     while time.time() - start_time < 10:
+        if not is_activity_session_active("precision", session_id):
+            return
         current_val = int(received_fore_data)
         if current_val > max_val:
             max_val = current_val
         time.sleep(0.01)
-    force_trainer_state['max_force'] = max_val if max_val > 0 else 1000 
+    precision_trainer_state['max_force'] = max_val if max_val > 0 else 1000 
 
-    force_trainer_state['status'] = 'cooldown' # Step 2: Cooldown
+    precision_trainer_state['status'] = 'cooldown' # Step 2: Cooldown
     target_percent = random.choice([20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105])
-    force_trainer_state['target_percent'] = target_percent
-    time.sleep(3)
+    precision_trainer_state['target_percent'] = target_percent
+    cooldown_start = time.time()
+    while time.time() - cooldown_start < 3:
+        if not is_activity_session_active("precision", session_id):
+            return
+        time.sleep(0.01)
 
-    force_trainer_state['status'] = 'measuring' # Step 3: Random target percentage
+    precision_trainer_state['status'] = 'measuring' # Step 3: Random target percentage
     # target_percent = random.choice([20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105])
-    force_trainer_state['target_percent'] = target_percent
+    precision_trainer_state['target_percent'] = target_percent
 
     readings = [] # Step 4: Measure pressure hold
     start_time = time.time()
     while time.time() - start_time < 12:
+        if not is_activity_session_active("precision", session_id):
+            return
         readings.append(int(received_fore_data))
         time.sleep(0.01)
     if not readings:
         avg_force = 0
     else:
         avg_force = sum(readings) / len(readings)
-    percent_applied = (avg_force / force_trainer_state['max_force']) * 100
-    percent_error = abs(percent_applied - force_trainer_state['target_percent'])
-    force_trainer_state['measured_force'] = round(percent_applied, 1)
-    force_trainer_state['error_percent'] = round(percent_error, 1)
-    force_trainer_state['status'] = 'done'
-    time.sleep(1)
-    percent_error = round(percent_error, 3)
+    percent_applied = (avg_force / precision_trainer_state['max_force']) * 100
+    precision_error = abs(percent_applied - precision_trainer_state['target_percent'])
+    precision_trainer_state['measured_force'] = round(percent_applied, 1)
+    precision_trainer_state['error_percent'] = round(precision_error, 1)
+    precision_trainer_state['status'] = 'done'
+    finish_start = time.time()
+    while time.time() - finish_start < 1:
+        if not is_activity_session_active("precision", session_id):
+            return
+        time.sleep(0.01)
+    precision_error = round(precision_error, 3)
 
-    # with open("SonicSoleForceSense.txt", "a") as f:
-    #     f.write(f"{submitted_name2},{percent_error}\n")
+    # with open("SonicSolePrecision.txt", "a") as f:
+    #     f.write(f"{submitted_name2},{precision_error}\n")
 
     stop_combined_data_thread()
 
-@app.route('/force_trainer_results')
-def force_trainer_results():
+@app.route('/precision_trainer_results')
+def precision_trainer_results():
     return jsonify(
-        measured_force=force_trainer_state.get('measured_force', 0.0),
-        error_percent=force_trainer_state.get('error_percent', 0.0),
-        target_percent=force_trainer_state.get('target_percent', 0)
+        measured_force=precision_trainer_state.get('measured_force', 0.0),
+        error_percent=precision_trainer_state.get('error_percent', 0.0),
+        target_percent=precision_trainer_state.get('target_percent', 0)
     )
 
 # fore walk
 @app.route('/start_forefoot', methods=['POST']) 
 def start_forefoot():
     global forefoot_status, forefoot_dist, threshold_heel, dt, forefoot_elapsed_time, received_heel_data, submitted_name2
+    _, error_response = require_selected_group()
+    if error_response is not None:
+        return error_response
+    session_id = create_activity_session("forefoot")
+    reset_forefoot_state(cancel_session=False)
     forefoot_status = "running"
     received_heel_data = "0"
     forefoot_dist = 0
@@ -644,6 +1255,8 @@ def start_forefoot():
     az_list = []
 
     while time.time() - start_time < duration:
+        if not is_activity_session_active("forefoot", session_id):
+            return jsonify({"status": "cancelled"})
         heel = int(received_heel_data)
         if heel > threshold_heel:
             forefoot_status = "invalid"
@@ -796,37 +1409,58 @@ def estimate_distance_from_ax_vector_norm(ax_values, ay_values, az_values): #fvn
 def home():
     return render_template('home.html')
 
+
+@app.route('/hardware_status', methods=['GET'])
+def hardware_status():
+    selected_group = get_selected_group()
+    selected_group_id = selected_group["id"] if selected_group is not None else None
+
+    with ThreadPoolExecutor(max_workers=max(1, len(GROUP_OPTIONS))) as executor:
+        devices = list(executor.map(probe_hardware_device, GROUP_OPTIONS))
+
+    checked_at = time.time()
+    for device in devices:
+        device["selected"] = device["id"] == selected_group_id
+        device["checked_age_seconds"] = round(checked_at - device["checked_at"], 2)
+        device.pop("checked_at", None)
+
+    return jsonify({"devices": devices, "checked_at": checked_at})
+
 @app.route('/jump')
 def jump():
-    start_combined_data_thread()  
+    clear_selected_group()
     return render_template('jump.html')
 
-@app.route("/forceSensitivity")
-def forceSensitivity():
-    return render_template("forceSensitivity.html")
+@app.route("/precision")
+def precision():
+    clear_selected_group()
+    return render_template("precision.html")
 
 @app.route('/balance')
 def balance():
-    global totalTime, recording_time
-    totalTime = "0"
-    recording_time = True
+    clear_selected_group()
+    cancel_balance_session()
     return render_template('balance.html')
 
 @app.route('/assemblyInstructions')
 def assembly_instructions():
+    clear_selected_group()
     start_combined_data_thread()
     return render_template('assemblyInstructions.html')
 
 @app.route('/reaction')
 def reaction():
+    clear_selected_group()
     return render_template('reaction.html')
 
 @app.route('/foreWalk')
 def foreWalk():
+    clear_selected_group()
     return render_template('foreWalk.html')
 
 @app.route('/piano')
 def piano():
+    clear_selected_group()
     return render_template('piano.html')
 
 #plot routes
@@ -865,173 +1499,138 @@ def accel_view():
 # scoreboards
 @app.route('/bScoreboard')
 def b_scoreboard():
-    data = []
-    try:
-        with open('SonicSoleBalance.txt', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if len(row) >= 2:
-                    splitted_name = row[0].split("_")
-                    if len(splitted_name) > 1:
-                        if splitted_name[1] == "0":
-                            data.append({'name': splitted_name[0]+" (Eyes Closed)", 'time':  float(row[1])})
-                        else:
-                            data.append({'name': splitted_name[0]+" (Eyes Opened)", 'time': float(row[1])})
-                    else:
-                        data.append({'name': row[0], 'time':  float(row[1])})
-    except FileNotFoundError:
-        return "Error: SonicSoleBalance.txt file not found."
-    except ValueError:
-        return "Error: Incorrect data format in SonicSoleBalance.txt."
-    except Exception as e:
-        # return f"Error: {e}"
-        return "Error"
-    data.sort(key=lambda x: x['time'], reverse=True)
-    unique_data = {}
-    for entry in data:
-        name = entry['name']
-        time = entry['time']
-        if name not in unique_data:
-            unique_data[name] = time
-        else:
-            if time > unique_data[name]:
-                unique_data[name] = time
-    sorted_data = [{'name': name, 'time': time} for name, time in unique_data.items()]
-    sorted_data.sort(key=lambda x: x['time'], reverse=True)
-    return render_template('bScoreboard.html', data=sorted_data)
+    return render_template(
+        'bScoreboard.html',
+        data=load_balance_leaderboard(),
+        embed=request.args.get("embed") == "1",
+    )
 
 @app.route('/jScoreboard')
 def j_scoreboard():
-    data = []
-    try:
-        with open('SonicSoleJump.txt', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if len(row) >= 2:
-                    try:
-                        data.append({'name': row[0], 'last_jump_height': float(row[1])})
-                    except ValueError:
-                        continue
-    except FileNotFoundError:
-        print("Error: SonicSoleJump.txt file not found.")
-        return "Error: SonicSoleJump.txt file not found."
-    except Exception as e:
-        return "Error"
-    unique_data = {}
-    for entry in data:
-        name = entry['name']
-        total = entry['last_jump_height']
-        if name not in unique_data or total > unique_data[name]:
-            unique_data[name] = total
-    leaderboard_data = [{'name': name, 'last_jump_height': total} for name, total in unique_data.items()]
-    leaderboard_data.sort(key=lambda x: x['last_jump_height'], reverse=True)
-    return render_template('jScoreboard.html', data=leaderboard_data)
+    return render_template(
+        'jScoreboard.html',
+        data=load_metric_leaderboard("jump"),
+        embed=request.args.get("embed") == "1",
+    )
 
 @app.route('/rScoreboard')
 def r_scoreboard():
-    data = []
-    try:
-        with open('SonicSoleReaction.txt', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if len(row) >= 2:
-                    try:
-                        data.append({'name': row[0], 'reaction_time': float(row[1])})
-                    except ValueError:
-                        continue
-    except FileNotFoundError:
-        return "Error: SonicSoleReaction.txt file not found."
-    except Exception:
-        return "Error"
-    
-    # Keep best (lowest) time per user
-    unique_data = {}
-    for entry in data:
-        name = entry['name']
-        time = entry['reaction_time']
-        if name not in unique_data or time < unique_data[name]:
-            unique_data[name] = time
-    
-    leaderboard_data = [{'name': name, 'reaction_time': time} for name, time in unique_data.items()]
-    leaderboard_data.sort(key=lambda x: x['reaction_time'])  # Ascending (lower is better)
+    return render_template(
+        'rScoreboard.html',
+        data=load_metric_leaderboard("reaction"),
+        embed=request.args.get("embed") == "1",
+    )
 
-    return render_template('rScoreboard.html', data=leaderboard_data)
-
-@app.route('/fScoreboard')
-def f_scoreboard():
-    data = []
-    try:
-        with open('SonicSoleForceSense.txt', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if len(row) >= 2:
-                    try:
-                        data.append({'name': row[0], 'percent_error': float(row[1])})
-                    except ValueError:
-                        continue
-    except FileNotFoundError:
-        return "Error: SonicSoleForceSense.txt file not found."
-    except Exception:
-        return "Error"
-    
-    # Keep best (lowest) percent error per user
-    unique_data = {}
-    for entry in data:
-        name = entry['name']
-        error = entry['percent_error']
-        if name not in unique_data or error < unique_data[name]:
-            unique_data[name] = error
-    
-    leaderboard_data = [{'name': name, 'percent_error': error} for name, error in unique_data.items()]
-    leaderboard_data.sort(key=lambda x: x['percent_error'])  # Ascending (lower is better)
-
-    return render_template('fScoreboard.html', data=leaderboard_data)
+@app.route('/pScoreboard')
+def p_scoreboard():
+    return render_template(
+        'pScoreboard.html',
+        data=load_metric_leaderboard("precision"),
+        embed=request.args.get("embed") == "1",
+    )
 
 @app.route('/wScoreboard')
 def w_scoreboard():
-    data = []
-    try:
-        with open('SonicSoleWalk.txt', 'r') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if len(row) >= 2:
-                    try:
-                        data.append({'name': row[0], 'forefoot_dist': float(row[1])})
-                    except ValueError:
-                        continue
-    except FileNotFoundError:
-        return "Error: SonicSoleWalk.txt file not found."
-    except Exception:
-        return "Error"
-    
-    # Keep best (highest) distance per user
-    unique_data = {}
-    for entry in data:
-        name = entry['name']
-        dist = entry['forefoot_dist']
-        if name not in unique_data or dist > unique_data[name]:
-            unique_data[name] = dist
-    
-    leaderboard_data = [{'name': name, 'forefoot_dist': dist} for name, dist in unique_data.items()]
-    leaderboard_data.sort(key=lambda x: x['forefoot_dist'], reverse=True)  
+    return render_template(
+        'wScoreboard.html',
+        data=load_metric_leaderboard("walk"),
+        embed=request.args.get("embed") == "1",
+    )
 
-    return render_template('wScoreboard.html', data=leaderboard_data)
+
+@app.route('/leaderboard/<board_key>/update', methods=['POST'])
+def update_leaderboard_entry(board_key):
+    entry_key = request.form.get("entry_key", "").strip()
+    if not entry_key:
+        return redirect_to_leaderboard(board_key)
+
+    if board_key == "balance":
+        name = get_group_name_from_request("group_name")
+        best_time = parse_score(request.form.get("best_time"))
+
+        if not name or best_time is None:
+            return redirect_to_leaderboard(board_key)
+
+        updated_entries = []
+        for entry in load_balance_leaderboard():
+            if entry["entry_key"] == entry_key:
+                updated_entries.append(
+                    {
+                        "entry_key": name,
+                        "name": name,
+                        "best_time": best_time,
+                    }
+                )
+            else:
+                updated_entries.append(entry)
+
+        write_leaderboard_rows("balance", serialize_balance_leaderboard(updated_entries))
+        return redirect_to_leaderboard(board_key)
+
+    config = get_leaderboard_config(board_key)
+    name = get_group_name_from_request("group_name")
+    value = parse_score(request.form.get("value"))
+    if not name or value is None:
+        return redirect_to_leaderboard(board_key)
+
+    updated_entries = []
+    for entry in load_metric_leaderboard(board_key):
+        if entry["entry_key"] == entry_key:
+            updated_entries.append(
+                {
+                    "entry_key": name,
+                    "name": name,
+                    config["value_field"]: value,
+                }
+            )
+        else:
+            updated_entries.append(entry)
+
+    write_leaderboard_rows(board_key, serialize_metric_leaderboard(board_key, updated_entries))
+    return redirect_to_leaderboard(board_key)
+
+
+@app.route('/leaderboard/<board_key>/delete', methods=['POST'])
+def delete_leaderboard_entry(board_key):
+    entry_key = request.form.get("entry_key", "").strip()
+    if not entry_key:
+        return redirect_to_leaderboard(board_key)
+
+    if board_key == "balance":
+        remaining_entries = [
+            entry for entry in load_balance_leaderboard()
+            if entry["entry_key"] != entry_key
+        ]
+        write_leaderboard_rows("balance", serialize_balance_leaderboard(remaining_entries))
+        return redirect_to_leaderboard(board_key)
+
+    remaining_entries = [
+        entry for entry in load_metric_leaderboard(board_key)
+        if entry["entry_key"] != entry_key
+    ]
+    write_leaderboard_rows(board_key, serialize_metric_leaderboard(board_key, remaining_entries))
+    return redirect_to_leaderboard(board_key)
+
+
+@app.route('/select_group', methods=['POST'])
+def select_group():
+    payload = request.get_json(silent=True) or request.form
+    group_id = payload.get("group_id", "").strip()
+    selected_group = GROUP_OPTIONS_BY_ID.get(group_id)
+    if selected_group is None:
+        return jsonify({"status": "error", "message": "Unknown group selection."}), 400
+
+    session["selected_group_id"] = group_id
+    set_active_device_ip(selected_group["ip"])
+    return jsonify({"status": "ok", "group": selected_group})
 
 @app.route('/submitB', methods=['POST'])
 def submitB():
-    global submitted_name, first_name, last_name, eyes_open, totalTime
-    first_name = request.form['first_name']
-    last_name = request.form['last_name']
-    submitted_name = first_name + " " + last_name
-    if "eyes" in request.form:
-        eyes_open = request.form['eyes']
-        submitted_name += "_" + eyes_open
-    else:
-        pass
+    global submitted_name, totalTime
+    submitted_name = get_group_name_from_request("group_name")
 
-    with open("SonicSoleBalance.txt", "a") as f:
-        f.write(f"{submitted_name},{totalTime}\n")
-    return jsonify({"status": "Name submitted successfully"})
+    append_leaderboard_row("balance", submitted_name, totalTime)
+    return jsonify({"status": "Group name submitted successfully"})
 
 # submit2 is unused
 # @app.route('/submit2', methods=['POST'])
@@ -1045,60 +1644,52 @@ def submitB():
 
 @app.route('/submitR', methods=['POST'])
 def submitR():
-    global submitted_name2, first_name2, last_name2, reaction_time, forefoot_dist
-    first_name2 = request.form['first_name2']
-    last_name2 = request.form['last_name2']
-    submitted_name2 = first_name2 + " " + last_name2
+    global submitted_name2, reaction_time, forefoot_dist
+    submitted_name2 = get_group_name_from_request("group_name")
 
-    with open("SonicSoleReaction.txt", "a") as f:
-        f.write(f"{submitted_name2},{reaction_time}\n")
+    append_leaderboard_row("reaction", submitted_name2, reaction_time)
 
-    return jsonify({"status": "Name submitted successfully"})
-recording_time = True
+    return jsonify({"status": "Group name submitted successfully"})
 
 @app.route('/submitW', methods=['POST'])
 def submitW():
-    global submitted_name2, first_name2, last_name2, reaction_time
-    first_name2 = request.form['first_name2']
-    last_name2 = request.form['last_name2']
-    submitted_name2 = first_name2 + " " + last_name2
+    global submitted_name2, reaction_time
+    submitted_name2 = get_group_name_from_request("group_name")
 
-    with open("SonicSoleWalk.txt", "a") as f:
-        f.write(f"{submitted_name2},{forefoot_dist}\n")
+    append_leaderboard_row("walk", submitted_name2, forefoot_dist)
 
-    return jsonify({"status": "Name submitted successfully"})
+    return jsonify({"status": "Group name submitted successfully"})
 
 
-@app.route('/submitF', methods=['POST'])
-def submitF():
-    global submitted_name2, first_name2, last_name2, percent_error
-    first_name2 = request.form['first_name2']
-    last_name2 = request.form['last_name2']
-    submitted_name2 = first_name2 + " " + last_name2
+@app.route('/submitP', methods=['POST'])
+def submitP():
+    global submitted_name2, precision_error
+    submitted_name2 = get_group_name_from_request("group_name")
 
-    with open("SonicSoleForceSense.txt", "a") as f:
-        f.write(f"{submitted_name2},{percent_error}\n")
+    append_leaderboard_row("precision", submitted_name2, precision_error)
 
-    return jsonify({"status": "Name submitted successfully"})
+    return jsonify({"status": "Group name submitted successfully"})
 
 @app.route('/submitJ', methods=['POST'])
 def submitJ():
-    global submitted_name2, first_name2, last_name2, last_jump_height
-    first_name2 = request.form['first_name2']
-    last_name2 = request.form['last_name2']
-    submitted_name2 = first_name2 + " " + last_name2
+    global submitted_name2, last_jump_height
+    submitted_name2 = get_group_name_from_request("group_name")
     
-    with open("SonicSoleJump.txt", "a") as f:
-        f.write(f"{submitted_name2},{last_jump_height}\n")
+    append_leaderboard_row("jump", submitted_name2, last_jump_height)
 
-    return jsonify({"status": "Name submitted successfully"})
+    return jsonify({"status": "Group name submitted successfully"})
 
 
 # misc (not sure what these are for)
 def send_udp_data(): 
+    target_ip = get_active_device_ip()
+    if not target_ip:
+        return False
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     n = 1
-    sock.sendto(n.to_bytes(1, byteorder='big'), (UDP_IP, UDP_PORT))
+    sock.sendto(n.to_bytes(1, byteorder='big'), (target_ip, UDP_PORT))
+    sock.close()
+    return True
 
 @app.route('/button', methods=['POST'])
 def button():

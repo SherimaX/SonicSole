@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SonicSole | Jumping Activity</title>
+  <title>SonicSole | Jumping</title>
   <style>
     :root {
       --primary: #ff7a00;
@@ -154,6 +154,19 @@
       text-align: center;
     }
 
+    .jump-status-line {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45ch;
+    }
+
+    .jump-status__value {
+      display: inline-block;
+      min-width: 3ch;
+      text-align: left;
+    }
+
     .name-fields {
       display: flex;
       justify-content: center;
@@ -220,65 +233,98 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   </style>
-  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
+  <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='playground-activity-toggle.js') }}"></script>
 </head>
-<body>
-  <header>
-    <h1>SonicSole</h1>
-  </header>
-
-  <div class="card">
-    <h2>Jumping Activity</h2>
-    <p>Test your jump height and foot pressure distribution.</p>
-
-    <div class="buttons">
-      <button id="startButton">Start Jump</button>
-      <button class="btn-outline" onclick="openModal()">Instructions</button>
-    </div>
-
-    <div class="data-box" id="jumpStatus">Jump Height: awaiting jump...</div>
-
-    <div id="pressureVisuals" style="display:none;">
-      <div class="data-box" id="jumpMetricsDisplay">Waiting for jump...</div>
-      <div class="data-box" id="data-window-fore">Fore Pressure</div>
-      <div class="data-box" id="data-window-heel">Heel Pressure</div>
-    </div>
-
-    <div id="instructionsModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2>Instructions</h2>
-        <p>
-          Keep your feet flat on the ground. Press "Start Jump" and jump as high as you can.<br><br>
-          The force sensors detect when you leave the ground, the IMU measures vertical acceleration, and the data is processed to calculate jump height and airtime.<br>
-          Results are displayed in a few seconds.
-        </p>
-      </div>
-    </div>
-
-    <form id="name-form" style="display:none;">
-      <div class="name-fields">
-        <input type="text" name="first_name2" placeholder="First Name" required>
-        <input type="text" name="last_name2" placeholder="Last Name" required>
-      </div>
-      <button type="submit">Submit</button>
-    </form>
-
-    <div style="margin-top: 20px;">
-      <a href="/jScoreboard" class="btn-outline">View Scoreboard</a>
-    </div>
+<body class="pg-screen pg-activity pg-activity-jump">
+  <div class="pg-activity-title">
+    <header class="pg-header">
+      <h1>Jumping</h1>
+    </header>
   </div>
 
-  <footer>
-    <a class="btn-outline" href="#" onclick="stopDataAndNavigate('/')">Home</a>
-    <a class="btn-outline" href="{{ url_for('jump') }}">Reload</a>
-  </footer>
+  <div class="pg-activity-stage">
+    <div class="pg-activity-toolbar">
+      <div class="pg-header-nav">
+        <a href="{{ url_for('j_scoreboard') }}" onclick="openScoreboardModal(); return false;">Scoreboard</a>
+      </div>
+    </div>
+
+    <div class="card pg-card pg-activity-card">
+      <div class="pg-status-stack">
+        <div class="data-box" id="jumpStatus">
+          <span class="jump-status-line">
+            <span>Jump Height:</span>
+            <span class="jump-status__value" id="jumpStatusValue">Waiting to start.</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="buttons pg-actions">
+        <button id="startButton">Start</button>
+      </div>
+
+      <form id="name-form" class="pg-inline-form" style="display:none;">
+        <p class="pg-message" style="margin: 0 0 12px;">
+          Submit this score for <strong data-selected-group-label>your selected group</strong>.
+        </p>
+        <button type="submit">Submit Score</button>
+      </form>
+
+      <div id="thankYouMessage" class="pg-message" style="display:none; font-size:1.2em; color: var(--primary-dark);">
+        Thank you for submitting!
+      </div>
+    </div>
+
+    {% include '_group_selector.html' %}
+  </div>
+
+  {% set scoreboard_modal_title = "Jumping Scoreboard" %}
+  {% set scoreboard_embed_url = url_for('j_scoreboard', embed=1) %}
+  {% include '_scoreboard_modal.html' %}
 
   <script>
     let jumpCompleted = false;
+    let jumpWaitingTimer = null;
+    let jumpWaitingIndex = 0;
+    let jumpPollTimeout = null;
+    let jumpActivityToggle = null;
+    const jumpStatusValue = document.getElementById("jumpStatusValue");
 
-    function openModal() { document.getElementById("instructionsModal").style.display = "flex"; }
-    function closeModal() { document.getElementById("instructionsModal").style.display = "none"; }
+    function renderJumpWaitingState() {
+      const dots = [".", "..", "..."];
+      jumpStatusValue.innerText = dots[jumpWaitingIndex];
+      jumpWaitingIndex = (jumpWaitingIndex + 1) % dots.length;
+    }
+
+    function startJumpWaitingAnimation() {
+      if (jumpWaitingTimer !== null) {
+        clearInterval(jumpWaitingTimer);
+      }
+      jumpWaitingIndex = 0;
+      renderJumpWaitingState();
+      jumpWaitingTimer = window.setInterval(renderJumpWaitingState, 450);
+    }
+
+    function stopJumpWaitingAnimation() {
+      if (jumpWaitingTimer !== null) {
+        clearInterval(jumpWaitingTimer);
+        jumpWaitingTimer = null;
+      }
+    }
+
+    function resetJumpUI() {
+      jumpCompleted = false;
+      if (jumpPollTimeout !== null) {
+        clearTimeout(jumpPollTimeout);
+        jumpPollTimeout = null;
+      }
+      stopJumpWaitingAnimation();
+      jumpStatusValue.innerText = "Waiting to start.";
+      document.getElementById("name-form").style.display = "none";
+      document.getElementById("thankYouMessage").style.display = "none";
+    }
 
     function submitForm(event) {
       event.preventDefault();
@@ -287,57 +333,73 @@
       fetch("/submitJ", { method: "POST", body: formData }).then((response) => {
         if (response.ok) {
           form.style.display = "none";
-          alert("Thank you for submitting!");
+          document.getElementById("thankYouMessage").style.display = "block";
         }
       });
     }
 
-    function startJumping() {
-      document.getElementById("jumpStatus").innerText = "Jump Height: awaiting jump...";
-      document.getElementById("pressureVisuals").style.display = "block";
+    async function startJumping({ signal }) {
+      if (!ensureGroupSelected("Please select a group before starting jumping.")) {
+        throw createHandledActivityError("Group selection required.");
+      }
 
-      fetch('/start_jump').then(() => {
-        pollJumpData();
-      }).catch(console.error);
+      resetJumpUI();
 
-      setInterval(fetchData, 200);
-    }
-
-    function fetchData() {
-      fetch("/color_data")
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById("data-window-heel").style.backgroundColor = `rgb(${data.R_heel}, ${data.G_heel}, 0)`;
-          document.getElementById("data-window-fore").style.backgroundColor = `rgb(${data.R_fore}, ${data.G_fore}, 0)`;
-        });
+      const response = await fetch('/start_jump', { signal });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to start jumping.");
+      }
+      if (data.status === "cancelled") {
+        return;
+      }
+      startJumpWaitingAnimation();
+      pollJumpData();
     }
 
     function pollJumpData() {
-      if (jumpCompleted) return;
+      if (jumpCompleted || !jumpActivityToggle || !jumpActivityToggle.isActive()) return;
 
       fetch("/jump_metrics")
         .then(res => res.json())
         .then(data => {
+          if (!jumpActivityToggle || !jumpActivityToggle.isActive()) {
+            return;
+          }
           if (data.jump_height_meters > 0.0001) {
             jumpCompleted = true;
+            stopJumpWaitingAnimation();
             const jumpHeight = data.jump_height_meters.toFixed(2);
-            const airtime = data.airtime_seconds.toFixed(2);
-            document.getElementById("jumpStatus").innerText = `Jump Height: ${jumpHeight} meters\nAirtime: ${airtime} seconds`;
-            document.getElementById("jumpMetricsDisplay").innerText = `Jump Height: ${jumpHeight} m\nAirtime: ${airtime} s`;
+            jumpStatusValue.innerText = `${jumpHeight} meters`;
             document.getElementById("name-form").style.display = "block";
+            jumpActivityToggle.setActive(false);
           } else {
-            setTimeout(pollJumpData, 300);
+            jumpPollTimeout = setTimeout(pollJumpData, 300);
           }
         });
     }
 
     function stopDataAndNavigate(url) {
-      fetch('/stop_data', { method: 'POST' }).then(() => { window.location.href = url; });
+      stopActivitySession().then(() => { window.location.href = url; });
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      resetJumpUI();
       document.getElementById("name-form").addEventListener("submit", submitForm);
-      document.getElementById("startButton").addEventListener("click", startJumping);
+      jumpActivityToggle = createActivityToggle({
+        buttonId: "startButton",
+        idleLabel: "Start",
+        activeLabel: "Stop",
+        start: startJumping,
+        stop: stopActivitySession,
+        onReset: resetJumpUI,
+        onError: (error) => {
+          if (!error || error.handled) {
+            return;
+          }
+          alert(error.message || "Unable to start jumping.");
+        },
+      });
     });
   </script>
 </body>

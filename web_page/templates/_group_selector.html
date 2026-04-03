@@ -1,0 +1,222 @@
+<style>
+  .pg-group-selector-band {
+    width: min(100%, var(--pg-card-max));
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pg-group-trigger {
+    min-width: 180px;
+  }
+
+  .pg-group-trigger.is-selected {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .pg-group-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .pg-group-choice {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    text-align: left;
+  }
+
+  .pg-group-choice__header {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pg-group-choice__indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: #b44141;
+    box-shadow: 0 0 0 4px rgba(179, 65, 65, 0.16);
+    flex-shrink: 0;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .pg-group-choice__indicator.is-online {
+    background: #2b9b53;
+    box-shadow: 0 0 0 4px rgba(43, 155, 83, 0.18);
+  }
+
+  .pg-group-choice__indicator.is-unavailable {
+    background: #c98b2e;
+    box-shadow: 0 0 0 4px rgba(201, 139, 46, 0.16);
+  }
+
+  .pg-group-choice.is-selected {
+    background-color: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+</style>
+
+<div class="pg-group-selector-band">
+  <button
+    type="button"
+    id="groupModalTrigger"
+    class="btn-outline pg-group-trigger"
+    onclick="openGroupModal()"
+  >
+    Select Group
+  </button>
+</div>
+
+<div id="groupModal" class="modal" onclick="if (event.target === this) closeGroupModal();">
+  <div class="modal-content">
+    <h2>Select Group</h2>
+    <div class="pg-group-list">
+      {% for group in group_options %}
+      <button
+        type="button"
+        class="btn-outline pg-group-choice{% if selected_group and selected_group.id == group.id %} is-selected{% endif %}"
+        data-group-option
+        data-group-id="{{ group.id }}"
+        onclick="selectGroup('{{ group.id }}')"
+      >
+        <span class="pg-group-choice__header">
+          <span
+            class="pg-group-choice__indicator"
+            data-group-status-indicator
+            data-group-id="{{ group.id }}"
+            aria-hidden="true"
+          ></span>
+          <span>{{ group.label }}</span>
+        </span>
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  window.sonicSoleSelectedGroup = {{ selected_group | tojson }};
+
+  function updateSelectedGroupUI(group) {
+    window.sonicSoleSelectedGroup = group;
+
+    const triggerButton = document.getElementById("groupModalTrigger");
+    if (triggerButton) {
+      triggerButton.textContent = group ? group.label : "Select Group";
+      triggerButton.classList.toggle("is-selected", Boolean(group));
+    }
+
+    document.querySelectorAll("[data-selected-group-label]").forEach((element) => {
+      element.textContent = group ? group.label : "your selected group";
+    });
+
+    document.querySelectorAll("[data-group-option]").forEach((button) => {
+      button.classList.toggle("is-selected", Boolean(group) && button.dataset.groupId === group.id);
+    });
+  }
+
+  function openGroupModal() {
+    document.getElementById("groupModal").style.display = "flex";
+    refreshGroupOptionStatuses();
+  }
+
+  function closeGroupModal() {
+    document.getElementById("groupModal").style.display = "none";
+  }
+
+  function ensureGroupSelected(message) {
+    if (window.sonicSoleSelectedGroup) {
+      return true;
+    }
+
+    openGroupModal();
+    return false;
+  }
+
+  function setGroupOptionStatus(groupId, statusVariant, stateLabel) {
+    const indicator = document.querySelector(
+      `[data-group-status-indicator][data-group-id="${groupId}"]`
+    );
+    if (!indicator) {
+      return;
+    }
+
+    indicator.classList.toggle("is-online", statusVariant === "online");
+    indicator.classList.toggle("is-unavailable", statusVariant === "unavailable");
+    indicator.classList.toggle(
+      "is-offline",
+      statusVariant !== "online" && statusVariant !== "unavailable"
+    );
+    indicator.title = stateLabel;
+  }
+
+  async function refreshGroupOptionStatuses() {
+    try {
+      const response = await fetch("{{ url_for('hardware_status') }}", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`hardware_status returned ${response.status}`);
+      }
+
+      const payload = await response.json();
+      const devices = Array.isArray(payload.devices) ? payload.devices : [];
+
+      devices.forEach((device) => {
+        const statusVariant = device.connected
+          ? "online"
+          : device.probe_error
+            ? "unavailable"
+            : "offline";
+        const stateLabel = device.connected
+          ? "Online"
+          : device.probe_error
+            ? "Unavailable"
+            : "Offline";
+        setGroupOptionStatus(device.id, statusVariant, stateLabel);
+      });
+    } catch (error) {
+      document.querySelectorAll("[data-group-status-indicator]").forEach((indicator) => {
+        indicator.classList.remove("is-online", "is-unavailable");
+        indicator.classList.add("is-offline");
+        indicator.title = "Offline";
+      });
+    }
+  }
+
+  function selectGroup(groupId) {
+    fetch("{{ url_for('select_group') }}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ group_id: groupId }),
+    })
+      .then((response) =>
+        response.json().then((data) => {
+          if (!response.ok) {
+            throw new Error(data.message || "Unable to select that group.");
+          }
+          return data;
+        })
+      )
+      .then((data) => {
+        updateSelectedGroupUI(data.group);
+        closeGroupModal();
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    updateSelectedGroupUI(window.sonicSoleSelectedGroup);
+    refreshGroupOptionStatuses();
+  });
+</script>

@@ -104,6 +104,10 @@ public:
     double ax = 0;
     double ay = 0;
     double az = 0;
+    double qx = 0;
+    double qy = 0;
+    double qz = 0;
+    double qw = 1;
 
     uint64_t startTime = 0;
     uint64_t currentTime = 0;

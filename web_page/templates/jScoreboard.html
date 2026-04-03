@@ -156,7 +156,8 @@
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
-  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
+  <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
 
   <script>
     function sortTable(columnIndex, isNumeric = false) {
@@ -199,34 +200,113 @@
         }
       });
     }
+
+    function editMetricEntry(button, formId) {
+      var nextName = prompt("Edit group name", button.dataset.name || "");
+      if (nextName === null) return;
+      nextName = nextName.trim();
+      if (!nextName) return;
+
+      var nextValue = prompt(button.dataset.label || "Edit value", button.dataset.value || "");
+      if (nextValue === null) return;
+
+      var form = document.getElementById(formId);
+      form.elements.entry_key.value = button.dataset.entryKey;
+      form.elements.group_name.value = nextName;
+      form.elements.value.value = nextValue.trim();
+      form.submit();
+    }
+
+    function openManageModal() {
+      document.getElementById("manageModal").classList.add("is-open");
+    }
+
+    function closeManageModal() {
+      document.getElementById("manageModal").classList.remove("is-open");
+    }
   </script>
 </head>
 
-<body>
-  <header>
+<body class="pg-screen{% if embed %} pg-scoreboard-embed{% endif %}">
+  <header class="pg-header">
     <h1>SonicSole</h1>
   </header>
 
-  <div class="card">
+  <div class="card pg-card pg-scoreboard-card">
+    {% if not embed %}
     <h2>Jumping Scoreboard</h2>
-    <a href="/jump" class="btn-outline">Go Back</a>
+    {% endif %}
 
-    <table id="leaderboard">
-      <tr>
-        <th onclick="sortTable(0)">Name <span class="sort-indicator"></span></th>
-        <th onclick="sortTable(1, true)">Jump Height (m) <span class="sort-indicator"></span></th>
-      </tr>
-      {% for entry in data %}
-      <tr>
-        <td>{{ entry.name }}</td>
-        <td>{{ entry.last_jump_height }}</td>
-      </tr>
-      {% endfor %}
-    </table>
+    <div class="pg-scoreboard-controls">
+      <button
+        type="button"
+        class="pg-icon-button"
+        aria-label="Edit leaderboard"
+        title="Edit leaderboard"
+        onclick="openManageModal()"
+      >
+        <span aria-hidden="true">&#9998;</span>
+      </button>
+    </div>
+
+    <div class="pg-table-wrap">
+      <table id="leaderboard">
+        <tr>
+          <th onclick="sortTable(0)">Group Name <span class="sort-indicator"></span></th>
+          <th onclick="sortTable(1, true)">Jump Height (m) <span class="sort-indicator"></span></th>
+        </tr>
+        {% for entry in data %}
+        <tr>
+          <td>{{ entry.name }}</td>
+          <td>{{ "%.2f" | format(entry.last_jump_height) }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <form
+      id="editJumpForm"
+      method="post"
+      action="{{ url_for('update_leaderboard_entry', board_key='jump') }}{% if embed %}?embed=1{% endif %}"
+      style="display: none;"
+    >
+      <input type="hidden" name="entry_key">
+      <input type="hidden" name="group_name">
+      <input type="hidden" name="value">
+    </form>
   </div>
 
-  <footer>
-    <a href="/" class="btn-outline">Home</a>
+  <div id="manageModal" class="pg-manage-modal" onclick="if (event.target === this) closeManageModal();">
+    <div class="modal-content pg-manage-panel">
+      <div class="pg-manage-list">
+        {% for entry in data %}
+        <div class="pg-manage-row">
+          <div class="pg-manage-meta">
+            <div class="pg-manage-name">{{ entry.name }}</div>
+            <div class="pg-manage-values">
+              <span>Jump Height: {{ "%.2f" | format(entry.last_jump_height) }} m</span>
+            </div>
+          </div>
+          <div class="pg-row-actions">
+            <form
+              method="post"
+              action="{{ url_for('delete_leaderboard_entry', board_key='jump') }}{% if embed %}?embed=1{% endif %}"
+              onsubmit="return confirm('Remove this entry from the leaderboard?');"
+            >
+              <input type="hidden" name="entry_key" value="{{ entry.entry_key }}">
+              <button type="submit" class="pg-table-button pg-table-button--danger">Delete</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {% if not embed %}
+  <footer class="pg-footer pg-footer--wide">
+    <a href="/jump" class="btn-outline">Go Back</a>
   </footer>
+  {% endif %}
 </body>
 </html>

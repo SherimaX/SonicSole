@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Device Overview</title>
+  <title>Setup Guide</title>
   <style>
     :root {
       --primary-color: #f2a64a;
@@ -11,6 +11,8 @@
       --light-color: rgba(244, 247, 250, 0.95);
       --text-dark: #10202d;
       --gray: #4d6170;
+      --setup-panel-height: 720px;
+      --setup-panel-shadow-pad: 52px;
     }
 
     * { box-sizing: border-box; }
@@ -53,29 +55,71 @@
 
     h1 {
       font-size: 3.3rem;
-      margin: 2rem 0 1rem;
+      margin: 0 0 14px;
       color: #f4f7fa;
       text-align: center;
       text-transform: uppercase;
       letter-spacing: 0.12em;
     }
 
-    .panels {
-      width: 90%;
-      max-width: 1200px;
+    body.pg-doc-screen {
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 100vh;
     }
 
-    .panel-container {
+    body.pg-doc-screen .setup-guide-shell {
+      width: min(100%, 760px) !important;
+      min-height: calc(100vh - (2 * clamp(20px, 4vw, 40px)));
       display: flex;
-      flex-direction: row;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      gap: 1.5rem;
-      padding-bottom: 3rem;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      margin: 0 auto;
     }
 
-    .panel {
-      flex: 0 0 100%;
+    body.pg-doc-screen .pg-doc-header {
+      width: 100% !important;
+      margin: 0 auto !important;
+      text-align: center;
+      margin-left: auto !important;
+      margin-right: auto !important;
+      gap: 20px !important;
+    }
+
+    body.pg-doc-screen .panels {
+      width: 100% !important;
+      margin: 0 auto !important;
+      overflow: visible;
+    }
+
+    body.pg-doc-screen .panel-container {
+      display: block !important;
+      width: calc(100% + (2 * var(--setup-panel-shadow-pad))) !important;
+      height: calc(var(--setup-panel-height) + (2 * var(--setup-panel-shadow-pad)));
+      margin: calc(-1 * var(--setup-panel-shadow-pad)) 0;
+      margin-left: calc(-1 * var(--setup-panel-shadow-pad));
+      margin-right: calc(-1 * var(--setup-panel-shadow-pad));
+      padding: var(--setup-panel-shadow-pad);
+      overflow: hidden;
+      position: relative;
+    }
+
+    body.pg-doc-screen .setup-track {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.38s ease;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
+    }
+
+    body.pg-doc-screen .panel {
+      width: 100% !important;
+      max-width: none;
+      height: var(--setup-panel-height);
+      flex: 0 0 100% !important;
       background: var(--light-color);
       border-radius: 15px;
       padding: 2rem;
@@ -84,27 +128,71 @@
       text-align: center;
       border: 1px solid rgba(127, 184, 212, 0.55);
       position: relative;
-      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 900px) {
+      body.pg-doc-screen .panels {
+        width: min(100%, 760px) !important;
+      }
     }
 
     .panel::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 14px;
-      background: linear-gradient(90deg, #f2a64a, #8bc7e3, #153e5c);
+      content: none;
+      display: none;
     }
 
     .panel h3 {
       font-size: 2rem;
       color: var(--primary-color);
       margin-bottom: 1rem;
+      text-align: center;
     }
 
     .panel p {
       font-size: 1.2rem;
       color: var(--gray);
       margin-bottom: 1.2rem;
+    }
+
+    .panel--left {
+      text-align: left;
+    }
+
+    body.pg-doc-screen .setup-slide {
+      display: flex !important;
+      flex-direction: column;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    body.pg-doc-screen .setup-slide.is-visible {
+      visibility: visible;
+    }
+
+    body.pg-doc-screen .setup-slide.is-active {
+      pointer-events: auto;
+    }
+
+    .header-actions {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 0;
+    }
+
+    .header-actions button {
+      margin: 0;
+    }
+
+    .panel h4 {
+      color: var(--accent-color);
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      margin: 1.6rem 0 0.8rem;
+      text-transform: uppercase;
     }
 
     .clickable {
@@ -189,178 +277,737 @@
       cursor: pointer;
     }
 
-    #data-window1, #data-window2 {
-      background: rgba(255, 255, 255, 0.95);
-      padding: 1rem;
-      border-radius: 10px;
-      margin: 1rem auto;
-      width: 80%;
-      max-width: 500px;
-      text-align: center;
-      border: 1px solid #ccc;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      font-size: 1rem;
+    .materials-list,
+    .assembly-steps {
+      color: var(--gray);
+      margin: 0;
+      padding-left: 1.4rem;
+      line-height: 1.7;
     }
 
-    .infodata {
-      font-weight: bold;
-      font-size: 1.1rem;
-      color: var(--primary-color);
+    .materials-list li,
+    .assembly-steps li {
+      margin-bottom: 0.85rem;
+    }
+
+    .step-note {
+      display: block;
+      margin-top: 0.35rem;
+      color: #3f5464;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .slide-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: auto;
+      padding-top: 1.75rem;
+    }
+
+    .slide-actions button,
+    .slide-actions a {
+      margin: 0;
+    }
+
+    .slide-dots {
+      display: flex;
+      justify-content: center;
+      gap: 0.55rem;
+      margin: 1.15rem auto 0;
+      width: fit-content;
+    }
+
+    .slide-dots .slide-dot {
+      width: 8px !important;
+      min-width: 8px;
+      height: 8px !important;
+      min-height: 8px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+      border-radius: 999px;
+      background: rgba(21, 62, 92, 0.24) !important;
+      box-shadow: none !important;
+      display: inline-block !important;
+      vertical-align: middle;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    .slide-dots .slide-dot:hover {
+      background: rgba(21, 62, 92, 0.4) !important;
+      transform: scale(1.08);
+    }
+
+    .slide-dots .slide-dot.is-active {
+      background: rgba(21, 62, 92, 0.82) !important;
+    }
+
+    .sensor-scale {
+      background: linear-gradient(90deg, #ffffff 0%, #dff4a3 24%, #f2d65c 50%, #ef9e4a 74%, #c85a2d 100%);
+      border: 1px solid rgba(21, 62, 92, 0.18);
+      border-radius: 999px;
+      height: 24px;
+      margin: 1rem 0 1.5rem;
+      width: 100%;
+    }
+
+    #sensorCheckModal .modal-content {
+      max-width: 1140px;
+      text-align: left;
+    }
+
+    .sensor-check-grid {
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       margin-top: 1rem;
     }
 
-    /* Modal for videos */
-    #videoLibraryModal .modal-content {
-      max-width: 900px;
+    .sensor-panel {
+      background: rgba(255, 255, 255, 0.56);
+      border: 1px solid rgba(21, 62, 92, 0.12);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-height: 100%;
+      padding: 1.25rem;
     }
 
-    #videoLibraryModal video {
-      width: 100%;
-      border-radius: 10px;
-      margin-top: 0.5rem;
+    .sensor-panel h3 {
+      color: var(--accent-color);
+      font-size: 1.35rem;
+      margin: 0;
+      text-align: left;
     }
 
-    #videoLibraryModal h3 {
-      color: var(--primary-color);
-      margin-bottom: 0.5rem;
-    }
-    
-        /* Fix video modal size and responsiveness */
-    #videoLibraryModal .modal-content {
-      max-width: 95vw;         /* scale to viewport width */
-      max-height: 90vh;        /* keep inside screen height */
-      overflow-y: auto;        /* scroll inside instead of overflowing */
-      padding-bottom: 2rem;
+    .sensor-panel p {
+      color: var(--gray);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin: 0;
     }
 
-    /* Make videos resize responsively */
-    #videoLibraryModal video {
-      width: 100%;
+    .pressure-stage,
+    .imu-viewer {
+      align-items: center;
+      background:
+        radial-gradient(circle at 20% 18%, rgba(242, 166, 74, 0.14), transparent 20%),
+        linear-gradient(180deg, rgba(13, 40, 61, 0.06) 0%, rgba(19, 62, 92, 0.12) 100%);
+      border: 1px solid rgba(21, 62, 92, 0.12);
+      border-radius: 20px;
+      display: flex;
+      justify-content: center;
+      min-height: 340px;
+      overflow: hidden;
+      padding: 1rem;
+      position: relative;
+    }
+
+    .pressure-insole {
+      display: block;
+      filter: drop-shadow(0 14px 24px rgba(16, 32, 45, 0.18));
       height: auto;
-      max-height: 250px;
+      margin: 0 auto;
+      max-height: min(54vh, 420px);
+      max-width: 100%;
+      width: min(220px, 100%);
     }
 
-    /* Stack the videos in one column on small screens */
-    @media (max-width: 900px) {
-      #videoLibraryModal .modal-content > div {
-        display: block;
+    .pressure-modal-actions {
+      justify-content: center;
+    }
+
+    .sensor-readings,
+    .sensor-metadata {
+      display: grid;
+      gap: 0.85rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sensor-reading {
+      background: rgba(244, 247, 250, 0.96);
+      border: 1px solid rgba(21, 62, 92, 0.1);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-width: 0;
+      padding: 0.85rem 1rem;
+    }
+
+    .sensor-reading--wide {
+      grid-column: 1 / -1;
+    }
+
+    .sensor-reading span {
+      color: var(--accent-color);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .sensor-reading strong {
+      color: var(--text-dark);
+      font-size: 1.05rem;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
+    .imu-viewer canvas {
+      display: block;
+      height: 100% !important;
+      width: 100% !important;
+    }
+
+    @media (max-width: 960px) {
+      .sensor-check-grid {
+        grid-template-columns: 1fr;
       }
 
-      #videoLibraryModal .modal-content div > div {
-        margin-bottom: 1.5rem;
-      }
-
-      #videoLibraryModal .modal-content h3 {
-        font-size: 1.1rem;
+      .sensor-readings,
+      .sensor-metadata {
+        grid-template-columns: 1fr;
       }
     }
 
   </style>
-  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
+  <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
 
   <script>
-    function fetchData() {
-      fetch("/color_data")
+    let activeSlideIndex = 0;
+    let slideTransitionCleanup = null;
+    const defaultSensorCheckState = {
+      R_heel: 0,
+      G_heel: 0,
+      R_fore: 0,
+      G_fore: 0,
+      heel_pressure: 0,
+      fore_pressure: 0,
+      qx: 0,
+      qy: 0,
+      qz: 0,
+      qw: 1,
+      imu_orientation_mode: "identity"
+    };
+    const imuModeLabels = {
+      quaternion: "Live IMU quaternion",
+      acceleration: "Estimated from IMU acceleration",
+      identity: "Waiting for IMU orientation"
+    };
+
+    function hexToRgb(hex) {
+      const normalized = hex.replace("#", "");
+      const value = parseInt(normalized, 16);
+      return [
+        (value >> 16) & 255,
+        (value >> 8) & 255,
+        value & 255
+      ];
+    }
+
+    function mixRgb(colorA, colorB, weight) {
+      return colorA.map((channel, index) => {
+        const mixed = channel + ((colorB[index] - channel) * weight);
+        return Math.round(mixed);
+      });
+    }
+
+    function rgbString(rgb) {
+      return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+    }
+
+    function getPressureColor(r, g) {
+      const total = r + g;
+      if (total <= 36) return hexToRgb("#ffffff");
+
+      const palette = ["#ffffff", "#dff4a3", "#f2d65c", "#ef9e4a", "#c85a2d"].map(hexToRgb);
+      const intensity = Math.max(0, Math.min(1, (total - 36) / (510 - 36)));
+      const scaled = intensity * (palette.length - 1);
+      const lowerIndex = Math.floor(scaled);
+      const upperIndex = Math.min(lowerIndex + 1, palette.length - 1);
+      const weight = scaled - lowerIndex;
+
+      return mixRgb(palette[lowerIndex], palette[upperIndex], weight);
+    }
+
+    function updatePressureInsole(data) {
+      const heelColor = getPressureColor(data.R_heel, data.G_heel);
+      const forefootColor = getPressureColor(data.R_fore, data.G_fore);
+      const midColor = mixRgb(heelColor, forefootColor, 0.5);
+
+      document.getElementById("heelGradientStop").setAttribute("stop-color", rgbString(heelColor));
+      document.getElementById("midGradientStop").setAttribute("stop-color", rgbString(midColor));
+      document.getElementById("forefootGradientStop").setAttribute("stop-color", rgbString(forefootColor));
+    }
+
+    function updateSensorReadouts(data) {
+      document.getElementById("heelPressureValue").textContent = Math.round(data.heel_pressure ?? 0);
+      document.getElementById("forePressureValue").textContent = Math.round(data.fore_pressure ?? 0);
+      document.getElementById("imuModeValue").textContent = imuModeLabels[data.imu_orientation_mode] || "IMU orientation";
+      document.getElementById("imuQuaternionValue").textContent = [
+        `w ${Number(data.qw ?? 1).toFixed(3)}`,
+        `x ${Number(data.qx ?? 0).toFixed(3)}`,
+        `y ${Number(data.qy ?? 0).toFixed(3)}`,
+        `z ${Number(data.qz ?? 0).toFixed(3)}`
+      ].join("  ");
+    }
+
+    function updateSensorCheck(data) {
+      updatePressureInsole(data);
+      updateSensorReadouts(data);
+      if (window.updateInsoleOrientation) {
+        window.updateInsoleOrientation(data);
+      }
+    }
+
+    function fetchSensorCheckData() {
+      fetch("/sensor_check_data")
         .then(res => res.json())
         .then(data => {
-          document.getElementById("data-window2").style.backgroundColor = `rgb(${data.R_fore}, ${data.G_fore}, 0)`;
-          document.getElementById("data-window1").style.backgroundColor = `rgb(${data.R_heel}, ${data.G_heel}, 0)`;
+          updateSensorCheck(data);
+        })
+        .catch(() => {
+          updateSensorCheck(defaultSensorCheckState);
         });
     }
 
-    window.onload = () => setInterval(fetchData, 200);
+    function clearSlideTransition() {
+      if (slideTransitionCleanup) {
+        slideTransitionCleanup();
+        slideTransitionCleanup = null;
+      }
+    }
 
-    function openModal(id){ document.getElementById(id).style.display = "flex"; }
+    function syncSlideState(slides, activeIndex, visibleIndices) {
+      slides.forEach((slide, slideIndex) => {
+        const isActive = slideIndex === activeIndex;
+        const isVisible = visibleIndices.includes(slideIndex);
+        slide.classList.toggle("is-active", isActive);
+        slide.classList.toggle("is-visible", isVisible);
+        slide.setAttribute("aria-hidden", isActive ? "false" : "true");
+      });
+    }
+
+    function syncDots(dots, activeIndex) {
+      dots.forEach((dot, dotIndex) => {
+        const isActive = dotIndex === activeIndex;
+        dot.classList.toggle("is-active", isActive);
+        dot.setAttribute("aria-current", isActive ? "true" : "false");
+      });
+    }
+
+    function goToSlide(index, options = {}) {
+      const slides = Array.from(document.querySelectorAll(".setup-slide"));
+      const track = document.querySelector(".setup-track");
+      const dots = Array.from(document.querySelectorAll(".slide-dot"));
+      const immediate = options.immediate === true;
+      const nextIndex = Math.max(0, Math.min(index, slides.length - 1));
+
+      clearSlideTransition();
+
+      if (!slides.length) return;
+
+      const previousIndex = activeSlideIndex;
+      const visibleIndices = immediate || nextIndex === previousIndex
+        ? [nextIndex]
+        : [previousIndex, nextIndex];
+
+      syncSlideState(slides, nextIndex, visibleIndices);
+      syncDots(dots, nextIndex);
+
+      if (track) {
+        const targetTransform = `translate3d(-${nextIndex * 100}%, 0, 0)`;
+        if (immediate || nextIndex === previousIndex) {
+          const priorTransition = track.style.transition;
+          track.style.transition = "none";
+          track.style.transform = targetTransform;
+          void track.offsetWidth;
+          track.style.transition = priorTransition;
+        } else {
+          const handleTransitionEnd = (event) => {
+            if (event.target !== track || event.propertyName !== "transform") return;
+            track.removeEventListener("transitionend", handleTransitionEnd);
+            slideTransitionCleanup = null;
+            syncSlideState(slides, nextIndex, [nextIndex]);
+          };
+          slideTransitionCleanup = () => {
+            track.removeEventListener("transitionend", handleTransitionEnd);
+          };
+          track.addEventListener("transitionend", handleTransitionEnd);
+          requestAnimationFrame(() => {
+            track.style.transform = targetTransform;
+          });
+        }
+      } else {
+        syncSlideState(slides, nextIndex, [nextIndex]);
+        syncDots(dots, nextIndex);
+      }
+
+      activeSlideIndex = nextIndex;
+    }
+
+    window.addEventListener("load", () => {
+      goToSlide(0, { immediate: true });
+      updateSensorCheck(defaultSensorCheckState);
+      if (window.initSensorCheckViewer) {
+        window.initSensorCheckViewer();
+      }
+      fetchSensorCheckData();
+      setInterval(fetchSensorCheckData, 200);
+    });
+
+    function openModal(id){
+      document.getElementById(id).style.display = "flex";
+      if (id === "sensorCheckModal") {
+        fetchSensorCheckData();
+        if (window.refreshInsoleViewer) {
+          window.refreshInsoleViewer();
+        }
+      }
+    }
     function closeModal(id){ document.getElementById(id).style.display = "none"; }
 
-    function stopDataAndNavigate(url){
-      fetch('/stop_data',{method:'POST'}).then(()=>{window.location.href=url;});
+  </script>
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+    import { STLLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+
+    const stlUrl = "{{ url_for('static', filename='insole-placeholder.stl') }}";
+    const viewerState = {
+      initialized: false,
+      container: null,
+      renderer: null,
+      scene: null,
+      camera: null,
+      pivot: null,
+      mesh: null,
+      resizeObserver: null,
+      targetQuaternion: new THREE.Quaternion(0, 0, 0, 1)
+    };
+
+    function renderViewer() {
+      if (!viewerState.renderer || !viewerState.scene || !viewerState.camera) return;
+      viewerState.renderer.render(viewerState.scene, viewerState.camera);
     }
+
+    function resizeViewer() {
+      if (!viewerState.container || !viewerState.renderer || !viewerState.camera) return;
+
+      const width = Math.max(viewerState.container.clientWidth, 1);
+      const height = Math.max(viewerState.container.clientHeight, 1);
+      viewerState.camera.aspect = width / height;
+      viewerState.camera.updateProjectionMatrix();
+      viewerState.renderer.setSize(width, height, false);
+      renderViewer();
+    }
+
+    function setTargetQuaternion(qxValue, qyValue, qzValue, qwValue) {
+      const quaternion = new THREE.Quaternion(
+        Number(qxValue) || 0,
+        Number(qyValue) || 0,
+        Number(qzValue) || 0,
+        Number(qwValue) || 1
+      );
+
+      if (quaternion.lengthSq() < 1e-8) {
+        quaternion.set(0, 0, 0, 1);
+      } else {
+        quaternion.normalize();
+      }
+
+      viewerState.targetQuaternion.copy(quaternion);
+    }
+
+    function animateViewer() {
+      requestAnimationFrame(animateViewer);
+      if (!viewerState.renderer || !viewerState.pivot) return;
+
+      viewerState.pivot.quaternion.slerp(viewerState.targetQuaternion, 0.18);
+      renderViewer();
+    }
+
+    async function loadInsoleMesh() {
+      const loader = new STLLoader();
+      const geometry = await loader.loadAsync(stlUrl);
+      geometry.center();
+      geometry.computeVertexNormals();
+      geometry.computeBoundingBox();
+
+      const size = new THREE.Vector3();
+      geometry.boundingBox.getSize(size);
+      const largestDimension = Math.max(size.x, size.y, size.z, 1);
+
+      const material = new THREE.MeshPhysicalMaterial({
+        color: "#f2a64a",
+        roughness: 0.38,
+        metalness: 0.12,
+        clearcoat: 0.34,
+        clearcoatRoughness: 0.4
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.scale.setScalar(3.3 / largestDimension);
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
+      viewerState.pivot.add(mesh);
+      viewerState.mesh = mesh;
+      renderViewer();
+    }
+
+    window.initSensorCheckViewer = async function initSensorCheckViewer() {
+      if (viewerState.initialized) {
+        resizeViewer();
+        return;
+      }
+
+      const container = document.getElementById("imuViewer");
+      if (!container) return;
+
+      viewerState.initialized = true;
+      viewerState.container = container;
+
+      viewerState.scene = new THREE.Scene();
+      viewerState.camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+      viewerState.camera.position.set(0, 1.8, 6.6);
+      viewerState.camera.lookAt(0, 0, 0);
+
+      viewerState.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      viewerState.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      container.appendChild(viewerState.renderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+      const keyLight = new THREE.DirectionalLight(0xffffff, 1.05);
+      const rimLight = new THREE.DirectionalLight(0x8fc4ff, 0.45);
+      keyLight.position.set(3.6, 5.2, 5.4);
+      rimLight.position.set(-4.0, 2.4, -2.8);
+
+      viewerState.scene.add(ambientLight);
+      viewerState.scene.add(keyLight);
+      viewerState.scene.add(rimLight);
+
+      viewerState.pivot = new THREE.Group();
+      viewerState.scene.add(viewerState.pivot);
+
+      await loadInsoleMesh();
+      resizeViewer();
+
+      if (window.ResizeObserver) {
+        viewerState.resizeObserver = new ResizeObserver(() => resizeViewer());
+        viewerState.resizeObserver.observe(container);
+      } else {
+        window.addEventListener("resize", resizeViewer);
+      }
+
+      animateViewer();
+    };
+
+    window.updateInsoleOrientation = function updateInsoleOrientation(data) {
+      setTargetQuaternion(data.qx, data.qy, data.qz, data.qw);
+    };
+
+    window.refreshInsoleViewer = function refreshInsoleViewer() {
+      resizeViewer();
+    };
   </script>
 </head>
 
-<body>
-  <h1>Introduction & Set Up</h1>
-
-  <div class="panels">
-    <div class="panel-container">
-      <div class="panel">
-        <h3>Welcome</h3>
-        <p>The SonicSole integrates pressure sensors, an IMU (inertial measurement unit), and a microcontroller, enabling various activities. Its modular design allows for quick setup and efficient data collection. In industry applications, data from pressure sensors and IMUs can be used for gait analysis, balance assessment, rehabilitation monitoring, and performance optimization in sports and healthcare settings.</p>
+<body class="pg-doc-screen">
+  <main class="setup-guide-shell">
+    <header class="pg-doc-header">
+      <h1>Setup Guide</h1>
+      <div class="header-actions">
+        <button type="button" onclick="openModal('sensorCheckModal')">Sensor Check</button>
       </div>
+    </header>
 
-      <div class="panel" style="text-align: left;">
-        <h3>Assembly Instructions</h3>
-        <p>
-          1️⃣ Collect the <span class="clickable" onclick="openModal('HardwareImageModal')">hardware assembly,</span> 3d printed case,<span class="clickable" onclick="openModal('logicImageModal')"> logic unit,</span> and 2 foam sheets.<br> 
-          2️⃣ Select a set of 2 <span class="clickable" onclick="openModal('InsoleImageModal')">insoles</span> based on your shoe size.<br>
-          3️⃣ Put the <span class="clickable" onclick="openModal('logicImageModal')">logic unit</span> in the 3d printed case and close it.<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;a&#41; Orient the <span class="clickable" onclick="openModal('logicImageModal')">logic unit</span> so that the battery is at the bottom of the case and the cable connector is on top.<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;b&#41; Make sure the speaker fits into the designated indent at the bottom of the case.<br>
-          4️⃣ Put both <span class="clickable" onclick="openModal('InsoleImageModal')">insoles</span> face down on the foam sheet and use a marker/writing utensil to outline the <span class="clickable" onclick="openModal('InsoleImageModal')">insoles.</span><br>
-          5️⃣ Cut the foam sheet along your outlines.<br>
-          6️⃣ Tape the <span class="clickable" onclick="openModal('HardwareImageModal')">hardware assembly</span> onto the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span> which corresponds to your dominant foot.<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;a&#41; Remove the backing paper on both pressure sensors and stick them onto the indicated positions (based on the diagram).<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;b&#41; Fold the large white wire along the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span> and tape it down so that the end of the wire comes out of the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span> near the heel.<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;c&#41; Use tape to secure any loose wires and hardware components.<br>
-          7️⃣ Glue the foam on top of both your <span class="clickable" onclick="openModal('InsoleImageModal')">insoles</span> with tacky glue and wait 5-10 minutes until it dries.<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;a&#41; Only apply glue onto the edges of the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span> with the <span class="clickable" onclick="openModal('HardwareImageModal')">hardware assembly</span> inside to not disturb the wiring.<br>
-          8️⃣ Plug the large white wire coming out of the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span> with the hardware into the <span class="clickable" onclick="openModal('logicImageModal')">logic unit</span> through the slot in the 3d printed case.<br>
-          9️⃣ Place both <span class="clickable" onclick="openModal('InsoleImageModal')">insoles</span> inside your shoes.<br>
-          🔟 Clip the 3d printed case securely to your shoe.<br><br>
-        </p>
+    <div class="panels">
+      <div class="panel-container">
+        <div class="setup-track">
+          <div class="panel panel--left setup-slide">
+            <h3>Assembly Instructions</h3>
+            <h4>Materials</h4>
+            <ul class="materials-list">
+              <li>
+                The <span class="clickable" onclick="openModal('HardwareImageModal')">hardware assembly</span>,
+                3D-printed case, <span class="clickable" onclick="openModal('logicImageModal')">logic unit</span>,
+                and two foam sheets
+              </li>
+              <li>
+                A pair of <span class="clickable" onclick="openModal('InsoleImageModal')">insoles</span>
+                sized for the user
+              </li>
+            </ul>
+            <div class="slide-actions">
+              <button type="button" onclick="goToSlide(1)">Next</button>
+            </div>
+          </div>
+
+          <div class="panel panel--left setup-slide">
+            <h3>Assembly Instructions</h3>
+            <h4>Prepare the Case</h4>
+            <ol class="assembly-steps">
+              <li>
+                Insert the <span class="clickable" onclick="openModal('logicImageModal')">logic unit</span>
+                into the 3D-printed case and close it.
+                <span class="step-note">
+                  Place the battery at the bottom of the case, the cable connector
+                  at the top, and the speaker in the lower indent.
+                </span>
+              </li>
+              <li>
+                Place both <span class="clickable" onclick="openModal('InsoleImageModal')">insoles</span>
+                face down on a foam sheet and trace their outlines with a marker.
+              </li>
+              <li>Cut the foam along the outlines you traced.</li>
+            </ol>
+            <div class="slide-actions">
+              <button type="button" onclick="goToSlide(0)">Previous</button>
+              <button type="button" onclick="goToSlide(2)">Next</button>
+            </div>
+          </div>
+
+          <div class="panel panel--left setup-slide">
+            <h3>Assembly Instructions</h3>
+            <h4>Attach the Hardware</h4>
+            <ol class="assembly-steps">
+              <li>
+                Attach the <span class="clickable" onclick="openModal('HardwareImageModal')">hardware assembly</span>
+                to the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>
+                for the dominant foot.
+                <span class="step-note">
+                  Remove the backing paper from both pressure sensors and place them
+                  on the marked heel and forefoot locations.
+                </span>
+                <span class="step-note">
+                  Fold the large white wire along the insole, tape it down, and
+                  route the connector out near the heel.
+                </span>
+                <span class="step-note">
+                  Secure any loose wires or hardware with tape before moving on.
+                </span>
+              </li>
+            </ol>
+            <div class="slide-actions">
+              <button type="button" onclick="goToSlide(1)">Previous</button>
+              <button type="button" onclick="goToSlide(3)">Next</button>
+            </div>
+          </div>
+
+          <div class="panel panel--left setup-slide">
+            <h3>Assembly Instructions</h3>
+            <h4>Finish the Insole</h4>
+            <ol class="assembly-steps">
+              <li>
+                Glue the foam onto both insoles with tacky glue and let it dry for
+                5 to 10 minutes.
+                <span class="step-note">
+                  On the instrumented insole, keep the glue on the edges so the
+                  wiring is not compressed.
+                </span>
+              </li>
+              <li>
+                Plug the large white cable from the instrumented
+                <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>
+                into the <span class="clickable" onclick="openModal('logicImageModal')">logic unit</span>
+                through the slot in the 3D-printed case.
+              </li>
+            </ol>
+            <div class="slide-actions">
+              <button type="button" onclick="goToSlide(2)">Previous</button>
+              <button type="button" onclick="goToSlide(4)">Next</button>
+            </div>
+          </div>
+
+          <div class="panel panel--left setup-slide">
+            <h3>Assembly Instructions</h3>
+            <h4>Wear the System</h4>
+            <ol class="assembly-steps">
+              <li>
+                Place both insoles inside the shoes, then clip the case securely to
+                the shoe.
+              </li>
+            </ol>
+            <div class="slide-actions">
+              <button type="button" onclick="goToSlide(3)">Previous</button>
+              <button type="button" onclick="openModal('sensorCheckModal')">Sensor Check</button>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div class="panel">
-        <h3>Learn More</h3>
-        <p>Explore:</p>
-        <button onclick="openModal('hardwareModal')">Hardware Assembly</button>
-        <button onclick="openModal('logicModal')">Logic Unit</button>
-        <button onclick="openModal('udpModal')">Data Communication (UDP)</button>
-        <button onclick="openModal('wearableModal')">Wearable Robotics</button>
-      </div>
-
-      <div class="panel">
-        <h3>Pressure Sensor Testing</h3>
-        <p class="infodata">Forefoot Sensor</p>
-        <div id="data-window2"></div>
-        <p class="infodata">Heel Sensor</p>
-        <div id="data-window1"></div>
-        <a href="#" onclick="stopDataAndNavigate('/')">I'm Ready!</a>
+      <div class="slide-dots" aria-label="Setup guide pagination">
+        <button type="button" class="slide-dot is-active" aria-label="Go to slide 1" aria-current="true" onclick="goToSlide(0)"></button>
+        <button type="button" class="slide-dot" aria-label="Go to slide 2" aria-current="false" onclick="goToSlide(1)"></button>
+        <button type="button" class="slide-dot" aria-label="Go to slide 3" aria-current="false" onclick="goToSlide(2)"></button>
+        <button type="button" class="slide-dot" aria-label="Go to slide 4" aria-current="false" onclick="goToSlide(3)"></button>
+        <button type="button" class="slide-dot" aria-label="Go to slide 5" aria-current="false" onclick="goToSlide(4)"></button>
       </div>
     </div>
-  </div>
+  </main>
 
-  <a href="#" onclick="stopDataAndNavigate('/')">Home</a>
+  <div id="sensorCheckModal" class="modal" onclick="event.stopPropagation()">
+    <div class="modal-content pressure-modal-content" onclick="event.stopPropagation()">
+      <span class="close" onclick="closeModal('sensorCheckModal')">&times;</span>
+      <h2>Sensor Check</h2>
+      <div class="sensor-check-grid">
+        <section class="sensor-panel">
+          <h3>Pressure Sensors</h3>
+          <p>Press the heel and forefoot zones to confirm both pressure sensors respond on the insole view.</p>
+          <div class="sensor-scale" aria-hidden="true"></div>
+          <div class="pressure-stage">
+            <svg class="pressure-insole" viewBox="0 0 280 780" role="img" aria-label="Live insole pressure gradient from heel to toe">
+              <defs>
+                <linearGradient id="pressureGradient" x1="50%" y1="100%" x2="50%" y2="0%">
+                  <stop id="heelGradientStop" offset="0%" stop-color="#ffffff"></stop>
+                  <stop id="midGradientStop" offset="56%" stop-color="#ffffff"></stop>
+                  <stop id="forefootGradientStop" offset="100%" stop-color="#ffffff"></stop>
+                </linearGradient>
+              </defs>
+              <path
+                d="M140 20 C195 18 235 50 252 102 C270 156 264 226 243 291 C222 355 204 407 201 489 C198 559 208 633 198 700 C190 752 166 780 134 780 C102 780 77 752 70 702 C61 637 71 561 67 489 C64 408 46 355 25 291 C4 228 -2 158 17 102 C33 54 75 20 140 20 Z"
+                fill="url(#pressureGradient)"
+                stroke="#1f1f1f"
+                stroke-width="5"
+                stroke-linejoin="round"
+              ></path>
+            </svg>
+          </div>
+          <div class="sensor-readings">
+            <div class="sensor-reading">
+              <span>Heel Pressure</span>
+              <strong id="heelPressureValue">0</strong>
+            </div>
+            <div class="sensor-reading">
+              <span>Forefoot Pressure</span>
+              <strong id="forePressureValue">0</strong>
+            </div>
+          </div>
+        </section>
 
-  <!-- Existing Modals -->
-  <div id="hardwareModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal('hardwareModal')">&times;</span>
-      <h2>Hardware Assembly</h2>
-      <p>
-        The hardware assembly consists of two Force Sensing Resistors (FSRs) mounted under the heel and forefoot. These sensors vary their resistance inversely with applied pressure, producing analog voltage signals proportional to foot force.  
-        <br><br>
-        The FSRs connect to an Analog-to-Digital Converter (ADC) interface that digitizes the signals for processing. The system uses the Serial Peripheral Interface (SPI) bus to communicate with ADCs that read heel and forefoot pressure sensor data, performing synchronous serial data transfers.  
-        <br><br>
-        The hardware assembly also contains an IMU (inertial measurement unit). An IMU is used to measure position. Specifically, the SonicSole takes advantage of the IMU's accelerometer. The system uses UART (Universal Asynchronous Receiver/Transmitter) communication to receive continuous data from the IMU, transmitting readings to the Raspberry Pi through a serial interface.
-        <br><br>
-        The hardware assembly is embedded within the insole, which was designed in Solidworks (a CAD (computer-aided design) software). and 3D printed using a flexible filament, TPU (Thermoplastic Polyurethane).
-      </p>
-    </div>
-  </div>
-
-  <div id="logicModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal('logicModal')">&times;</span>
-      <h2>Logic Unit</h2>
-      <p>
-        The logic unit, housed in a 3D printed case, is the control center of the system. It contains a Raspberry Pi and a HAT (hardware attached on top) accessory board for interfacing with the sensors.  
-        <br><br>
-        The Pi runs a script that continuously reads values from the sensors and packages the data into UDP (User Datagram Protocol) packets for transmission.  
-        <br><br>
-        Power is supplied by a rechargeable 3.7V LiPo (Lithium Polymer) battery. The device also includes an audio amplifier and miniature speaker.  
-      </p>
+        <section class="sensor-panel">
+          <h3>IMU Orientation</h3>
+          <p>Rotate the instrumented insole and verify the 3D model follows the live IMU orientation.</p>
+          <div id="imuViewer" class="imu-viewer" aria-label="3D IMU orientation preview"></div>
+          <div class="sensor-metadata">
+            <div class="sensor-reading sensor-reading--wide">
+              <span>IMU Feed</span>
+              <strong id="imuModeValue">Waiting for IMU orientation</strong>
+            </div>
+            <div class="sensor-reading sensor-reading--wide">
+              <span>Quaternion</span>
+              <strong id="imuQuaternionValue">w 1.000  x 0.000  y 0.000  z 0.000</strong>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="slide-actions pressure-modal-actions">
+        <button type="button" onclick="closeModal('sensorCheckModal')">Back to Setup</button>
+      </div>
     </div>
   </div>
 
@@ -384,78 +1031,7 @@
     <div class="modal-content">
       <span class="close" onclick="closeModal('InsoleImageModal')">&times;</span>
       <h2>Custom 3D Printed (TPU) Insole</h2>
-      <img src="{{ url_for('static', filename='insole.png') }}" alt="Custom Insole">
-    </div>
-  </div>
-
-  <div id="udpModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal('udpModal')">&times;</span>
-      <h2>Data Communication (UDP)</h2>
-      <p>
-        The system transmits sensor data using UDP (User Datagram Protocol), a connectionless communication method ideal for real-time applications.  
-        <br><br>
-        Each packet contains the sensor readings encoded as bytes and sent over the local network to the host (also the Raspberry Pi) running the Flask web interface.  
-        <br><br>
-        On the receiving end, the Flask server decodes these packets, using the data for various applications.
-      </p>
-      <img src="{{ url_for('static', filename='udp_diagram.png') }}" alt="UDP Diagram">
-    </div>
-  </div>
-
-
-  <div id="wearableModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal('wearableModal')">&times;</span>
-      <h2>Wearable Robotics</h2>
-      <p>
-        Wearable robotics refers to assistive devices that augment or restore human movement and capability through mechanical, electronic, and software systems. 
-        These include exoskeletons, prosthetics, and sensor-integrated wearables designed to enhance mobility, reduce fatigue, and improve rehabilitation outcomes. 
-        <br><br>
-        By combining biomechanics, embedded systems, and intelligent control, wearable robotics enables real-time interaction between human and machine, 
-        creating new frontiers in healthcare, manufacturing, and personal performance.
-      </p>
-      <div style="text-align:center; margin-top:1.5rem;">
-        <button onclick="closeModal('wearableModal'); openModal('videoLibraryModal');">Open Video Library</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- New Video Library Modal -->
-  <div id="videoLibraryModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal('videoLibraryModal')">&times;</span>
-      <h2>Wearable Robotics Video Library</h2>
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-top:1.5rem;">
-        <div>
-          <h3>Powered Exoskeletons for Assistance and
-            Rehabilitation: Classification and Applications</h3>
-          <video controls><source src="{{ url_for('static', filename='video1.mp4') }}" type="video/mp4"></video>
-          <video controls><source src="{{ url_for('static', filename='video2.mp4') }}" type="video/mp4"></video>
-        </div>
-        <div>
-          <h3>Principles of Human Motor Learning</h3>
-          <video controls><source src="{{ url_for('static', filename='video3.mov') }}" type="video/mp4"></video>
-          <video controls><source src="{{ url_for('static', filename='video4.mov') }}" type="video/mp4"></video>
-        </div>
-        <div>
-          <h3>Human Motor Learning in Exercise Based Rehab</h3>
-          <video controls><source src="{{ url_for('static', filename='video5.mov') }}" type="video/mp4"></video>
-        </div>
-        <div>
-          <h3>Kinematics of the Gait Cycle</h3>
-          <video controls><source src="{{ url_for('static', filename='video6.mp4') }}" type="video/mp4"></video>
-        </div>
-        <div>
-          <h3>Kinematics & Power Analysis of the Gait Cycle</h3>
-          <video controls><source src="{{ url_for('static', filename='video7.mp4') }}" type="video/mp4"></video>
-        </div>
-        <div>
-          <h3>Intro to Human Motion Analysis</h3>
-          <video controls><source src="{{ url_for('static', filename='video8.mp4') }}"type="video/mp4"></video>
-        </div>
-      </div>
+      <img src="{{ url_for('static', filename='image0.jpeg') }}" alt="Custom Insole">
     </div>
   </div>
 

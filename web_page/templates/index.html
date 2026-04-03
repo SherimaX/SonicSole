@@ -169,7 +169,8 @@
       }
 
     </style>
-    <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
+    <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
       let myChart;
@@ -240,14 +241,6 @@
         setInterval(fetchData, 200);
       };
 
-      function openModal() {
-        document.getElementById("instructionsModal").style.display = "flex";
-      }
-
-      function closeModal() {
-        document.getElementById("instructionsModal").style.display = "none";
-      }
-
       function submitForm(event) {
         event.preventDefault(); // Prevent form submission
         var form = document.getElementById("name-form");
@@ -284,28 +277,13 @@
       <h1>SonicSole</h1>
     </div>
     <form id="name-form" action="/submit" method="POST">
-      <input type="text" name="first_name2" id="first_name2" placeholder="Enter First Name" required />
-      <br />
-      <input type="text" name="last_name2" id="last_name2" placeholder="Enter Last Name" required />
+      <input type="text" name="group_name" id="group_name" placeholder="Enter Group Name" required />
       <button type="submit">Submit</button>
     </form>
             <div class="content">
     <form action="/button" method="post">
       <button type="submit" class="startButton">Play</button>
     </form>
-    <button onclick="openModal()">Instructions</button>
-
-    <div id="instructionsModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2>Instructions</h2>
-        <p>
-          Press the play button. From there, your goal is to jump as high as you
-          can. By jumping higher, the sensors of your SonicSole kit should
-          indicate higher force.
-        </p>
-      </div>
-    </div>
     <h3>Heel Data</h3>
     <div style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
     <div id="data-window1">

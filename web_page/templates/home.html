@@ -87,8 +87,11 @@
       color: var(--text-subtle);
     }
 
-    .instructions-button {
+    .setup-guide-fab {
       display: inline-block;
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
       font-size: 1rem;
       font-weight: 700;
       letter-spacing: 0.03em;
@@ -99,20 +102,194 @@
       border-radius: 999px;
       text-decoration: none;
       box-shadow: 0 16px 28px rgba(122, 28, 28, 0.18);
+      transform: translateX(-50%);
       transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      z-index: 20;
     }
 
-    .instructions-button:hover {
+    .setup-guide-fab:hover {
       background: linear-gradient(135deg, #8d2222, var(--accent-dark));
-      transform: translateY(-2px) scale(1.02);
+      transform: translateX(-50%) translateY(-2px) scale(1.02);
       box-shadow: 0 20px 34px rgba(122, 28, 28, 0.22);
+    }
+
+    .hardware-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 54px;
+      height: 54px;
+      border: 1px solid rgba(52, 16, 16, 0.16);
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent), #a12727);
+      color: #fff;
+      box-shadow: 0 22px 36px rgba(122, 28, 28, 0.24);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      z-index: 20;
+    }
+
+    .hardware-fab:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 26px 42px rgba(122, 28, 28, 0.3);
+      background: linear-gradient(135deg, #8d2222, var(--accent-dark));
+    }
+
+    .hardware-fab__icon {
+      width: 26px;
+      height: 26px;
+      stroke: currentColor;
+      overflow: visible;
+    }
+
+    .hardware-modal {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(45, 38, 29, 0.4);
+      backdrop-filter: blur(8px);
+      z-index: 30;
+    }
+
+    .hardware-modal[hidden] {
+      display: none;
+    }
+
+    .hardware-modal__dialog {
+      position: relative;
+      width: min(100%, 420px);
+    }
+
+    .hardware-monitor {
+      padding: 22px 20px 18px;
+      border-radius: 24px;
+      background: rgba(255, 248, 238, 0.96);
+      border: 1px solid rgba(52, 16, 16, 0.12);
+      box-shadow: 0 22px 42px rgba(65, 43, 26, 0.2);
+      backdrop-filter: blur(12px);
+      text-align: left;
+      max-height: min(78vh, 560px);
+      overflow-y: auto;
+    }
+
+    .hardware-monitor__eyebrow {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-subtle);
+      margin-bottom: 6px;
+    }
+
+    .hardware-monitor__title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--accent-dark);
+    }
+
+    .hardware-monitor__summary {
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: var(--text-subtle);
+      margin-bottom: 16px;
+    }
+
+    .hardware-monitor__list {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .hardware-monitor__item {
+      display: grid;
+      grid-template-columns: 14px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid rgba(52, 16, 16, 0.08);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .hardware-monitor__item.is-online {
+      background: rgba(235, 248, 239, 0.92);
+      border-color: rgba(43, 155, 83, 0.2);
+    }
+
+    .hardware-monitor__item.is-offline {
+      background: rgba(255, 242, 242, 0.92);
+      border-color: rgba(179, 65, 65, 0.16);
+    }
+
+    .hardware-monitor__item.is-unavailable {
+      background: rgba(255, 247, 234, 0.96);
+      border-color: rgba(201, 139, 46, 0.2);
+    }
+
+    .hardware-monitor__indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: #b44141;
+      box-shadow: 0 0 0 4px rgba(179, 65, 65, 0.16);
+    }
+
+    .hardware-monitor__indicator.is-online {
+      background: #2b9b53;
+      box-shadow: 0 0 0 4px rgba(43, 155, 83, 0.18);
+    }
+
+    .hardware-monitor__indicator.is-unavailable {
+      background: #c98b2e;
+      box-shadow: 0 0 0 4px rgba(201, 139, 46, 0.16);
+    }
+
+    .hardware-monitor__copy {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+
+    .hardware-monitor__name {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .hardware-monitor__ip {
+      font-size: 0.8rem;
+      color: var(--text-subtle);
+      letter-spacing: 0.02em;
+    }
+
+    .hardware-monitor__state {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #b44141;
+    }
+
+    .hardware-monitor__state.is-online {
+      color: #2b9b53;
+    }
+
+    .hardware-monitor__state.is-unavailable {
+      color: #c98b2e;
     }
 
     .card-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 25px;
-      padding: 50px 30px;
+      padding: 50px 30px 120px;
       width: 100%;
       max-width: 1200px;
     }
@@ -152,7 +329,7 @@
     }
 
     .card:nth-child(4)::before {
-      background: linear-gradient(90deg, #ff8b28, #aeb8c6, #20242c);
+      background: linear-gradient(90deg, #8dc4cc, #d9e7ea, #22343a);
     }
 
     .card:nth-child(5)::before {
@@ -195,7 +372,7 @@
     }
 
     .card:nth-child(4) .card-title {
-      background: linear-gradient(135deg, rgba(255, 227, 198, 0.95), rgba(244, 247, 250, 0.84));
+      background: linear-gradient(135deg, rgba(220, 240, 243, 0.95), rgba(245, 250, 250, 0.84));
     }
 
     .card:nth-child(5) .card-title {
@@ -209,42 +386,128 @@
       .sub {
         font-size: 1.2rem;
       }
-      .instructions-button {
+      .setup-guide-fab {
         font-size: 1rem;
         padding: 10px 20px;
+        bottom: 18px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .hardware-fab {
+        bottom: 18px;
+        right: 18px;
+        width: 46px;
+        height: 46px;
+      }
+
+      .hardware-fab__icon {
+        width: 22px;
+        height: 22px;
+      }
+
+      .hardware-modal {
+        padding: 16px;
       }
     }
   </style>
-  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
+  <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
 </head>
-<body>
+<body class="pg-home">
 
-  <header>
+  <button
+    class="hardware-fab"
+    id="hardwareMonitorTrigger"
+    type="button"
+    aria-haspopup="dialog"
+    aria-controls="hardwareMonitorModal"
+    aria-expanded="false"
+    aria-label="Open hardware monitor"
+    title="Open hardware monitor"
+  >
+    <svg class="hardware-fab__icon" viewBox="0 0 24 24" fill="none" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="4.2" y="4.2" width="15.6" height="15.6" rx="2.3"></rect>
+      <path d="M7.3 1.9v3"></path>
+      <path d="M12 1.9v3"></path>
+      <path d="M16.7 1.9v3"></path>
+      <path d="M7.3 19.1v3"></path>
+      <path d="M12 19.1v3"></path>
+      <path d="M16.7 19.1v3"></path>
+      <path d="M1.9 7.3h3"></path>
+      <path d="M1.9 12h3"></path>
+      <path d="M1.9 16.7h3"></path>
+      <path d="M19.1 7.3h3"></path>
+      <path d="M19.1 12h3"></path>
+      <path d="M19.1 16.7h3"></path>
+      <rect x="8.1" y="8.1" width="7.8" height="7.8" rx="1.2" fill="currentColor" stroke="none"></rect>
+    </svg>
+  </button>
+
+  <div class="hardware-modal" id="hardwareMonitorModal" hidden>
+    <div
+      class="hardware-modal__dialog"
+      id="hardwareMonitorDialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="hardware-monitor-title"
+      tabindex="-1"
+    >
+      <aside class="hardware-monitor">
+        <p class="hardware-monitor__eyebrow">Hardware Monitor</p>
+        <h2 class="hardware-monitor__title" id="hardware-monitor-title">Device Connectivity</h2>
+        <p class="hardware-monitor__summary" id="hardwareMonitorSummary">Checking device reachability...</p>
+
+        <ul class="hardware-monitor__list">
+          {% for group in group_options %}
+          <li class="hardware-monitor__item is-offline" data-device-id="{{ group.id }}">
+            <span class="hardware-monitor__indicator is-offline" aria-hidden="true"></span>
+            <div class="hardware-monitor__copy">
+              <span class="hardware-monitor__name">{{ group.label }}</span>
+              <span class="hardware-monitor__ip">{{ group.ip }}</span>
+            </div>
+            <span class="hardware-monitor__state is-offline">Offline</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </aside>
+    </div>
+  </div>
+
+  <header class="pg-home-titlebar">
     <h1>SonicSole</h1>
-    <p class="sub">An Interactive Lab Experience</p>
-    <a href="/assemblyInstructions" class="instructions-button">Introduction & Set Up</a>
   </header>
 
-  <div class="card-grid">
+  <a href="/assemblyInstructions" class="instructions-button setup-guide-fab">Setup Guide</a>
+
+  <div class="card-grid" id="activities">
     <a class="card" href="/jump">
       <img src="{{ url_for('static', filename='Jumping.png') }}" alt="Jumping" />
-      <div class="card-title">Jumping Activity</div>
+      <div class="card-copy">
+        <p class="card-kicker">Performance</p>
+        <div class="card-title">Jumping</div>
+      </div>
     </a>
     <a class="card" href="/balance">
       <img src="{{ url_for('static', filename='Balancing.png') }}" alt="Balancing">
-      <div class="card-title">Balancing Activity</div>
+      <div class="card-copy">
+        <p class="card-kicker">Stability</p>
+        <div class="card-title">Balancing</div>
+      </div>
     </a>
     <a class="card" href="/reaction">
       <img src="{{ url_for('static', filename='Reaction.png') }}" alt="Reaction">
-      <div class="card-title">Reaction Time Activity</div>
+      <div class="card-copy">
+        <p class="card-kicker">Timing</p>
+        <div class="card-title">Reaction</div>
+      </div>
     </a>
-    <a class="card" href="/forceSensitivity">
-      <img src="{{ url_for('static', filename='Pressure.png') }}" alt="Force Sensitivity">
-      <div class="card-title">Force Sensitivity Activity</div>
-    </a>
-    <a class="card" href="/foreWalk">
-      <img src="{{ url_for('static', filename='ForeFootWalk.png') }}" alt="Walk">
-      <div class="card-title">Forefoot Walk Activity</div>
+    <a class="card" href="/precision">
+      <img src="{{ url_for('static', filename='Pressure.png') }}" alt="Precision">
+      <div class="card-copy">
+        <p class="card-kicker">Control</p>
+        <div class="card-title">Precision</div>
+      </div>
     </a>
     <!-- <a class="card" href="/piano">
       <img src="{{ url_for('static', filename='Piano.png') }}" alt="Piano">
@@ -263,6 +526,158 @@
       <div class="card-title">Step Timing Activity</div>
     </a> -->
   </div>
+
+  <script>
+    const hardwareMonitorSummary = document.getElementById("hardwareMonitorSummary");
+    const hardwareMonitorModal = document.getElementById("hardwareMonitorModal");
+    const hardwareMonitorDialog = document.getElementById("hardwareMonitorDialog");
+    const hardwareMonitorTrigger = document.getElementById("hardwareMonitorTrigger");
+    const hardwareMonitorRows = new Map(
+      Array.from(document.querySelectorAll("[data-device-id]")).map((row) => [
+        row.dataset.deviceId,
+        row,
+      ])
+    );
+
+    function formatAgeLabel(seconds) {
+      if (typeof seconds !== "number" || Number.isNaN(seconds)) {
+        return "Checked just now.";
+      }
+      if (seconds < 1) {
+        return "Checked just now.";
+      }
+      if (seconds < 60) {
+        return `Checked ${Math.round(seconds)}s ago.`;
+      }
+      return `Checked ${Math.round(seconds / 60)}m ago.`;
+    }
+
+    function setHardwareRowState(row, statusVariant, stateLabel) {
+      if (!row) return;
+
+      row.classList.toggle("is-online", statusVariant === "online");
+      row.classList.toggle("is-unavailable", statusVariant === "unavailable");
+      row.classList.toggle(
+        "is-offline",
+        statusVariant !== "online" && statusVariant !== "unavailable"
+      );
+
+      const indicator = row.querySelector(".hardware-monitor__indicator");
+      const state = row.querySelector(".hardware-monitor__state");
+
+      if (indicator) {
+        indicator.classList.toggle("is-online", statusVariant === "online");
+        indicator.classList.toggle("is-unavailable", statusVariant === "unavailable");
+        indicator.classList.toggle(
+          "is-offline",
+          statusVariant !== "online" && statusVariant !== "unavailable"
+        );
+      }
+
+      if (state) {
+        state.textContent = stateLabel;
+        state.classList.toggle("is-online", statusVariant === "online");
+        state.classList.toggle("is-unavailable", statusVariant === "unavailable");
+        state.classList.toggle(
+          "is-offline",
+          statusVariant !== "online" && statusVariant !== "unavailable"
+        );
+      }
+    }
+
+    function renderHardwareStatus(payload) {
+      const devices = Array.isArray(payload.devices) ? payload.devices : [];
+      const connectedCount = devices.filter((device) => device.connected).length;
+      const unavailableCount = devices.filter((device) => device.probe_error).length;
+      const latestAge = devices.length
+        ? Math.max(
+            ...devices.map((device) =>
+              typeof device.checked_age_seconds === "number"
+                ? device.checked_age_seconds
+                : 0
+            )
+          )
+        : 0;
+
+      devices.forEach((device) => {
+        const row = hardwareMonitorRows.get(device.id);
+        const statusVariant = device.connected
+          ? "online"
+          : device.probe_error
+            ? "unavailable"
+            : "offline";
+        const stateLabel = device.connected
+          ? "Online"
+          : device.probe_error
+            ? "Unavailable"
+            : "Offline";
+        setHardwareRowState(row, statusVariant, stateLabel);
+      });
+
+      if (!devices.length) {
+        hardwareMonitorSummary.textContent = "No hardware devices are configured yet.";
+        return;
+      }
+
+      if (unavailableCount === devices.length) {
+        hardwareMonitorSummary.textContent =
+          "Connectivity checks are unavailable on this host right now.";
+        return;
+      }
+
+      hardwareMonitorSummary.textContent =
+        unavailableCount > 0
+          ? `${connectedCount} of ${devices.length} devices reachable. ${unavailableCount} checks unavailable. ${formatAgeLabel(latestAge)}`
+          : `${connectedCount} of ${devices.length} devices reachable. ${formatAgeLabel(latestAge)}`;
+    }
+
+    async function refreshHardwareStatus() {
+      try {
+        const response = await fetch("/hardware_status", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`hardware_status returned ${response.status}`);
+        }
+
+        const payload = await response.json();
+        renderHardwareStatus(payload);
+      } catch (error) {
+        hardwareMonitorRows.forEach((row) => {
+          setHardwareRowState(row, "offline", "Offline");
+        });
+        hardwareMonitorSummary.textContent = "Unable to check device connectivity right now.";
+      }
+    }
+
+    function openHardwareModal() {
+      hardwareMonitorModal.hidden = false;
+      hardwareMonitorTrigger.setAttribute("aria-expanded", "true");
+      refreshHardwareStatus();
+      hardwareMonitorDialog.focus();
+    }
+
+    function closeHardwareModal() {
+      hardwareMonitorModal.hidden = true;
+      hardwareMonitorTrigger.setAttribute("aria-expanded", "false");
+      hardwareMonitorTrigger.focus();
+    }
+
+    hardwareMonitorTrigger.addEventListener("click", openHardwareModal);
+
+    hardwareMonitorModal.addEventListener("click", (event) => {
+      if (event.target === hardwareMonitorModal) {
+        closeHardwareModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !hardwareMonitorModal.hidden) {
+        closeHardwareModal();
+      }
+    });
+
+    refreshHardwareStatus();
+    window.setInterval(refreshHardwareStatus, 5000);
+  </script>
 
 </body>
 </html>

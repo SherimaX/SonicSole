@@ -1,0 +1,5 @@
+Group 1,4.8
+Group 2,6.1
+Group 3,3.9
+Group 4,5.2
+Group 5,4.4

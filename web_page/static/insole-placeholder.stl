@@ -1,0 +1,235 @@
+solid insole_placeholder
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 0.04
+      vertex 0.45 1.75 0.04
+      vertex 0.85 1.35 0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 0.04
+      vertex 0.85 1.35 0.04
+      vertex 0.85 -1.35 0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 0.04
+      vertex 0.85 -1.35 0.04
+      vertex 0.45 -1.75 0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 0.04
+      vertex 0.45 -1.75 0.04
+      vertex -0.45 -1.75 0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 0.04
+      vertex -0.45 -1.75 0.04
+      vertex -0.85 -1.35 0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 0.04
+      vertex -0.85 -1.35 0.04
+      vertex -0.85 1.35 0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 0.04
+      vertex -0.85 1.35 0.04
+      vertex -0.45 1.75 0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 0.04
+      vertex -0.45 1.75 0.04
+      vertex 0.45 1.75 0.04
+    endloop
+  endfacet
+
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 -0.04
+      vertex 0.85 1.35 -0.04
+      vertex 0.45 1.75 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 -0.04
+      vertex 0.85 -1.35 -0.04
+      vertex 0.85 1.35 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 -0.04
+      vertex 0.45 -1.75 -0.04
+      vertex 0.85 -1.35 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 -0.04
+      vertex -0.45 -1.75 -0.04
+      vertex 0.45 -1.75 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 -0.04
+      vertex -0.85 -1.35 -0.04
+      vertex -0.45 -1.75 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 -0.04
+      vertex -0.85 1.35 -0.04
+      vertex -0.85 -1.35 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 -0.04
+      vertex -0.45 1.75 -0.04
+      vertex -0.85 1.35 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0 0 -0.04
+      vertex 0.45 1.75 -0.04
+      vertex -0.45 1.75 -0.04
+    endloop
+  endfacet
+
+  facet normal 0 0 0
+    outer loop
+      vertex 0.45 1.75 0.04
+      vertex 0.45 1.75 -0.04
+      vertex 0.85 1.35 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0.45 1.75 0.04
+      vertex 0.85 1.35 -0.04
+      vertex 0.85 1.35 0.04
+    endloop
+  endfacet
+
+  facet normal 0 0 0
+    outer loop
+      vertex 0.85 1.35 0.04
+      vertex 0.85 1.35 -0.04
+      vertex 0.85 -1.35 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0.85 1.35 0.04
+      vertex 0.85 -1.35 -0.04
+      vertex 0.85 -1.35 0.04
+    endloop
+  endfacet
+
+  facet normal 0 0 0
+    outer loop
+      vertex 0.85 -1.35 0.04
+      vertex 0.85 -1.35 -0.04
+      vertex 0.45 -1.75 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0.85 -1.35 0.04
+      vertex 0.45 -1.75 -0.04
+      vertex 0.45 -1.75 0.04
+    endloop
+  endfacet
+
+  facet normal 0 0 0
+    outer loop
+      vertex 0.45 -1.75 0.04
+      vertex 0.45 -1.75 -0.04
+      vertex -0.45 -1.75 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex 0.45 -1.75 0.04
+      vertex -0.45 -1.75 -0.04
+      vertex -0.45 -1.75 0.04
+    endloop
+  endfacet
+
+  facet normal 0 0 0
+    outer loop
+      vertex -0.45 -1.75 0.04
+      vertex -0.45 -1.75 -0.04
+      vertex -0.85 -1.35 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex -0.45 -1.75 0.04
+      vertex -0.85 -1.35 -0.04
+      vertex -0.85 -1.35 0.04
+    endloop
+  endfacet
+
+  facet normal 0 0 0
+    outer loop
+      vertex -0.85 -1.35 0.04
+      vertex -0.85 -1.35 -0.04
+      vertex -0.85 1.35 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex -0.85 -1.35 0.04
+      vertex -0.85 1.35 -0.04
+      vertex -0.85 1.35 0.04
+    endloop
+  endfacet
+
+  facet normal 0 0 0
+    outer loop
+      vertex -0.85 1.35 0.04
+      vertex -0.85 1.35 -0.04
+      vertex -0.45 1.75 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex -0.85 1.35 0.04
+      vertex -0.45 1.75 -0.04
+      vertex -0.45 1.75 0.04
+    endloop
+  endfacet
+
+  facet normal 0 0 0
+    outer loop
+      vertex -0.45 1.75 0.04
+      vertex -0.45 1.75 -0.04
+      vertex 0.45 1.75 -0.04
+    endloop
+  endfacet
+  facet normal 0 0 0
+    outer loop
+      vertex -0.45 1.75 0.04
+      vertex 0.45 1.75 -0.04
+      vertex 0.45 1.75 0.04
+    endloop
+  endfacet
+endsolid insole_placeholder

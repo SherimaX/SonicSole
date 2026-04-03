@@ -18,10 +18,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       min-height: 100vh;
       margin: 0;
-      padding: 0;
+      padding: 32px 20px;
       font-family: "Trebuchet MS", "Avenir Next", sans-serif;
       background:
         radial-gradient(circle at 20% 0%, rgba(200, 154, 61, 0.32), transparent 24%),
@@ -57,8 +57,7 @@
 
     h1 {
       font-size: 4.5em;
-      margin-top: 1.6em;
-      margin-bottom: 20px;
+      margin: 0;
       font-family: "Georgia", "Times New Roman", serif;
       color: var(--gold);
       letter-spacing: 0.08em;
@@ -84,6 +83,12 @@
     button:hover {
       background: linear-gradient(135deg, #2bc3b7, var(--primary-dark));
       transform: translateY(-2px);
+    }
+
+    button.is-active {
+      background: linear-gradient(135deg, rgba(200, 154, 61, 0.95), var(--primary));
+      color: #fff;
+      box-shadow: 0 18px 30px rgba(200, 154, 61, 0.28);
     }
 
     .modal {
@@ -122,9 +127,9 @@
     }
 
     .content {
-      display: none;
+      display: block;
       text-align: center;
-      margin-top: 1em;
+      margin-top: 0;
     }
 
     .buttons {
@@ -137,8 +142,8 @@
     }
 
     #pressureVisuals {
-      display: none;
-      margin-top: 1em;
+      display: block;
+      margin-top: 0;
     }
 
     .data-box {
@@ -173,20 +178,37 @@
       color: #fff7ec;
     }
   </style>
-  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
+  <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='playground-activity-toggle.js') }}"></script>
   <script>
-    function openModal() {
-      document.getElementById("instructionsModal").style.display = "flex";
+    let pianoActivityToggle = null;
+
+    function resetPianoUI() {
+      if (window.pianoPolling) {
+        clearInterval(window.pianoPolling);
+        window.pianoPolling = null;
+      }
+      document.getElementById("data-window-heel").style.backgroundColor = "rgba(20, 23, 28, 0.82)";
+      document.getElementById("data-window-fore").style.backgroundColor = "rgba(20, 23, 28, 0.82)";
     }
 
-    function closeModal() {
-      document.getElementById("instructionsModal").style.display = "none";
-    }
+    async function startPiano({ signal }) {
+      if (!ensureGroupSelected("Please select a group before starting piano.")) {
+        throw createHandledActivityError("Group selection required.");
+      }
 
-    function startActivity() {
-      closeModal();
-      document.querySelector(".content").style.display = "block";
-      document.getElementById("pressureVisuals").style.display = "block";
+      resetPianoUI();
+      const response = await fetch("/piano_start", { signal });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to start piano.");
+      }
+      if (window.pianoPolling) {
+        clearInterval(window.pianoPolling);
+      }
+      fetchData();
+      window.pianoPolling = setInterval(fetchData, 150);
     }
 
     function fetchData() {
@@ -201,46 +223,46 @@
     }
 
     function stopDataAndNavigate(url) {
-      fetch('/stop_data', { method: 'POST' }).then(() => {
+      stopActivitySession().then(() => {
         window.location.href = url;
       });
     }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      resetPianoUI();
+      pianoActivityToggle = createActivityToggle({
+        buttonId: "startButton",
+        idleLabel: "Start",
+        activeLabel: "Stop",
+        start: startPiano,
+        stop: stopActivitySession,
+        onReset: resetPianoUI,
+        onError: (error) => {
+          if (!error || error.handled) {
+            return;
+          }
+          alert(error.message || "Unable to start piano.");
+        },
+      });
+    });
   </script>
 </head>
 <body>
   <h1>Piano Activity</h1>
 
-
-  <button onclick="openModal()">Instructions</button>
-
-
-  <div id="instructionsModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <h2>Instructions</h2>
-      <p>
-        This activity simulates a "piano" on the ground! Move your foot with the SonicSole
-        horizontally and tap the ground to play a sound. The IMU measures your horizontal acceleration,
-        integrates it twice to calculate distance moved, and determines which note is played.
-      </p>
-      <button onclick="startActivity()">Start Activity</button>
-    </div>
-  </div>
-
-  <!-- Hidden content until activity starts -->
   <div class="content">
-    <div class="buttons">
-      <button id="startButton">Start Piano</button>
-    </div>
     <div id="pressureVisuals">
       <div class="data-box" id="data-window-fore">Fore Pressure</div>
       <div class="data-box" id="data-window-heel">Heel Pressure</div>
     </div>
+    <div class="buttons">
+      <button id="startButton">Start</button>
+    </div>
   </div>
 
-  <!-- Always-visible footer buttons -->
-  <div style="margin-top:auto; margin-bottom:20px;">
-    <a href="#" onclick="stopDataAndNavigate('/')" class="btn">Home</a>
+  {% include '_group_selector.html' %}
+
+  <div style="margin-bottom:20px; display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
     <a href="{{ url_for('piano') }}"><button id="res">Reset</button></a>
   </div>
 </body>

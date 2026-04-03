@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SonicSole | Balancing Activity</title>
+  <title>SonicSole | Balancing</title>
   <style>
     :root {
       --primary: #284b3e;
@@ -240,63 +240,59 @@
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
-  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
+  <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='playground-activity-toggle.js') }}"></script>
 </head>
 
-<body>
-  <header>
-    <h1>SonicSole</h1>
-    <!-- <p>Your personal balance and stability trainer</p> -->
-  </header>
-
-  <div class="card">
-    <h2>Balancing Activity</h2>
-    <p>Test your balance and observe the effect of vision on stability.</p>
-    <div id="countdown" class="countdown"></div>
-
-    <div class="buttons">
-      <button id="startButton">Start Balancing</button>
-      <button class="btn-outline" onclick="openModal()">Instructions</button>
-    </div>
-
-    <div id="instructionsModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2>Instructions</h2>
-        <p>
-          Predict whether balancing will be easier with your eyes covered or uncovered.  
-          Press <strong>Start Balancing</strong>, close your eyes if you choose to do so, and lift your SonicSole leg off the ground.  
-          Keep balancing as long as possible — the timer stops when the sensors detect contact with the floor. 
-        </p>
-      </div>
-    </div>
-
-    <div id="balanceDataLocation">Data</div>
-
-    <form id="name-form" style="display: none;">
-      <input type="text" name="first_name" id="first_name" placeholder="First Name" required><br>
-      <input type="text" name="last_name" id="last_name" placeholder="Last Name" required><br>
-      <div class="eye">
-        <input type="radio" id="eyesClosed" name="eyes" value="0"><label for="eyesClosed">Eyes Closed</label><br>
-        <input type="radio" id="eyesOpened" name="eyes" value="1"><label for="eyesOpened">Eyes Opened</label><br>
-      </div>
-      <button type="button" onclick="submitForm(event)">Submit</button>
-    </form>
-    <div id="thankYouMessage" style="display: none; font-size: 1.3em; color: var(--primary-dark); margin-top: 15px;">
-      Thank you for submitting!
-    </div>
-    <div style="margin-top: 20px;">
-      <a class="btn-outline" href="/bScoreboard">View Scoreboard</a>
-    </div>
+<body class="pg-screen pg-activity pg-activity-balance">
+  <div class="pg-activity-title">
+    <header class="pg-header">
+      <h1>Balancing</h1>
+    </header>
   </div>
 
-  <footer>
-    <a class="btn-outline" href="#" onclick="stopDataAndNavigate('/')">Home</a>
-    <a class="btn-outline" href="{{ url_for('balance') }}">Reload</a>
-  </footer>
+  <div class="pg-activity-stage">
+    <div class="pg-activity-toolbar">
+      <div class="pg-header-nav">
+        <a href="{{ url_for('b_scoreboard') }}" onclick="openScoreboardModal(); return false;">Scoreboard</a>
+      </div>
+    </div>
+
+    <div class="card pg-card pg-activity-card">
+      <p>Test your balance and observe the effect of vision on stability.</p>
+      <div id="countdown" class="countdown"></div>
+
+      <div class="pg-status-stack">
+        <div id="balanceDataLocation" class="pg-data-emphasis">Data</div>
+      </div>
+
+      <div class="buttons pg-actions">
+        <button id="startButton">Start</button>
+      </div>
+
+      <form id="name-form" class="pg-inline-form" style="display: none;">
+        <p class="pg-message" style="margin: 0 0 12px;">
+          Submit this score for <strong data-selected-group-label>your selected group</strong>.
+        </p>
+        <button type="button" onclick="submitForm(event)">Submit Score</button>
+      </form>
+      <div id="thankYouMessage" class="pg-message" style="display: none; font-size: 1.3em; color: var(--primary-dark); margin-top: 15px;">
+        Thank you for submitting!
+      </div>
+    </div>
+
+    {% include '_group_selector.html' %}
+  </div>
+
+  {% set scoreboard_modal_title = "Balance Scoreboard" %}
+  {% set scoreboard_embed_url = url_for('b_scoreboard', embed=1) %}
+  {% include '_scoreboard_modal.html' %}
 
   <script>
     let formShown = false;
+    let countdownInterval = null;
+    let balanceActivityToggle = null;
 
     function fetchData() {
       fetch("/balancing")
@@ -306,31 +302,16 @@
           if (data.done && !formShown) {
             document.getElementById("name-form").style.display = "block";
             formShown = true;
+            if (balanceActivityToggle) {
+              balanceActivityToggle.setActive(false);
+            }
           }
         });
     }
 
-    window.onload = function () {
-      fetchData();
-      setInterval(fetchData, 100);
-    };
-
-    function openModal() {
-      document.getElementById("instructionsModal").style.display = "flex";
-    }
-
-    function closeModal() {
-      document.getElementById("instructionsModal").style.display = "none";
-    }
-
     function submitForm(event) {
       event.preventDefault();
-      const first = document.getElementById("first_name").value.trim();
-      const last = document.getElementById("last_name").value.trim();
-      const eyes = document.querySelector('input[name="eyes"]:checked');
-
-      if (!first || !last || !eyes) {
-        alert("Please fill out all fields and select an eye condition.");
+      if (!ensureGroupSelected("Please select a group before submitting the score.")) {
         return;
       }
 
@@ -345,15 +326,58 @@
         });
     }
 
+    function resetBalanceUI() {
+      formShown = false;
+      document.getElementById("balanceDataLocation").innerText = "Data";
+      document.getElementById("name-form").style.display = "none";
+      document.getElementById("thankYouMessage").style.display = "none";
+      const countdownElement = document.getElementById("countdown");
+      if (countdownInterval !== null) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+      countdownElement.style.display = "none";
+      countdownElement.innerHTML = "";
+    }
+
+    async function startBalance({ signal }) {
+      if (!ensureGroupSelected("Please select a group before starting balancing.")) {
+        throw createHandledActivityError("Group selection required.");
+      }
+
+      resetBalanceUI();
+      startCountdown();
+
+      const response = await fetch("/button_click", { method: "POST", signal });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to start balancing.");
+      }
+      if (data.status === "Data transmission cancelled" && balanceActivityToggle) {
+        balanceActivityToggle.setActive(false);
+      }
+    }
+
 
     document.addEventListener("DOMContentLoaded", function () {
+      resetBalanceUI();
+      fetchData();
+      setInterval(fetchData, 100);
       document.getElementById("name-form").addEventListener("submit", submitForm);
-      document.getElementById("startButton").addEventListener("click", function () {
-        startCountdown();
-        fetch("/button_click", { method: "POST" })
-          .then((response) => response.json())
-          .then((data) => console.log(data.status))
-          .catch((error) => console.error("Error:", error));
+      balanceActivityToggle = createActivityToggle({
+        buttonId: "startButton",
+        idleLabel: "Start",
+        activeLabel: "Stop",
+        start: startBalance,
+        stop: stopActivitySession,
+        onReset: resetBalanceUI,
+        onError: (error) => {
+          if (!error || error.handled) {
+            return;
+          }
+          alert(error.message || "Unable to start balancing.");
+          console.error("Error:", error);
+        },
       });
     });
 
@@ -364,7 +388,7 @@
       let countdownValue = 3;
       countdownElement.innerHTML = countdownValue;
 
-      const countdownInterval = setInterval(() => {
+      countdownInterval = setInterval(() => {
         countdownValue -= 1;
         if (countdownValue > 0) {
           countdownElement.innerHTML = countdownValue;
@@ -378,7 +402,7 @@
     }
 
     function stopDataAndNavigate(url) {
-      fetch('/stop_data', { method: 'POST' }).then(() => {
+      stopActivitySession().then(() => {
         window.location.href = url;
       });
     }

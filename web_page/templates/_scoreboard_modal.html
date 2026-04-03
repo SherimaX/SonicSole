@@ -1,0 +1,128 @@
+<div
+  id="scoreboardModal"
+  class="modal pg-scoreboard-modal"
+  onclick="if (event.target === this) closeScoreboardModal();"
+>
+  <iframe
+    id="scoreboardFrame"
+    class="pg-scoreboard-modal__frame"
+    title="{{ scoreboard_modal_title }}"
+    data-base-src="{{ scoreboard_embed_url }}"
+    loading="eager"
+    tabindex="-1"
+  ></iframe>
+</div>
+
+<script>
+  function getScoreboardFrameTargetWidth() {
+    const viewportWidth = Math.max(window.innerWidth, 320);
+    const activityCard = document.querySelector(".pg-activity-card");
+    const activityWidth = activityCard ? Math.ceil(activityCard.getBoundingClientRect().width) : 0;
+
+    return Math.min(viewportWidth, Math.max(activityWidth + 96, 1100));
+  }
+
+  function updateScoreboardFrameSize() {
+    const frame = document.getElementById("scoreboardFrame");
+    const frameWindow = frame.contentWindow;
+    const frameDocument = frame.contentDocument || (frameWindow && frameWindow.document);
+    if (!frameDocument) {
+      return;
+    }
+
+    const docEl = frameDocument.documentElement;
+    const body = frameDocument.body;
+    const targetWidth = getScoreboardFrameTargetWidth();
+
+    frame.style.width = `${targetWidth}px`;
+    if (docEl) {
+      docEl.style.width = `${targetWidth}px`;
+    }
+    if (body) {
+      body.style.width = "100%";
+    }
+
+    const contentHeight = Math.max(
+      body ? body.scrollHeight : 0,
+      docEl ? docEl.scrollHeight : 0
+    );
+
+    if (contentHeight > 0) {
+      frame.style.height = `${contentHeight}px`;
+    }
+  }
+
+  function bindScoreboardFrameCloseBehavior() {
+    const frame = document.getElementById("scoreboardFrame");
+    const frameWindow = frame.contentWindow;
+    const frameDocument = frame.contentDocument || (frameWindow && frameWindow.document);
+    if (!frameDocument) {
+      return;
+    }
+
+    updateScoreboardFrameSize();
+    frameDocument.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!target || target.nodeType !== 1) {
+        return;
+      }
+
+      const manageModal = target.closest(".pg-manage-modal");
+      if (manageModal) {
+        return;
+      }
+
+      const scoreboardCard = frameDocument.querySelector(".pg-scoreboard-card");
+      if (scoreboardCard && !scoreboardCard.contains(target)) {
+        closeScoreboardModal();
+      }
+    });
+  }
+
+  function openScoreboardModal() {
+    const modal = document.getElementById("scoreboardModal");
+    const frame = document.getElementById("scoreboardFrame");
+    const baseSrc = frame.dataset.baseSrc;
+    const separator = baseSrc.includes("?") ? "&" : "?";
+    const targetWidth = getScoreboardFrameTargetWidth();
+
+    modal.style.display = "flex";
+    modal.classList.remove("is-open");
+    frame.style.width = `${targetWidth}px`;
+    frame.style.height = frame.style.height && frame.style.height !== "0px" ? frame.style.height : "320px";
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        modal.classList.add("is-open");
+      });
+    });
+
+    if (frame.dataset.loading === "true") {
+      return;
+    }
+
+    frame.classList.add("is-loading");
+    frame.dataset.loading = "true";
+    frame.onload = () => {
+      frame.classList.remove("is-loading");
+      frame.dataset.loading = "false";
+      frame.dataset.loaded = "true";
+      bindScoreboardFrameCloseBehavior();
+      requestAnimationFrame(() => updateScoreboardFrameSize());
+    };
+    frame.src = `${baseSrc}${separator}t=${Date.now()}`;
+  }
+
+  function closeScoreboardModal() {
+    const modal = document.getElementById("scoreboardModal");
+    modal.classList.remove("is-open");
+    modal.style.display = "none";
+  }
+
+  window.addEventListener("resize", () => {
+    const modal = document.getElementById("scoreboardModal");
+    if (modal && modal.style.display === "flex") {
+      updateScoreboardFrameSize();
+    }
+  });
+</script>
