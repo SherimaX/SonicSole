@@ -54,7 +54,13 @@ int main(int argc, char* argv[])
         ++cycle;
 
         sole.getAccelVectorData(sole.az, azData);
-        sole.toCSV(time, sole.currForePressure, sole.currHeelPressure, sole.az);
+        sole.toCSV(
+            time,
+            sole.currHeelPressure,
+            sole.currForePressure,
+            static_cast<float>(sole.ax),
+            static_cast<float>(sole.ay),
+            static_cast<float>(sole.az));
 
         std::cout << "\nFore Pressure: " << sole.currForePressure << std::endl;
         std::cout << "Heel Pressure: " << sole.currHeelPressure << std::endl;

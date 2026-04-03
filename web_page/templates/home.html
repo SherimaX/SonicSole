@@ -129,12 +129,22 @@
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
       z-index: 20;
+      appearance: none;
+      -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
     }
 
     .hardware-fab:hover {
       transform: translateY(-2px) scale(1.03);
       box-shadow: 0 26px 42px rgba(122, 28, 28, 0.3);
       background: linear-gradient(135deg, #8d2222, var(--accent-dark));
+    }
+
+    .hardware-fab:focus,
+    .hardware-fab:focus-visible {
+      outline: none;
+      box-shadow: 0 22px 36px rgba(122, 28, 28, 0.24);
     }
 
     .hardware-fab__icon {
@@ -163,6 +173,14 @@
     .hardware-modal__dialog {
       position: relative;
       width: min(100%, 420px);
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .hardware-modal__dialog:focus,
+    .hardware-modal__dialog:focus-visible {
+      outline: none;
+      box-shadow: none;
     }
 
     .hardware-monitor {
@@ -189,7 +207,7 @@
     .hardware-monitor__title {
       font-size: 1.1rem;
       font-weight: 700;
-      margin-bottom: 6px;
+      margin-bottom: 16px;
       color: var(--accent-dark);
     }
 
@@ -200,6 +218,10 @@
       margin-bottom: 16px;
     }
 
+    .hardware-monitor__summary:empty {
+      display: none;
+    }
+
     .hardware-monitor__list {
       list-style: none;
       display: grid;
@@ -207,11 +229,11 @@
     }
 
     .hardware-monitor__item {
-      display: grid;
-      grid-template-columns: 14px minmax(0, 1fr);
-      gap: 12px;
+      position: relative;
+      display: flex;
       align-items: center;
-      padding: 10px 12px;
+      gap: 14px;
+      padding: 14px 16px;
       border-radius: 16px;
       background: rgba(255, 255, 255, 0.58);
       border: 1px solid rgba(52, 16, 16, 0.08);
@@ -234,6 +256,7 @@
     }
 
     .hardware-monitor__indicator {
+      flex-shrink: 0;
       width: 12px;
       height: 12px;
       border-radius: 999px;
@@ -252,12 +275,8 @@
     }
 
     .hardware-monitor__copy {
+      flex: 1 1 auto;
       min-width: 0;
-      display: grid;
-      gap: 3px;
-    }
-
-    .hardware-monitor__headline {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -270,13 +289,8 @@
       color: var(--text-dark);
     }
 
-    .hardware-monitor__ip {
-      font-size: 0.8rem;
-      color: var(--text-subtle);
-      letter-spacing: 0.02em;
-    }
-
     .hardware-monitor__actions {
+      position: relative;
       display: flex;
       align-items: center;
       flex-shrink: 0;
@@ -287,18 +301,32 @@
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.92);
       color: var(--accent-dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       font: inherit;
       font-size: 0.9rem;
       font-weight: 700;
+      line-height: 1.1;
       letter-spacing: 0;
-      padding: 4px 9px;
+      padding: 10px 16px;
       cursor: pointer;
       transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      appearance: none;
+      -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
     }
 
     .hardware-monitor__action:hover:not(:disabled) {
       background: rgba(255, 241, 231, 0.96);
       border-color: rgba(122, 28, 28, 0.2);
+    }
+
+    .hardware-monitor__action:focus,
+    .hardware-monitor__action:focus-visible {
+      outline: none;
+      box-shadow: none;
     }
 
     .hardware-monitor__action:disabled {
@@ -307,23 +335,40 @@
     }
 
     .hardware-monitor__choices {
-      display: flex;
-      flex-wrap: wrap;
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      display: grid;
       gap: 6px;
-      margin-top: 8px;
+      min-width: 180px;
+      padding: 10px;
+      border-radius: 14px;
+      background: rgba(255, 248, 238, 0.98);
+      border: 1px solid rgba(52, 16, 16, 0.12);
+      box-shadow: 0 16px 30px rgba(65, 43, 26, 0.18);
+      z-index: 2;
+    }
+
+    .hardware-monitor__choices[hidden] {
+      display: none;
     }
 
     .hardware-monitor__choice {
       border: 1px solid rgba(52, 16, 16, 0.12);
-      border-radius: 999px;
+      border-radius: 10px;
       background: rgba(255, 255, 255, 0.92);
       color: var(--text-dark);
       font: inherit;
       font-size: 0.8rem;
       font-weight: 600;
-      padding: 4px 8px;
+      padding: 8px 10px;
+      text-align: left;
       cursor: pointer;
       transition: background-color 0.2s ease, border-color 0.2s ease;
+      appearance: none;
+      -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
     }
 
     .hardware-monitor__choice:hover {
@@ -331,10 +376,21 @@
       border-color: rgba(122, 28, 28, 0.2);
     }
 
+    .hardware-monitor__choice:focus,
+    .hardware-monitor__choice:focus-visible {
+      outline: none;
+      box-shadow: none;
+    }
+
     .hardware-monitor__choice.is-selected {
       border-color: rgba(43, 155, 83, 0.28);
       background: rgba(235, 248, 239, 0.96);
       color: #1f6d3a;
+    }
+
+    .hardware-monitor__choice.is-danger {
+      color: #7a1c1c;
+      border-color: rgba(122, 28, 28, 0.16);
     }
 
     .hardware-monitor__state {
@@ -531,21 +587,18 @@
           <li class="hardware-monitor__item is-offline" data-device-id="{{ group.id }}">
             <span class="hardware-monitor__indicator is-offline" aria-hidden="true"></span>
             <div class="hardware-monitor__copy">
-              <div class="hardware-monitor__headline">
-                <span class="hardware-monitor__name">{{ group.label }}</span>
-                <div class="hardware-monitor__actions">
-                  <button
-                    type="button"
-                    class="hardware-monitor__action"
-                    data-assign-group-id="{{ group.id }}"
-                    onclick="toggleAssignmentOptions('{{ group.id }}')"
-                  >
-                    {{ "Assigned" if group.ip else "Unassigned" }}
-                  </button>
-                </div>
+              <span class="hardware-monitor__name">{{ group.label }}</span>
+              <div class="hardware-monitor__actions">
+                <button
+                  type="button"
+                  class="hardware-monitor__action"
+                  data-assign-group-id="{{ group.id }}"
+                  onclick="toggleAssignmentOptions('{{ group.id }}')"
+                >
+                  {{ group.ip or "Unassigned" }}
+                </button>
+                <div class="hardware-monitor__choices" data-assign-options-for="{{ group.id }}" hidden></div>
               </div>
-              <span class="hardware-monitor__ip">{{ group.ip or "" }}</span>
-              <div class="hardware-monitor__choices" data-assign-options-for="{{ group.id }}" hidden></div>
             </div>
           </li>
           {% endfor %}
@@ -695,27 +748,42 @@
 
       choices.replaceChildren();
 
-      assignableDevices.forEach((assignableDevice) => {
-        const choiceButton = document.createElement("button");
-        choiceButton.type = "button";
-        choiceButton.className = "hardware-monitor__choice";
-        choiceButton.textContent = assignableDevice.ip;
-        if (assignableDevice.selected) {
-          choiceButton.classList.add("is-selected");
-        }
-        choiceButton.addEventListener("click", () => {
-          assignDeviceToGroup(device.id, assignableDevice.ip);
+      if (device.assigned) {
+        const disconnectButton = document.createElement("button");
+        disconnectButton.type = "button";
+        disconnectButton.className = "hardware-monitor__choice is-danger";
+        disconnectButton.textContent = "Disconnect";
+        disconnectButton.addEventListener("click", () => {
+          disconnectDeviceFromGroup(device.id);
         });
-        choices.appendChild(choiceButton);
-      });
+        choices.appendChild(disconnectButton);
+      } else {
+        assignableDevices.forEach((assignableDevice) => {
+          const choiceButton = document.createElement("button");
+          choiceButton.type = "button";
+          choiceButton.className = "hardware-monitor__choice";
+          choiceButton.textContent = assignableDevice.ip;
+          if (assignableDevice.selected) {
+            choiceButton.classList.add("is-selected");
+          }
+          choiceButton.addEventListener("click", () => {
+            assignDeviceToGroup(device.id, assignableDevice.ip);
+          });
+          choices.appendChild(choiceButton);
+        });
+      }
 
-      choices.hidden =
-        activeAssignmentMenuGroupId !== device.id || assignableDevices.length === 0;
+      choices.hidden = activeAssignmentMenuGroupId !== device.id || !choices.children.length;
     }
 
     function toggleAssignmentOptions(groupId) {
       const row = hardwareMonitorRows.get(groupId);
       if (!row) return;
+
+      const assignButton = row.querySelector("[data-assign-group-id]");
+      if (!assignButton) {
+        return;
+      }
 
       const choices = row.querySelector("[data-assign-options-for]");
       if (!choices || !choices.children.length) {
@@ -730,19 +798,7 @@
 
     function renderHardwareStatus(payload) {
       const devices = Array.isArray(payload.devices) ? payload.devices : [];
-      const liveDevice = payload.live_device && payload.live_device.ip ? payload.live_device : null;
-      const connectedCount = devices.filter((device) => device.connected).length;
-      const assignedCount = devices.filter((device) => device.assigned).length;
-      const unavailableCount = devices.filter((device) => device.probe_error).length;
-      const latestAge = devices.length
-        ? Math.max(
-            ...devices.map((device) =>
-              typeof device.checked_age_seconds === "number"
-                ? device.checked_age_seconds
-                : 0
-            )
-          )
-        : 0;
+      hardwareMonitorSummary.textContent = "";
 
       devices.forEach((device) => {
         const row = hardwareMonitorRows.get(device.id);
@@ -761,49 +817,17 @@
             ? "Unavailable"
             : "Offline";
         setHardwareRowState(row, statusVariant, stateLabel);
-        const ipLabel = row ? row.querySelector(".hardware-monitor__ip") : null;
         const assignButton = row ? row.querySelector("[data-assign-group-id]") : null;
         const assignableDevices = Array.isArray(device.assignable_devices)
           ? device.assignable_devices
           : [];
-        if (ipLabel) {
-          ipLabel.textContent = device.ip || "";
-        }
         if (assignButton) {
-          assignButton.disabled = assignableDevices.length === 0;
-          assignButton.textContent = device.assigned ? "Assigned" : "Unassigned";
+          assignButton.dataset.assignmentState = device.assigned ? "assigned" : "unassigned";
+          assignButton.disabled = !device.assigned && assignableDevices.length === 0;
+          assignButton.textContent = device.ip || "Unassigned";
         }
         renderAssignmentChoices(row, device);
       });
-
-      if (!devices.length) {
-        hardwareMonitorSummary.textContent = "No hardware devices are configured yet.";
-        return;
-      }
-
-      if (liveDevice) {
-        hardwareMonitorSummary.textContent =
-          assignedCount > 0
-            ? `Live device ${liveDevice.ip} detected. Assign or reassign it to a group below. ${connectedCount} of ${devices.length} groups are currently live. ${formatAgeLabel(latestAge)}`
-            : `Live device ${liveDevice.ip} detected. Choose a group below to assign it. ${formatAgeLabel(latestAge)}`;
-        return;
-      }
-
-      if (assignedCount === 0) {
-        hardwareMonitorSummary.textContent = "";
-        return;
-      }
-
-      if (unavailableCount === devices.length) {
-        hardwareMonitorSummary.textContent =
-          "Connectivity checks are unavailable on this host right now.";
-        return;
-      }
-
-      hardwareMonitorSummary.textContent =
-        unavailableCount > 0
-          ? `${connectedCount} of ${devices.length} assigned groups are live. ${unavailableCount} checks unavailable. ${formatAgeLabel(latestAge)}`
-          : `${connectedCount} of ${devices.length} assigned groups are live. ${formatAgeLabel(latestAge)}`;
     }
 
     async function refreshHardwareStatus() {
@@ -819,7 +843,7 @@
         hardwareMonitorRows.forEach((row) => {
           setHardwareRowState(row, "offline", "Offline");
         });
-        hardwareMonitorSummary.textContent = "Unable to check device connectivity right now.";
+        hardwareMonitorSummary.textContent = "";
       }
     }
 
@@ -840,6 +864,24 @@
       try {
         activeAssignmentMenuGroupId = null;
         await postHardwareAssignment("{{ url_for('assign_group_device') }}", groupId, deviceIp);
+        await refreshHardwareStatus();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function disconnectDeviceFromGroup(groupId) {
+      try {
+        activeAssignmentMenuGroupId = null;
+        const response = await fetch("{{ url_for('disconnect_group_device') }}", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ group_id: groupId }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Unable to disconnect the device.");
+        }
         await refreshHardwareStatus();
       } catch (error) {
         alert(error.message);

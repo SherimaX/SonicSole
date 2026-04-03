@@ -68,7 +68,7 @@ public:
     // void runVibrateMode(); //no longer in use
 
     // void toCSV();
-    void toCSV(double time, double heelpresh, double forepresh, float az);
+    void toCSV(double time, double heelPressure, double forePressure, float ax, float ay, float az);
     void openCSVFile();
     void closeCSVFile();
 

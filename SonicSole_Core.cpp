@@ -116,25 +116,7 @@ SonicSole::SonicSole()
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         YEIwriteCommandNoDelay(IMU, CMD_RESET_FILTER);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        YEIsetStreamingMode(
-            IMU,
-            READ_TARED_ORIENTATION_AS_QUATERNION,
-            READ_CORRECTED_LINEAR_ACCELERATION,
-            READ_CORRECTED_GYROSCOPE_VECTOR,
-            READ_CORRECTED_ACCELEROMETER_VECTOR,
-            NO_SLOT,
-            NO_SLOT,
-            NO_SLOT,
-            NO_SLOT
-        );
         YEIwriteCommandNoDelay(IMU, CMD_TARE_WITH_CURRENT_ORIENTATION);
-
-        printf("Current Streaming Interval: %d", sStreamingTime.interval);
-        sStreamingTime.interval = 1000;
-        sStreamingTime.duration = 0xFFFFFFFF;
-        sStreamingTime.delay = 0;
-        printf("Updated Streaming Interval: %d", sStreamingTime.interval);
-        YEIsetStreamingTime(IMU);
 
         printf("IMU configured successfully!\n\n");
     } catch (...) {
@@ -159,7 +141,12 @@ void SonicSole::openCSVFile()
     }
 
     if (outFile.tellp() == 0) {
-        outFile << "time, " << "heel pressure, " << "forefoot pressure, " << "az" << std::endl;
+        outFile << "time, "
+                << "heel pressure, "
+                << "forefoot pressure, "
+                << "ax, "
+                << "ay, "
+                << "az" << std::endl;
     }
 }
 
@@ -170,14 +157,25 @@ void SonicSole::closeCSVFile()
     }
 }
 
-void SonicSole::toCSV(double time, double heelpresh, double forepresh, float az)
+void SonicSole::toCSV(
+    double time,
+    double heelPressure,
+    double forePressure,
+    float ax,
+    float ay,
+    float az)
 {
     if (!outFile.is_open()) {
         std::cerr << "File stream is not open" << std::endl;
         return;
     }
 
-    outFile << time << ", " << heelpresh << ", " << forepresh << ", " << az << std::endl;
+    outFile << time << ", "
+            << heelPressure << ", "
+            << forePressure << ", "
+            << ax << ", "
+            << ay << ", "
+            << az << std::endl;
 }
 
 double SonicSole::getRunningTime()
