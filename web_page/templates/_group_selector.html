@@ -169,20 +169,29 @@
 
       const payload = await response.json();
       const devices = Array.isArray(payload.devices) ? payload.devices : [];
+      const selectedDevice = devices.find((device) => device.selected);
 
       devices.forEach((device) => {
         const statusVariant = device.connected
           ? "online"
-          : device.probe_error
+          : !device.assigned
+            ? "offline"
+            : device.probe_error
             ? "unavailable"
             : "offline";
         const stateLabel = device.connected
           ? "Online"
-          : device.probe_error
+          : !device.assigned
+            ? "Unassigned"
+            : device.probe_error
             ? "Unavailable"
             : "Offline";
         setGroupOptionStatus(device.id, statusVariant, stateLabel);
       });
+
+      if (selectedDevice) {
+        updateSelectedGroupUI(selectedDevice);
+      }
     } catch (error) {
       document.querySelectorAll("[data-group-status-indicator]").forEach((indicator) => {
         indicator.classList.remove("is-online", "is-unavailable");

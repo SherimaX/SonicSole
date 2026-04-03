@@ -26,15 +26,19 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 app.jinja_env.auto_reload = True
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-GROUP_OPTIONS = [
+GROUP_ASSIGNMENT_DISCOVERY_WAIT_SECONDS = float(os.environ.get("SONICSOLE_GROUP_ASSIGNMENT_WAIT_SECONDS", "1.0"))
+HARDWARE_STATUS_DISCOVERY_WAIT_SECONDS = float(os.environ.get("SONICSOLE_HARDWARE_STATUS_WAIT_SECONDS", "0.35"))
+DISCOVERED_DEVICE_STALE_SECONDS = float(os.environ.get("SONICSOLE_DEVICE_STALE_SECONDS", "5.0"))
+
+GROUP_SLOTS = [
     {
         "id": f"group_{group_number}",
         "label": f"Group {group_number}",
-        "ip": os.environ.get(f"SONICSOLE_GROUP_{group_number}_IP", f"192.168.0.10{group_number}"),
+        "number": group_number,
     }
     for group_number in range(1, 6)
 ]
-GROUP_OPTIONS_BY_ID = {group["id"]: group for group in GROUP_OPTIONS}
+GROUP_OPTIONS_BY_ID = {group["id"]: group for group in GROUP_SLOTS}
 HARDWARE_PING_TIMEOUT_SECONDS = 1.0
 
 LEADERBOARD_CONFIG = {
@@ -131,6 +135,106 @@ def parse_score(value, allow_blank=False):
         return None
 
 
+def build_group_option(group, assigned_ip=None):
+    return {
+        "id": group["id"],
+        "label": group["label"],
+        "ip": (assigned_ip if assigned_ip is not None else get_group_assignment_ip(group["id"])).strip(),
+    }
+
+
+def get_group_options():
+    return [build_group_option(group) for group in GROUP_SLOTS]
+
+
+def get_group_assignment_ip(group_id):
+    with group_assignments_lock:
+        return (group_device_assignments.get(group_id) or "").strip()
+
+
+def assign_group_device_ip(group_id, device_ip):
+    normalized_ip = (device_ip or "").strip()
+    group = GROUP_OPTIONS_BY_ID.get(group_id)
+    if group is None:
+        return None
+
+    with group_assignments_lock:
+        if normalized_ip:
+            group_device_assignments[group_id] = normalized_ip
+        else:
+            group_device_assignments.pop(group_id, None)
+
+    return build_group_option(group, normalized_ip)
+
+
+def prune_discovered_devices_locked(current_time=None):
+    now = time.time() if current_time is None else current_time
+    cutoff = now - DISCOVERED_DEVICE_STALE_SECONDS
+
+    stale_ips = [
+        device_ip
+        for device_ip, device in discovered_devices.items()
+        if device.get("last_seen", 0.0) < cutoff
+    ]
+    for device_ip in stale_ips:
+        discovered_devices.pop(device_ip, None)
+
+
+def record_discovered_device(device_ip):
+    if not device_ip:
+        return
+
+    now = time.time()
+    with discovered_devices_lock:
+        prune_discovered_devices_locked(now)
+        entry = discovered_devices.get(
+            device_ip,
+            {
+                "ip": device_ip,
+                "first_seen": now,
+                "last_seen": now,
+                "packet_count": 0,
+            },
+        )
+        entry["last_seen"] = now
+        entry["packet_count"] = int(entry.get("packet_count", 0)) + 1
+        discovered_devices[device_ip] = entry
+
+
+def get_discovered_devices():
+    with discovered_devices_lock:
+        prune_discovered_devices_locked()
+        return sorted(
+            [
+                {
+                    "ip": device["ip"],
+                    "first_seen": device["first_seen"],
+                    "last_seen": device["last_seen"],
+                    "packet_count": device["packet_count"],
+                }
+                for device in discovered_devices.values()
+            ],
+            key=lambda device: device["last_seen"],
+            reverse=True,
+        )
+
+
+def get_latest_discovered_device():
+    devices = get_discovered_devices()
+    return devices[0] if devices else None
+
+
+def wait_for_discovered_device(timeout_seconds):
+    deadline = time.time() + max(0.0, timeout_seconds)
+    while True:
+        latest_device = get_latest_discovered_device()
+        if latest_device is not None:
+            return latest_device
+        if time.time() >= deadline:
+            return None
+        time.sleep(0.05)
+
+
 def get_selected_group():
     group_id = session.get("selected_group_id")
     if not group_id:
@@ -140,7 +244,7 @@ def get_selected_group():
     if group is None:
         session.pop("selected_group_id", None)
         return None
-    return group
+    return build_group_option(group)
 
 
 def clear_selected_group():
@@ -164,11 +268,41 @@ def activate_selected_group():
     if selected_group is None:
         return None
 
-    set_active_device_ip(selected_group["ip"])
+    device_ip = (selected_group.get("ip") or "").strip()
+    if not device_ip:
+        return None
+
+    set_active_device_ip(device_ip)
     return selected_group
 
 
 def require_selected_group():
+    selected_group = get_selected_group()
+    if selected_group is None:
+        return None, (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": "Please select a group before starting the activity.",
+                }
+            ),
+            400,
+        )
+
+    if not (selected_group.get("ip") or "").strip():
+        start_combined_data_thread()
+        live_device = wait_for_discovered_device(GROUP_ASSIGNMENT_DISCOVERY_WAIT_SECONDS)
+        live_suffix = f" Live device: {live_device['ip']}." if live_device is not None else ""
+        return None, (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": f"{selected_group['label']} does not have a device assigned yet. Assign the live device from Hardware Monitor first.{live_suffix}",
+                }
+            ),
+            400,
+        )
+
     selected_group = activate_selected_group()
     if selected_group is not None:
         return selected_group, None
@@ -177,7 +311,7 @@ def require_selected_group():
         jsonify(
             {
                 "status": "error",
-                "message": "Please select a group before starting the activity.",
+                "message": "Unable to activate the selected group.",
             }
         ),
         400,
@@ -324,7 +458,7 @@ def redirect_to_leaderboard(board_key):
 @app.context_processor
 def inject_group_selector_context():
     return {
-        "group_options": GROUP_OPTIONS,
+        "group_options": get_group_options(),
         "selected_group": get_selected_group(),
     }
 
@@ -336,12 +470,18 @@ def build_hardware_ping_command(device_ip):
 
 
 def probe_hardware_device(group):
-    device_ip = (group.get("ip") or "").strip()
+    resolved_group = build_group_option(group)
+    device_ip = (resolved_group.get("ip") or "").strip()
     connected = False
     checked_at = time.time()
     probe_error = None
+    assigned = bool(device_ip)
 
-    if device_ip:
+    discovered_ips = {device["ip"] for device in get_discovered_devices()}
+    if device_ip and device_ip in discovered_ips:
+        connected = True
+
+    if device_ip and not connected:
         try:
             result = subprocess.run(
                 build_hardware_ping_command(device_ip),
@@ -359,12 +499,13 @@ def probe_hardware_device(group):
             probe_error = "unavailable"
 
     return {
-        "id": group["id"],
-        "label": group["label"],
+        "id": resolved_group["id"],
+        "label": resolved_group["label"],
         "ip": device_ip,
         "connected": connected,
         "probe_error": probe_error,
         "checked_at": checked_at,
+        "assigned": assigned,
     }
 
 
@@ -404,10 +545,18 @@ balance_state_lock = threading.Lock()
 activity_session_lock = threading.Lock()
 active_device_ip_lock = threading.Lock()
 discovery_listener_lock = threading.Lock()
+discovered_devices_lock = threading.Lock()
+group_assignments_lock = threading.Lock()
 balance_session_id = 0
 recording_time = False
 active_device_ip = None
 discovery_listener_started = False
+discovered_devices = {}
+group_device_assignments = {
+    group["id"]: os.environ.get(f"SONICSOLE_GROUP_{group['number']}_IP", "").strip()
+    for group in GROUP_SLOTS
+    if os.environ.get(f"SONICSOLE_GROUP_{group['number']}_IP", "").strip()
+}
 activity_session_ids = {
     "balance": 0,
     "jump": 0,
@@ -822,6 +971,7 @@ def read_combined_data(): #this function to read data and other function to "pro
     while combined_data_running:
         try:
             data, addr = sock.recvfrom(1024)
+            record_discovered_device(addr[0])
             if len(data) < 20:
                 continue
             active_ip = get_active_device_ip()
@@ -1458,11 +1608,16 @@ def home():
 
 @app.route('/hardware_status', methods=['GET'])
 def hardware_status():
+    start_combined_data_thread()
+    live_device = get_latest_discovered_device()
+    if live_device is None:
+        live_device = wait_for_discovered_device(HARDWARE_STATUS_DISCOVERY_WAIT_SECONDS)
+
     selected_group = get_selected_group()
     selected_group_id = selected_group["id"] if selected_group is not None else None
 
-    with ThreadPoolExecutor(max_workers=max(1, len(GROUP_OPTIONS))) as executor:
-        devices = list(executor.map(probe_hardware_device, GROUP_OPTIONS))
+    with ThreadPoolExecutor(max_workers=max(1, len(GROUP_SLOTS))) as executor:
+        devices = list(executor.map(probe_hardware_device, GROUP_SLOTS))
 
     checked_at = time.time()
     for device in devices:
@@ -1470,7 +1625,7 @@ def hardware_status():
         device["checked_age_seconds"] = round(checked_at - device["checked_at"], 2)
         device.pop("checked_at", None)
 
-    return jsonify({"devices": devices, "checked_at": checked_at})
+    return jsonify({"devices": devices, "checked_at": checked_at, "live_device": live_device})
 
 @app.route('/jump')
 def jump():
@@ -1662,13 +1817,63 @@ def delete_leaderboard_entry(board_key):
 def select_group():
     payload = request.get_json(silent=True) or request.form
     group_id = payload.get("group_id", "").strip()
-    selected_group = GROUP_OPTIONS_BY_ID.get(group_id)
-    if selected_group is None:
+    group = GROUP_OPTIONS_BY_ID.get(group_id)
+    if group is None:
         return jsonify({"status": "error", "message": "Unknown group selection."}), 400
 
     session["selected_group_id"] = group_id
-    set_active_device_ip(selected_group["ip"])
+    selected_group = get_selected_group()
+    set_active_device_ip((selected_group or {}).get("ip"))
     return jsonify({"status": "ok", "group": selected_group})
+
+@app.route('/assign_group_device', methods=['POST'])
+def assign_group_device():
+    payload = request.get_json(silent=True) or request.form
+    group_id = payload.get("group_id", "").strip()
+    group = GROUP_OPTIONS_BY_ID.get(group_id)
+    if group is None:
+        return jsonify({"status": "error", "message": "Unknown group selection."}), 400
+
+    start_combined_data_thread()
+    live_device = wait_for_discovered_device(GROUP_ASSIGNMENT_DISCOVERY_WAIT_SECONDS)
+    if live_device is None:
+        return jsonify({"status": "error", "message": "No live SonicSole device detected yet."}), 400
+
+    assigned_group = assign_group_device_ip(group_id, live_device["ip"])
+    selected_group = get_selected_group()
+    if selected_group is not None and selected_group["id"] == group_id:
+        set_active_device_ip(assigned_group["ip"])
+
+    return jsonify(
+        {
+            "status": "ok",
+            "group": assigned_group,
+            "live_device": live_device,
+            "message": f"Assigned {live_device['ip']} to {assigned_group['label']}.",
+        }
+    )
+
+
+@app.route('/clear_group_device', methods=['POST'])
+def clear_group_device():
+    payload = request.get_json(silent=True) or request.form
+    group_id = payload.get("group_id", "").strip()
+    group = GROUP_OPTIONS_BY_ID.get(group_id)
+    if group is None:
+        return jsonify({"status": "error", "message": "Unknown group selection."}), 400
+
+    cleared_group = assign_group_device_ip(group_id, "")
+    selected_group = get_selected_group()
+    if selected_group is not None and selected_group["id"] == group_id:
+        set_active_device_ip(None)
+
+    return jsonify(
+        {
+            "status": "ok",
+            "group": cleared_group,
+            "message": f"Cleared the device assignment for {cleared_group['label']}.",
+        }
+    )
 
 @app.route('/submitB', methods=['POST'])
 def submitB():

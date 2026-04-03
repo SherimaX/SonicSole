@@ -1,3 +1,6 @@
 # Ignore large videos
 web_page/static/video6.mp4
-web_page/static/video8.mp4 
+web_page/static/video8.mp4
+
+build/
+SonicSole_RPi

@@ -1,80 +1,18 @@
 #ifndef SONICSOLE_H
 #define SONICSOLE_H
 
-// NPi Sensor Read and Data Logging
-
-#include <iostream>
+#include <cstddef>
+#include <cstdint>
 #include <fstream>
-#include <mutex>
-#include <thread>
-#include <condition_variable>
-#include <chrono>
-#include <iomanip>
 #include <vector>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <errno.h>
-#include <inttypes.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
-#include <time.h>
-#include <ctime>
-#include <sstream>
+inline constexpr int MAX_RUN_TIME = 600000000;
+inline constexpr int SPI_CHANNEL = 0;
+inline constexpr int CS = 17;
+inline constexpr int IMU_PACKET_LENGTH = 52;
 
-#include <sys/stat.h>
-#include <sys/types.h>
-
-// WiringPi libraries
-#include <wiringPi.h>
-#include <wiringSerial.h>
-#include <wiringPiI2C.h>
-#include <termios.h>
-// #include "wiringSerial.h"
-
-// User-defined libraries
-#include "RPi_combined_Header.h"
-#include "RPi_Raj_Header.h"
-
-// libraries from ADC code
-#include <wiringPiSPI.h>
-
-// libraries for UDP
-#include <bits/stdc++.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-
-// IMU API
-// #include "IMUAPI/threespace_api_export.h"
-
-#define MAX_RUN_TIME 600000000
-
-using namespace std;
-
-static int SPI_CHANNEL = 0;
-static int CS = 17; 
-static const int IMU_PACKET_LENGTH = 52;
-// static const int IMU_PACKET_LENGTH = 15;
-// static const int IMU_PACKET_LENGTH = 28;
-
-
-// mutex dataMutex[3];
-// mutex writeMutex;
-// condition_variable condWrite;
-
-uint64_t getMicrosTimeStamp();
-uint64_t getSecondsTimeStamp(); 
-
-//  void UDPSend(int sockfd, const int *reading, socklen_t len, struct sockaddr_in servaddr);
-void UDPSendArray(int sockfd, const int* data, size_t numElements, const struct sockaddr_in& servaddr); //free function outside class
+std::uint64_t getMicrosTimeStamp();
+std::uint64_t getSecondsTimeStamp();
 
 class SonicSole {
 public:
@@ -109,12 +47,12 @@ public:
     double qz = 0;
     double qw = 1;
 
-    uint64_t startTime = 0;
-    uint64_t currentTime = 0;
+    std::uint64_t startTime = 0;
+    std::uint64_t currentTime = 0;
     // uint64_t startInterval = 0;
     // uint64_t endInterval = 0;
-    
-    uint8_t dataIMUPacket[IMU_PACKET_LENGTH];
+
+    std::uint8_t dataIMUPacket[IMU_PACKET_LENGTH] = {};
     bool recordState = true;
 
     // tss_device_id sensor_id;
@@ -141,33 +79,31 @@ public:
     int getSensorReadings(unsigned char signal);
     //bool getMode(); //no longer in use
     //void switchMode(); //no longer in use
-    uint64_t getCurrentTime(); 
     int getCurrForePressure();
     int getCurrHeelPressure();
-    void sendFlexSensorData(int flexSensorData);
     void sendFlexSensorData(int flexSensorData, int port);
     //bool detectHeelThreshold(); //no longer in use
     //void updateThresholdCounter(); //no longer in use
 
     // void getAccelVectorData(float ax, float ay, float az, vector<float>& axVector, vector<float>& ayVector, vector<float>& azVector);
-    void getAccelVectorData(float az, vector<float>& azVector);
-    float vectorIntegral(vector<float> v);
+    void getAccelVectorData(float az, std::vector<float>& azVector);
+    float vectorIntegral(std::vector<float> v);
 
-    void sendSensorData(float flexSensorData[], int port, size_t numElements);
-    
+    void sendSensorData(float flexSensorData[], int port, std::size_t numElements);
 
-private: 
+
+private:
     double heelThresholdInterval = 0;
     double previousHeelThresholdTime = 0;
     double currentHeelThresholdTime = 0;
     unsigned char SPIbuff[3];
 
     // void updateHeelThresholdInterval(); //no longer in use
-    ofstream outFile;
+    std::ofstream outFile;
     // bool detectThreshold(int prevReading, int currReading, int minReading, int maxReading); //no longer in use
     // bool detectCombinedThreshold(); //no longer in use
     // void playSound(); //no longer in use
     // uint64_t getCurrentTime();
 };
 
-#endif //SONICSOLE_Ht
+#endif // SONICSOLE_H

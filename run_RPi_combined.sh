@@ -34,9 +34,9 @@ echo "Running Raspberry Pi sender for SonicSole web streaming..."
 #
 # print
 # 
-if [ ! -x ./C_RPi_Andy ]; then
-  echo "Missing ./C_RPi_Andy. Compile it first with ./compile_C_RPi_Andy.sh"
+if [ ! -x ./SonicSole_RPi ]; then
+  echo "Missing ./SonicSole_RPi. Compile it first with ./compile_SonicSole_RPi.sh"
   exit 1
 fi
 
-./C_RPi_Andy #$input_var
+./SonicSole_RPi #$input_var
