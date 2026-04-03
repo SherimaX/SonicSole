@@ -49,6 +49,7 @@ int gLastPendingAfterRead = 0;
 bool gLastReadComplete = false;
 std::string gImuState = "idle";
 std::string gImuLastEvent = "not initialized";
+std::string gImuLastStableEvent = "not initialized";
 std::string gImuLastRequest = "none";
 std::string gImuPacketPreview = "n/a";
 auto gLastInitAttemptTime = std::chrono::steady_clock::time_point::min();
@@ -135,6 +136,9 @@ void setImuDebugState(const std::string& state, const std::string& event)
 {
     gImuState = state;
     gImuLastEvent = event;
+    if (state != "retry-wait") {
+        gImuLastStableEvent = event;
+    }
 }
 
 void beginReadStats(int serial, const char* requestName, std::size_t requestedBytes)
@@ -214,6 +218,9 @@ void logProbeResult(
 bool openImuPort(const std::string& port, int baudRate)
 {
     speed_t baudConstant = B0;
+    gImuActivePort = port;
+    gImuActiveBaud = baudRate;
+
     if (!baudRateToConstant(baudRate, baudConstant)) {
         logProbeResult(port, baudRate, "unsupported baud");
         return false;
@@ -477,14 +484,13 @@ bool ensureImuConfigured(SonicSole& sole)
 
     const auto now = std::chrono::steady_clock::now();
     if (now - gLastInitAttemptTime < kImuInitRetryInterval) {
-        const std::string previousEvent = gImuLastEvent;
         std::ostringstream message;
         message << "Waiting before next IMU reinitialization attempt"
                 << " (last port="
                 << (gImuActivePort.empty() ? "<none>" : gImuActivePort)
                 << ", last baud=" << gImuActiveBaud << ")";
-        if (!previousEvent.empty()) {
-            message << " | last result: " << previousEvent;
+        if (!gImuLastStableEvent.empty()) {
+            message << " | last result: " << gImuLastStableEvent;
         }
         setImuDebugState("retry-wait", message.str());
         return false;

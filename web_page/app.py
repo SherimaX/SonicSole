@@ -147,6 +147,14 @@ def get_group_options():
     return [build_group_option(group) for group in GROUP_SLOTS]
 
 
+def get_default_sensor_check_group():
+    group_options = get_group_options()
+    for group in group_options:
+        if group["ip"]:
+            return group
+    return group_options[0] if group_options else None
+
+
 def get_group_assignment_ip(group_id):
     with group_assignments_lock:
         return (group_device_assignments.get(group_id) or "").strip()
@@ -599,11 +607,13 @@ active_device_ip_lock = threading.Lock()
 discovery_listener_lock = threading.Lock()
 discovered_devices_lock = threading.Lock()
 group_assignments_lock = threading.Lock()
+sensor_payloads_lock = threading.Lock()
 balance_session_id = 0
 recording_time = False
 active_device_ip = None
 discovery_listener_started = False
 discovered_devices = {}
+latest_sensor_payloads = {}
 group_device_assignments = {
     group["id"]: os.environ.get(f"SONICSOLE_GROUP_{group['number']}_IP", "").strip()
     for group in GROUP_SLOTS
@@ -1006,7 +1016,7 @@ def stop_combined_data_thread():
     print("combined_data_running in stop thread: {}".format(combined_data_running))
 
 def read_combined_data(): #this function to read data and other function to "process" data
-    global received_heel_data, received_fore_data, received_vertical_raw, ax, ay, az, qx, qy, qz, qw, imu_orientation_mode, g, combined_data_running
+    global received_heel_data, received_fore_data, received_vertical_raw, ax, ay, az, qx, qy, qz, qw, imu_orientation_mode, g, combined_data_running, R_heel, G_heel, R_fore, G_fore
     
     print("[UDP Thread] Started reading data")
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -1026,20 +1036,41 @@ def read_combined_data(): #this function to read data and other function to "pro
             record_discovered_device(addr[0])
             if len(data) < 20:
                 continue
+            if len(data) >= 36:
+                fore_pressure, heel_pressure, ax_val, ay_val, az_val, qx_val, qy_val, qz_val, qw_val = struct.unpack('9f', data[:36])
+                qx_value, qy_value, qz_value, qw_value = normalize_quaternion(qx_val, qy_val, qz_val, qw_val)
+                orientation_mode = "quaternion"
+            else:
+                fore_pressure, heel_pressure, ax_val, ay_val, az_val = struct.unpack('5f', data[:20])
+                qx_value, qy_value, qz_value, qw_value = estimate_quaternion_from_acceleration(ax_val, ay_val, az_val)
+                orientation_mode = "acceleration"
+
+            sensor_snapshot = build_sensor_snapshot(
+                fore_pressure,
+                heel_pressure,
+                qx_value,
+                qy_value,
+                qz_value,
+                qw_value,
+                orientation_mode,
+            )
+            store_sensor_snapshot(addr[0], sensor_snapshot)
+
             active_ip = get_active_device_ip()
             if active_ip and addr[0] != active_ip:
                 continue
-            if len(data) >= 36:
-                fore_pressure, heel_pressure, ax_val, ay_val, az_val, qx_val, qy_val, qz_val, qw_val = struct.unpack('9f', data[:36])
-                qx, qy, qz, qw = normalize_quaternion(qx_val, qy_val, qz_val, qw_val)
-                imu_orientation_mode = "quaternion"
-            else:
-                fore_pressure, heel_pressure, ax_val, ay_val, az_val = struct.unpack('5f', data[:20])
-                qx, qy, qz, qw = estimate_quaternion_from_acceleration(ax_val, ay_val, az_val)
-                imu_orientation_mode = "acceleration"
             # fast updates only
-            received_fore_data = int(fore_pressure)
-            received_heel_data = int(heel_pressure)
+            R_heel = sensor_snapshot["R_heel"]
+            G_heel = sensor_snapshot["G_heel"]
+            R_fore = sensor_snapshot["R_fore"]
+            G_fore = sensor_snapshot["G_fore"]
+            received_fore_data = sensor_snapshot["fore_pressure"]
+            received_heel_data = sensor_snapshot["heel_pressure"]
+            qx = sensor_snapshot["qx"]
+            qy = sensor_snapshot["qy"]
+            qz = sensor_snapshot["qz"]
+            qw = sensor_snapshot["qw"]
+            imu_orientation_mode = sensor_snapshot["imu_orientation_mode"]
             ax, ay, az = ax_val * g, ay_val * g, az_val * g # converts g to m/s^2
             received_vertical_raw = ay_val
             # push to queue (drop old if full)
@@ -1106,6 +1137,78 @@ def update_fore_color(pressure):
         R_fore = 255
         G_fore = int(255 - ((pressure - 100) / 1000) * 255)
 
+
+def get_heel_color_channels(pressure):
+    pressure_value = max(0.0, float(pressure or 0))
+    if pressure_value < 1500:
+        return int(max(0, min(255, (pressure_value / 1000.0) * 255))), 255
+    if pressure_value < 3000:
+        return 255, int(max(0, min(255, 255 - ((pressure_value - 1000.0) / 1000.0) * 255)))
+    return 255, 0
+
+
+def get_fore_color_channels(pressure):
+    pressure_value = max(0.0, float(pressure or 0))
+    if pressure_value < 1000:
+        return int(max(0, min(255, (pressure_value / 1000.0) * 255))), 255
+    if pressure_value < 2000:
+        return 255, int(max(0, min(255, 255 - ((pressure_value - 100.0) / 1000.0) * 255)))
+    return 255, 0
+
+
+def build_sensor_snapshot(fore_pressure, heel_pressure, qx_value, qy_value, qz_value, qw_value, orientation_mode):
+    fore_pressure_int = int(fore_pressure)
+    heel_pressure_int = int(heel_pressure)
+    heel_r, heel_g = get_heel_color_channels(heel_pressure_int)
+    fore_r, fore_g = get_fore_color_channels(fore_pressure_int)
+    return {
+        "R_heel": heel_r,
+        "G_heel": heel_g,
+        "R_fore": fore_r,
+        "G_fore": fore_g,
+        "heel_pressure": heel_pressure_int,
+        "fore_pressure": fore_pressure_int,
+        "qx": qx_value,
+        "qy": qy_value,
+        "qz": qz_value,
+        "qw": qw_value,
+        "imu_orientation_mode": orientation_mode,
+    }
+
+
+def get_default_sensor_snapshot():
+    return build_sensor_snapshot(0, 0, 0.0, 0.0, 0.0, 1.0, "identity")
+
+
+def store_sensor_snapshot(device_ip, snapshot):
+    normalized_ip = (device_ip or "").strip()
+    if not normalized_ip:
+        return
+
+    snapshot_to_store = dict(snapshot)
+    snapshot_to_store["device_ip"] = normalized_ip
+    snapshot_to_store["updated_at"] = time.time()
+    with sensor_payloads_lock:
+        latest_sensor_payloads[normalized_ip] = snapshot_to_store
+
+
+def get_sensor_snapshot_for_ip(device_ip):
+    normalized_ip = (device_ip or "").strip()
+    if not normalized_ip:
+        return None
+
+    with sensor_payloads_lock:
+        snapshot = latest_sensor_payloads.get(normalized_ip)
+
+    if snapshot is None:
+        return None
+
+    snapshot_copy = dict(snapshot)
+    if time.time() - snapshot_copy.get("updated_at", 0) > DISCOVERED_DEVICE_STALE_SECONDS:
+        return None
+
+    return snapshot_copy
+
 @app.route('/color_data', methods=['GET'])
 def color_data():
     global R_heel, G_heel, R_fore, G_fore
@@ -1114,19 +1217,66 @@ def color_data():
 
 @app.route('/sensor_check_data', methods=['GET'])
 def sensor_check_data():
-    global R_heel, G_heel, R_fore, G_fore, received_heel_data, received_fore_data, qx, qy, qz, qw, imu_orientation_mode
+    start_combined_data_thread()
+
+    requested_group_id = request.args.get("group_id", "").strip()
+    group = None
+    if requested_group_id:
+        raw_group = GROUP_OPTIONS_BY_ID.get(requested_group_id)
+        if raw_group is None:
+            return jsonify({
+                **get_default_sensor_snapshot(),
+                "group_id": requested_group_id,
+                "group_label": "Unknown group",
+                "device_ip": "",
+                "assigned": False,
+                "has_live_data": False,
+                "message": "Unknown group selection.",
+            }), 400
+        group = build_group_option(raw_group)
+    else:
+        group = get_default_sensor_check_group()
+
+    if group is None:
+        return jsonify({
+            **get_default_sensor_snapshot(),
+            "group_id": "",
+            "group_label": "No group selected",
+            "device_ip": "",
+            "assigned": False,
+            "has_live_data": False,
+            "message": "No groups are available for sensor check.",
+        })
+
+    device_ip = (group.get("ip") or "").strip()
+    if not device_ip:
+        return jsonify({
+            **get_default_sensor_snapshot(),
+            "group_id": group["id"],
+            "group_label": group["label"],
+            "device_ip": "",
+            "assigned": False,
+            "has_live_data": False,
+            "message": f"{group['label']} does not have a device assigned yet.",
+        })
+
+    snapshot = get_sensor_snapshot_for_ip(device_ip)
+    if snapshot is None:
+        snapshot = get_default_sensor_snapshot()
+        has_live_data = False
+        message = f"Waiting for live data from {group['label']} on {device_ip}."
+    else:
+        has_live_data = True
+        message = f"Checking {group['label']} on {device_ip}."
+
     return jsonify({
-        'R_heel': R_heel,
-        'G_heel': G_heel,
-        'R_fore': R_fore,
-        'G_fore': G_fore,
-        'heel_pressure': int(received_heel_data),
-        'fore_pressure': int(received_fore_data),
-        'qx': qx,
-        'qy': qy,
-        'qz': qz,
-        'qw': qw,
-        'imu_orientation_mode': imu_orientation_mode,
+        **snapshot,
+        "group_id": group["id"],
+        "group_label": group["label"],
+        "device_ip": device_ip,
+        "assigned": True,
+        "has_live_data": has_live_data,
+        "message": message,
     })
 
 # jump
@@ -1700,7 +1850,10 @@ def balance():
 def assembly_instructions():
     clear_selected_group()
     start_combined_data_thread()
-    return render_template('assemblyInstructions.html')
+    return render_template(
+        'assemblyInstructions.html',
+        sensor_check_default_group=get_default_sensor_check_group(),
+    )
 
 @app.route('/reaction')
 def reaction():

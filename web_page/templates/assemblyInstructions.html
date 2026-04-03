@@ -364,6 +364,90 @@
       text-align: left;
     }
 
+    .sensor-check-toolbar {
+      align-items: end;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .sensor-check-picker {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      min-width: min(320px, 100%);
+    }
+
+    .sensor-check-picker span,
+    .sensor-check-chip span {
+      color: var(--accent-color);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .sensor-check-picker select {
+      appearance: none;
+      background: rgba(244, 247, 250, 0.98);
+      border: 1px solid rgba(21, 62, 92, 0.18);
+      border-radius: 12px;
+      color: var(--text-dark);
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1.4;
+      padding: 0.85rem 1rem;
+    }
+
+    .sensor-check-summary {
+      display: grid;
+      flex: 1;
+      gap: 0.85rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      min-width: min(320px, 100%);
+    }
+
+    .sensor-check-chip {
+      background: rgba(255, 255, 255, 0.56);
+      border: 1px solid rgba(21, 62, 92, 0.12);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-width: 0;
+      padding: 0.85rem 1rem;
+    }
+
+    .sensor-check-chip strong {
+      color: var(--text-dark);
+      font-size: 1rem;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .sensor-check-status-message {
+      background: rgba(21, 62, 92, 0.06);
+      border: 1px solid rgba(21, 62, 92, 0.12);
+      border-radius: 14px;
+      color: var(--accent-color);
+      font-size: 0.98rem;
+      line-height: 1.5;
+      margin: 0 0 1rem;
+      padding: 0.85rem 1rem;
+    }
+
+    .sensor-check-status-message.is-waiting {
+      background: rgba(242, 166, 74, 0.12);
+      border-color: rgba(242, 166, 74, 0.24);
+    }
+
+    .sensor-check-status-message.is-error {
+      background: rgba(200, 90, 45, 0.1);
+      border-color: rgba(200, 90, 45, 0.2);
+      color: #7a341b;
+    }
+
     .sensor-check-grid {
       display: grid;
       gap: 1.25rem;
@@ -470,6 +554,15 @@
     }
 
     @media (max-width: 960px) {
+      .sensor-check-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .sensor-check-summary {
+        grid-template-columns: 1fr;
+      }
+
       .sensor-check-grid {
         grid-template-columns: 1fr;
       }
@@ -487,6 +580,9 @@
   <script>
     let activeSlideIndex = 0;
     let slideTransitionCleanup = null;
+    const sensorCheckGroups = {{ group_options | tojson }};
+    const sensorCheckGroupsById = new Map(sensorCheckGroups.map((group) => [group.id, group]));
+    let selectedSensorCheckGroupId = {{ (sensor_check_default_group.id if sensor_check_default_group else none) | tojson }};
     const defaultSensorCheckState = {
       R_heel: 0,
       G_heel: 0,
@@ -505,6 +601,55 @@
       acceleration: "Estimated from IMU acceleration",
       identity: "Waiting for IMU orientation"
     };
+
+    function getSelectedSensorCheckGroup() {
+      return selectedSensorCheckGroupId ? sensorCheckGroupsById.get(selectedSensorCheckGroupId) || null : null;
+    }
+
+    function syncSensorCheckGroupSelect() {
+      const groupSelect = document.getElementById("sensorCheckGroupSelect");
+      if (!groupSelect) return;
+      if (selectedSensorCheckGroupId) {
+        groupSelect.value = selectedSensorCheckGroupId;
+      }
+    }
+
+    function updateSensorCheckGroupUI(data = {}) {
+      if (Object.prototype.hasOwnProperty.call(data, "group_id")) {
+        selectedSensorCheckGroupId = data.group_id || null;
+      }
+
+      const selectedGroup = getSelectedSensorCheckGroup();
+      const groupLabel = data.group_label || (selectedGroup ? selectedGroup.label : "No group selected");
+      const deviceIp = (
+        Object.prototype.hasOwnProperty.call(data, "device_ip")
+          ? data.device_ip
+          : (selectedGroup ? selectedGroup.ip : "")
+      ) || "";
+      const assigned = Object.prototype.hasOwnProperty.call(data, "assigned")
+        ? Boolean(data.assigned)
+        : Boolean(deviceIp);
+      const hasLiveData = Object.prototype.hasOwnProperty.call(data, "has_live_data")
+        ? Boolean(data.has_live_data)
+        : false;
+      const fallbackMessage = !selectedGroup
+        ? "Select a group to begin the sensor check."
+        : assigned
+          ? (hasLiveData
+              ? `Checking ${groupLabel} on ${deviceIp}.`
+              : `Waiting for live data from ${groupLabel}${deviceIp ? ` on ${deviceIp}` : ""}.`)
+          : `${groupLabel} does not have a device assigned yet.`;
+
+      document.getElementById("sensorCheckSelectedGroupLabel").textContent = groupLabel;
+      document.getElementById("sensorCheckSelectedGroupIp").textContent = assigned ? deviceIp : "Unassigned";
+
+      const statusMessage = document.getElementById("sensorCheckStatusMessage");
+      statusMessage.textContent = data.message || fallbackMessage;
+      statusMessage.classList.toggle("is-waiting", assigned && !hasLiveData);
+      statusMessage.classList.toggle("is-error", !assigned);
+
+      syncSensorCheckGroupSelect();
+    }
 
     function hexToRgb(hex) {
       const normalized = hex.replace("#", "");
@@ -572,14 +717,36 @@
     }
 
     function fetchSensorCheckData() {
-      fetch("/sensor_check_data")
+      const query = new URLSearchParams();
+      if (selectedSensorCheckGroupId) {
+        query.set("group_id", selectedSensorCheckGroupId);
+      }
+
+      const sensorCheckUrl = query.toString()
+        ? `/sensor_check_data?${query.toString()}`
+        : "/sensor_check_data";
+
+      fetch(sensorCheckUrl)
         .then(res => res.json())
         .then(data => {
           updateSensorCheck(data);
+          updateSensorCheckGroupUI(data);
         })
         .catch(() => {
           updateSensorCheck(defaultSensorCheckState);
+          updateSensorCheckGroupUI({
+            group_id: selectedSensorCheckGroupId,
+            has_live_data: false,
+            message: "Unable to load sensor data right now."
+          });
         });
+    }
+
+    function selectSensorCheckGroup(groupId) {
+      selectedSensorCheckGroupId = groupId || null;
+      updateSensorCheckGroupUI({ group_id: selectedSensorCheckGroupId });
+      updateSensorCheck(defaultSensorCheckState);
+      fetchSensorCheckData();
     }
 
     function clearSlideTransition() {
@@ -660,6 +827,7 @@
     window.addEventListener("load", () => {
       goToSlide(0, { immediate: true });
       updateSensorCheck(defaultSensorCheckState);
+      updateSensorCheckGroupUI({ group_id: selectedSensorCheckGroupId });
       if (window.initSensorCheckViewer) {
         window.initSensorCheckViewer();
       }
@@ -959,6 +1127,41 @@
     <div class="modal-content pressure-modal-content" onclick="event.stopPropagation()">
       <span class="close" onclick="closeModal('sensorCheckModal')">&times;</span>
       <h2>Sensor Check</h2>
+      <div class="sensor-check-toolbar">
+        <label class="sensor-check-picker" for="sensorCheckGroupSelect">
+          <span>Group</span>
+          <select id="sensorCheckGroupSelect" onchange="selectSensorCheckGroup(this.value)">
+            {% for group in group_options %}
+            <option value="{{ group.id }}" {% if sensor_check_default_group and sensor_check_default_group.id == group.id %}selected{% endif %}>
+              {{ group.label }}{% if group.ip %} - {{ group.ip }}{% else %} - Unassigned{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </label>
+        <div class="sensor-check-summary">
+          <div class="sensor-check-chip">
+            <span>Checking</span>
+            <strong id="sensorCheckSelectedGroupLabel">
+              {% if sensor_check_default_group %}{{ sensor_check_default_group.label }}{% else %}No group selected{% endif %}
+            </strong>
+          </div>
+          <div class="sensor-check-chip">
+            <span>Device IP</span>
+            <strong id="sensorCheckSelectedGroupIp">
+              {% if sensor_check_default_group and sensor_check_default_group.ip %}{{ sensor_check_default_group.ip }}{% else %}Unassigned{% endif %}
+            </strong>
+          </div>
+        </div>
+      </div>
+      <p id="sensorCheckStatusMessage" class="sensor-check-status-message">
+        {% if sensor_check_default_group and sensor_check_default_group.ip %}
+          Checking {{ sensor_check_default_group.label }} on {{ sensor_check_default_group.ip }}.
+        {% elif sensor_check_default_group %}
+          {{ sensor_check_default_group.label }} does not have a device assigned yet.
+        {% else %}
+          Select a group to begin the sensor check.
+        {% endif %}
+      </p>
       <div class="sensor-check-grid">
         <section class="sensor-panel">
           <h3>Pressure Sensors</h3>
