@@ -174,9 +174,6 @@ void closeImuPort()
         IMU = -1;
     }
     gImuConfigured = false;
-    gImuActiveBaud = 0;
-    gImuActivePort.clear();
-    gImuState = "offline";
 }
 
 void clearInputBuffer(int serial)
@@ -480,7 +477,16 @@ bool ensureImuConfigured(SonicSole& sole)
 
     const auto now = std::chrono::steady_clock::now();
     if (now - gLastInitAttemptTime < kImuInitRetryInterval) {
-        setImuDebugState("retry-wait", "Waiting before next IMU reinitialization attempt");
+        const std::string previousEvent = gImuLastEvent;
+        std::ostringstream message;
+        message << "Waiting before next IMU reinitialization attempt"
+                << " (last port="
+                << (gImuActivePort.empty() ? "<none>" : gImuActivePort)
+                << ", last baud=" << gImuActiveBaud << ")";
+        if (!previousEvent.empty()) {
+            message << " | last result: " << previousEvent;
+        }
+        setImuDebugState("retry-wait", message.str());
         return false;
     }
     gLastInitAttemptTime = now;

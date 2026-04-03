@@ -411,7 +411,7 @@ body.pg-screen.pg-activity {
 
 body.pg-screen.pg-activity .pg-activity-title {
   position: absolute;
-  top: clamp(132px, 16vh, 164px);
+  top: calc(clamp(132px, 16vh, 164px) - 28px);
   left: clamp(20px, 4vw, 40px);
   right: clamp(20px, 4vw, 40px);
   display: flex;
@@ -727,7 +727,7 @@ body.pg-activity .modal-content {
 }
 
 .pg-scoreboard-modal.is-open .pg-scoreboard-modal__frame {
-  transform: translateY(18px);
+  transform: translateY(-16px);
 }
 
 .close {
