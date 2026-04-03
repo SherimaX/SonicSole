@@ -440,14 +440,24 @@ inline void YEIsetStreamingTime(int serial)
 // Polling mode
 inline void YEIgetStreamingBatch(unionStreamingData &uStreamingDataIMU)
 {
-    int nPacketStreamingData = sizeof(uStreamingDataIMU);
-    int bIMU = 0;
+    const int nPacketStreamingData = sizeof(uStreamingDataIMU.vData);
+    int totalBytesRead = 0;
 
     YEIwriteCommandNoDelay(IMU, CMD_GET_STREAMING_BATCH);
 
-    if (serialDataAvail(IMU))
+    while (totalBytesRead < nPacketStreamingData)
     {
-        read(IMU, &uStreamingDataIMU.vData, 26);
+        const ssize_t bytesRead = read(
+            IMU,
+            &uStreamingDataIMU.vData[totalBytesRead],
+            nPacketStreamingData - totalBytesRead
+        );
+
+        if (bytesRead <= 0) {
+            break;
+        }
+
+        totalBytesRead += static_cast<int>(bytesRead);
     }
 }
 

@@ -1580,12 +1580,13 @@ body.pg-screen.pg-activity {
   width: clamp(56px, 8vw, 68px);
   height: clamp(56px, 8vw, 68px);
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.48);
+  border: 2px solid rgba(var(--dock-color, 17, 17, 17), 0.68);
   border-radius: 22px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(246, 247, 250, 0.52));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 12px 20px rgba(17, 17, 17, 0.12);
+    0 10px 20px rgba(17, 17, 17, 0.12),
+    0 0 0 1px rgba(var(--dock-color, 17, 17, 17), 0.12);
   text-decoration: none;
   color: var(--surface-dark);
   transition:
@@ -1598,24 +1599,49 @@ body.pg-screen.pg-activity {
 
 .pg-dock__item:hover {
   transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.78);
+  border-color: rgba(var(--dock-color, 17, 17, 17), 0.9);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
-    0 18px 30px rgba(17, 17, 17, 0.16);
+    0 16px 28px rgba(17, 17, 17, 0.16),
+    0 0 18px rgba(var(--dock-color, 17, 17, 17), 0.22);
 }
 
 .pg-dock__item.is-active {
   transform: none;
-  border-color: rgba(var(--activity-rgb), 0.92);
+  border-color: rgba(var(--dock-color, 17, 17, 17), 0.98);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(242, 245, 249, 0.72));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.92),
-    0 0 0 4px rgba(var(--activity-rgb), 0.34),
-    0 18px 30px rgba(17, 17, 17, 0.16);
+    0 0 0 3px rgba(var(--dock-color, 17, 17, 17), 0.28),
+    0 0 22px rgba(var(--dock-color, 17, 17, 17), 0.55),
+    0 0 40px rgba(var(--dock-color, 17, 17, 17), 0.22),
+    0 18px 30px rgba(17, 17, 17, 0.18);
 }
 
 .pg-dock__item.is-active:hover {
   transform: none;
+  border-color: rgba(var(--dock-color, 17, 17, 17), 0.98);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 0 0 3px rgba(var(--dock-color, 17, 17, 17), 0.3),
+    0 0 28px rgba(var(--dock-color, 17, 17, 17), 0.62),
+    0 0 48px rgba(var(--dock-color, 17, 17, 17), 0.26),
+    0 18px 30px rgba(17, 17, 17, 0.18);
+}
+
+.pg-dock__separator {
+  flex: 0 0 1px;
+  align-self: stretch;
+  width: 1px;
+  min-height: 42px;
+  margin: 4px 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(17, 17, 17, 0.08),
+    rgba(17, 17, 17, 0.34),
+    rgba(17, 17, 17, 0.08)
+  );
+  border-radius: 999px;
 }
 
 .pg-dock__icon {

@@ -4,6 +4,7 @@
     href="{{ url_for('home') }}"
     aria-label="Home"
     title="Home"
+    style="--dock-color: 0, 0, 0;"
   >
     <span class="pg-dock__icon pg-dock__icon--home" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
@@ -13,11 +14,13 @@
       </svg>
     </span>
   </a>
+  <span class="pg-dock__separator" aria-hidden="true"></span>
   <a
     class="pg-dock__item{% if request.endpoint == 'jump' %} is-active{% endif %}"
     href="{{ url_for('jump') }}"
     aria-label="Jumping"
     title="Jumping"
+    style="--dock-color: 174, 200, 151;"
   >
     <img class="pg-dock__icon" src="{{ url_for('static', filename='Jumping.png') }}" alt="" />
   </a>
@@ -26,6 +29,7 @@
     href="{{ url_for('balance') }}"
     aria-label="Balancing"
     title="Balancing"
+    style="--dock-color: 214, 191, 133;"
   >
     <img class="pg-dock__icon" src="{{ url_for('static', filename='Balancing.png') }}" alt="" />
   </a>
@@ -34,6 +38,7 @@
     href="{{ url_for('reaction') }}"
     aria-label="Reaction"
     title="Reaction"
+    style="--dock-color: 194, 121, 158;"
   >
     <img class="pg-dock__icon" src="{{ url_for('static', filename='Reaction.png') }}" alt="" />
   </a>
@@ -42,6 +47,7 @@
     href="{{ url_for('precision') }}"
     aria-label="Precision"
     title="Precision"
+    style="--dock-color: 127, 176, 184;"
   >
     <img class="pg-dock__icon" src="{{ url_for('static', filename='Pressure.png') }}" alt="" />
   </a>
