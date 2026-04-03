@@ -1854,27 +1854,6 @@ def assign_group_device():
     )
 
 
-@app.route('/clear_group_device', methods=['POST'])
-def clear_group_device():
-    payload = request.get_json(silent=True) or request.form
-    group_id = payload.get("group_id", "").strip()
-    group = GROUP_OPTIONS_BY_ID.get(group_id)
-    if group is None:
-        return jsonify({"status": "error", "message": "Unknown group selection."}), 400
-
-    cleared_group = assign_group_device_ip(group_id, "")
-    selected_group = get_selected_group()
-    if selected_group is not None and selected_group["id"] == group_id:
-        set_active_device_ip(None)
-
-    return jsonify(
-        {
-            "status": "ok",
-            "group": cleared_group,
-            "message": f"Cleared the device assignment for {cleared_group['label']}.",
-        }
-    )
-
 @app.route('/submitB', methods=['POST'])
 def submitB():
     global submitted_name, totalTime

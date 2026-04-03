@@ -506,17 +506,9 @@
                 >
                   Assign Live Device
                 </button>
-                <button
-                  type="button"
-                  class="hardware-monitor__action"
-                  data-clear-group-id="{{ group.id }}"
-                  onclick="clearGroupDevice('{{ group.id }}')"
-                >
-                  Clear
-                </button>
               </div>
             </div>
-            <span class="hardware-monitor__state is-offline">Unassigned</span>
+            <span class="hardware-monitor__state is-offline"></span>
           </li>
           {% endfor %}
         </ul>
@@ -625,7 +617,8 @@
       }
 
       if (state) {
-        state.textContent = stateLabel;
+        state.textContent = stateLabel || "";
+        state.style.visibility = stateLabel ? "visible" : "hidden";
         state.classList.toggle("is-online", statusVariant === "online");
         state.classList.toggle("is-unavailable", statusVariant === "unavailable");
         state.classList.toggle(
@@ -663,23 +656,19 @@
         const stateLabel = device.connected
           ? "Live"
           : !device.assigned
-            ? "Unassigned"
+            ? ""
             : device.probe_error
             ? "Unavailable"
             : "Offline";
         setHardwareRowState(row, statusVariant, stateLabel);
         const ipLabel = row ? row.querySelector(".hardware-monitor__ip") : null;
         const assignButton = row ? row.querySelector("[data-assign-group-id]") : null;
-        const clearButton = row ? row.querySelector("[data-clear-group-id]") : null;
         if (ipLabel) {
           ipLabel.textContent = device.ip || "No device assigned";
         }
         if (assignButton) {
           assignButton.disabled = !liveDevice;
-          assignButton.textContent = liveDevice ? `Use ${liveDevice.ip}` : "Waiting for Live Device";
-        }
-        if (clearButton) {
-          clearButton.disabled = !device.assigned;
+          assignButton.textContent = device.assigned ? "Assigned" : "Unassigned";
         }
       });
 
@@ -747,15 +736,6 @@
     async function assignLiveDeviceToGroup(groupId) {
       try {
         await postHardwareAssignment("{{ url_for('assign_group_device') }}", groupId);
-        await refreshHardwareStatus();
-      } catch (error) {
-        alert(error.message);
-      }
-    }
-
-    async function clearGroupDevice(groupId) {
-      try {
-        await postHardwareAssignment("{{ url_for('clear_group_device') }}", groupId);
         await refreshHardwareStatus();
       } catch (error) {
         alert(error.message);
