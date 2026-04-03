@@ -24,7 +24,7 @@
 
 
 echo " "
-echo "Running test script for data logging..."
+echo "Running Raspberry Pi sender for SonicSole web streaming..."
 # cd /root/MDA/DataLogging
 
 #echo "Please enter Session FileName: "
@@ -34,4 +34,9 @@ echo "Running test script for data logging..."
 #
 # print
 # 
-./C_RPi_combined #$input_var
+if [ ! -x ./C_RPi_Andy ]; then
+  echo "Missing ./C_RPi_Andy. Compile it first with ./compile_C_RPi_Andy.sh"
+  exit 1
+fi
+
+./C_RPi_Andy #$input_var

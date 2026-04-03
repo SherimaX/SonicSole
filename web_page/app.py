@@ -371,6 +371,10 @@ def probe_hardware_device(group):
 #UDP_IP = "127.0.0.1" #accept data from localhost
 UDP_IP = "0.0.0.0" # accept connections on any available network interface of the server
 UDP_PORT = 21000 
+DISCOVERY_PORT = int(os.environ.get("SONICSOLE_DISCOVERY_PORT", "21001"))
+DISCOVERY_REQUEST = b"SONICSOLE_DISCOVER_SERVER_V1"
+DISCOVERY_RESPONSE = b"SONICSOLE_SERVER_V1"
+DISCOVERY_BUFFER_SIZE = 256
 bufferSize = 1024
 
 udp_queue = queue.Queue(maxsize=1) #hold latest packet only
@@ -399,9 +403,11 @@ jump_lock = threading.Lock()
 balance_state_lock = threading.Lock()
 activity_session_lock = threading.Lock()
 active_device_ip_lock = threading.Lock()
+discovery_listener_lock = threading.Lock()
 balance_session_id = 0
 recording_time = False
 active_device_ip = None
+discovery_listener_started = False
 activity_session_ids = {
     "balance": 0,
     "jump": 0,
@@ -433,6 +439,45 @@ precision_trainer_state = {
     'measured_force': 0,
     'error_percent': 0
 }
+
+
+def discovery_listener():
+    global discovery_listener_started
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        sock.bind((UDP_IP, DISCOVERY_PORT))
+    except OSError as e:
+        print(f"[Discovery] Could not bind socket: {e}")
+        sock.close()
+        with discovery_listener_lock:
+            discovery_listener_started = False
+        return
+
+    print(f"[Discovery] Listening on UDP {DISCOVERY_PORT}")
+    while True:
+        try:
+            data, addr = sock.recvfrom(DISCOVERY_BUFFER_SIZE)
+            if data.strip() != DISCOVERY_REQUEST:
+                continue
+
+            sock.sendto(DISCOVERY_RESPONSE, addr)
+        except Exception as e:
+            print(f"[Discovery] Error: {e}")
+            time.sleep(0.1)
+
+
+def start_discovery_listener():
+    global discovery_listener_started
+
+    with discovery_listener_lock:
+        if discovery_listener_started:
+            return
+
+        discovery_listener_started = True
+        thread = threading.Thread(target=discovery_listener, daemon=True)
+        thread.start()
 precision_error = 0
 precision_start_time = None
 
@@ -744,6 +789,7 @@ def add_no_cache_headers(response):
 #data
 def start_combined_data_thread():
     global combined_data_thread, combined_data_running
+    start_discovery_listener()
     if not combined_data_running:
         combined_data_running = True
         combined_data_thread = threading.Thread(target=read_combined_data)
@@ -1698,5 +1744,6 @@ def button():
 
 # main
 if __name__ == '__main__':
+    start_discovery_listener()
     flask_port = int(os.environ.get("SONICSOLE_PORT", os.environ.get("PORT", "5001")))
     app.run(host='0.0.0.0', port=flask_port, debug=False)
