@@ -1,0 +1,1 @@
+<div class="data-box pg-activity-status-box{% if activity_status_square | default(true) %} pg-activity-status-box--square{% endif %}{% if activity_status_classes | default('') %} {{ activity_status_classes }}{% endif %}" id="{{ activity_status_id }}">{{ activity_status_content | default("<strong>Getting Ready</strong>", true) | safe }}</div>

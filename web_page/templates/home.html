@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>SonicSole</title>
   <style>
     :root {
@@ -609,6 +609,9 @@
 
   <header class="pg-home-titlebar">
     <h1>SonicSole</h1>
+    <div class="pg-hero-actions">
+      <a class="pg-ghost-link" href="{{ url_for('pc_scoreboard') }}">Scoreboard</a>
+    </div>
   </header>
 
   <a href="/assemblyInstructions" class="instructions-button setup-guide-fab">Setup Guide</a>

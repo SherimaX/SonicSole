@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  {% set webapp_theme_color = "#f5f5f0" %}
+  {% include '_ios_webapp_meta.html' %}
+  <title>SonicSole | Phone Groups</title>
+  <style>
+    :root {
+      --phone-max: 820px;
+    }
+
+    .pg-phone-shell {
+      width: min(100%, var(--phone-max));
+      display: grid;
+      gap: 18px;
+      min-height: 100%;
+      align-content: center;
+    }
+
+    .pg-phone-header {
+      text-align: center;
+      display: grid;
+      gap: 10px;
+    }
+
+    .pg-phone-kicker {
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      color: var(--text-subtle);
+      font-weight: 700;
+    }
+
+    .pg-phone-subtitle {
+      color: var(--text-subtle);
+      max-width: 44ch;
+      margin: 0 auto;
+    }
+
+    .pg-phone-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .pg-phone-card {
+      display: grid;
+      gap: 12px;
+      padding: 22px 20px;
+      border-radius: 24px;
+      text-decoration: none;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-md);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .pg-phone-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(23, 23, 23, 0.18);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .pg-phone-card__eyebrow {
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-subtle);
+      font-weight: 700;
+    }
+
+    .pg-phone-card__title {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .pg-phone-card__body {
+      color: var(--text-subtle);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 720px) {
+      .pg-phone-shell {
+        gap: 14px;
+      }
+
+      .pg-phone-header {
+        gap: 8px;
+      }
+
+      .pg-phone-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .pg-phone-card {
+        gap: 8px;
+        min-height: 116px;
+        padding: 18px 16px;
+        border-radius: 20px;
+      }
+
+      .pg-phone-card__title {
+        font-size: 1.2rem;
+      }
+
+      .pg-phone-card__body {
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
+  <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
+</head>
+<body class="pg-screen pg-phone-app">
+  <main class="pg-phone-shell">
+    <header class="pg-phone-header">
+      <p class="pg-phone-kicker">Phone Webapp</p>
+      <h1>Choose Your Group</h1>
+      <p class="pg-phone-subtitle">
+        Each link opens a phone-friendly activity hub that stays tied to that group.
+      </p>
+    </header>
+
+    <section class="pg-phone-grid" aria-label="Phone group links">
+      {% for group in phone_groups %}
+      <a class="pg-phone-card" href="{{ url_for('phone_group_home', group_slug=group.slug) }}">
+        <span class="pg-phone-card__eyebrow">Locked mobile page</span>
+        <span class="pg-phone-card__title">{{ group.label }}</span>
+        <span class="pg-phone-card__body">
+          Open the shareable phone page for {{ group.label }}.
+        </span>
+      </a>
+      {% endfor %}
+    </section>
+  </main>
+</body>
+</html>

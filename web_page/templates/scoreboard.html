@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SonicSole | {{ scoreboard_activity.title }}</title>
+  <style>
+    body.pg-pc-scoreboard {
+      padding-bottom: 132px;
+    }
+
+    .pg-scoreboard-header {
+      width: min(100%, var(--pg-scoreboard-max));
+      margin-top: clamp(20px, 6vh, 56px) !important;
+      gap: 18px;
+    }
+
+    .pg-scoreboard-header h1 {
+      max-width: none;
+      white-space: nowrap;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+    }
+
+    .pg-scoreboard-titlebar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .pg-scoreboard-titlebar .pg-header-nav {
+      width: auto;
+    }
+
+    .pg-scoreboard-table {
+      table-layout: fixed;
+    }
+
+    .pg-scoreboard-table th {
+      user-select: none;
+    }
+
+    .pg-scoreboard-sortable {
+      cursor: pointer;
+    }
+
+    .pg-scoreboard-sortable:focus-visible {
+      outline: 3px solid rgba(16, 163, 127, 0.24);
+      outline-offset: -3px;
+    }
+
+    .pg-scoreboard-table__row--leader td {
+      background: rgba(var(--activity-rgb), 0.16);
+      font-weight: 700;
+    }
+
+    .pg-scoreboard-table tbody tr {
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .pg-scoreboard-table tbody tr:hover td {
+      background: rgba(var(--activity-rgb), 0.1);
+    }
+
+    .pg-scoreboard-table tbody tr:focus-visible {
+      outline: 3px solid rgba(16, 163, 127, 0.24);
+      outline-offset: -3px;
+    }
+
+    @media (max-width: 820px) {
+      .pg-scoreboard-titlebar {
+        justify-content: center;
+      }
+
+      .pg-scoreboard-header h1 {
+        white-space: normal;
+        text-align: center;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
+  <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
+</head>
+<body class="pg-screen pg-activity pg-activity-{{ scoreboard_activity.slug }} pg-pc-scoreboard">
+  <header class="pg-header pg-scoreboard-header">
+    <div class="pg-scoreboard-titlebar">
+      <h1>{{ scoreboard_activity.title }}</h1>
+      <div class="pg-header-nav">
+        <a class="pg-ghost-link" href="{{ url_for('home') }}">Home</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="pg-card pg-scoreboard-card">
+    <div class="pg-table-wrap">
+      <table
+        id="scoreboardTable"
+        class="pg-scoreboard-table"
+        aria-label="{{ scoreboard_activity.label }} best performance by group"
+        data-performance-direction="{{ 'desc' if scoreboard_sort_reverse else 'asc' }}"
+      >
+        <thead>
+          <tr>
+            <th
+              class="pg-scoreboard-sortable sorted"
+              scope="col"
+              tabindex="0"
+              data-sort-key="group"
+              aria-sort="ascending"
+            >
+              Group
+              <span class="sort-indicator">↑</span>
+            </th>
+            <th
+              class="pg-scoreboard-sortable"
+              scope="col"
+              tabindex="0"
+              data-sort-key="performance"
+              aria-sort="none"
+            >
+              Performance
+              <span class="sort-indicator"></span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in scoreboard_rows %}
+          <tr
+            {% if scoreboard_leader and scoreboard_leader.group_id == row.group_id %}class="pg-scoreboard-table__row--leader"{% endif %}
+            tabindex="0"
+            role="button"
+            aria-label="Open {{ row.group_label }} history"
+            data-group-id="{{ row.group_id }}"
+            data-group-label="{{ row.group_label }}"
+            data-group-number="{{ row.group_number }}"
+            data-score="{{ row.score if row.score is not none else '' }}"
+          >
+            <td>{{ row.group_label }}</td>
+            <td>{{ row.formatted_score }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  {% set group_history_board_key = scoreboard_activity.slug %}
+  {% set group_history_modal_title = scoreboard_activity.title %}
+  {% include '_group_history_modal.html' %}
+  {% include '_scoreboard_dock.html' %}
+
+  <script>
+    const scoreboardTable = document.getElementById("scoreboardTable");
+    const scoreboardTableBody = scoreboardTable.tBodies[0];
+    const scoreboardSortableHeaders = Array.from(scoreboardTable.querySelectorAll(".pg-scoreboard-sortable"));
+    const scoreboardSortState = {
+      key: "group",
+      direction: "asc",
+      performanceDefaultDirection: scoreboardTable.dataset.performanceDirection || "desc",
+    };
+
+    function getScoreboardRows() {
+      return Array.from(scoreboardTableBody.querySelectorAll("tr"));
+    }
+
+    function getRowNumberValue(row) {
+      return Number(row.dataset.groupNumber || 0);
+    }
+
+    function getRowScoreValue(row) {
+      const rawScore = row.dataset.score;
+      if (rawScore === "") {
+        return null;
+      }
+      const parsed = Number(rawScore);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function updateScoreboardHeaderState() {
+      scoreboardSortableHeaders.forEach((header) => {
+        const isActive = header.dataset.sortKey === scoreboardSortState.key;
+        const indicator = header.querySelector(".sort-indicator");
+        header.classList.toggle("sorted", isActive);
+        header.setAttribute("aria-sort", isActive ? (scoreboardSortState.direction === "asc" ? "ascending" : "descending") : "none");
+        indicator.textContent = isActive ? (scoreboardSortState.direction === "asc" ? "↑" : "↓") : "";
+      });
+    }
+
+    function sortScoreboardRows(sortKey) {
+      if (sortKey === scoreboardSortState.key) {
+        scoreboardSortState.direction = scoreboardSortState.direction === "asc" ? "desc" : "asc";
+      } else {
+        scoreboardSortState.key = sortKey;
+        scoreboardSortState.direction = sortKey === "performance"
+          ? scoreboardSortState.performanceDefaultDirection
+          : "asc";
+      }
+
+      const rows = getScoreboardRows();
+      rows.sort((rowA, rowB) => {
+        if (scoreboardSortState.key === "group") {
+          const difference = getRowNumberValue(rowA) - getRowNumberValue(rowB);
+          return scoreboardSortState.direction === "asc" ? difference : -difference;
+        }
+
+        const scoreA = getRowScoreValue(rowA);
+        const scoreB = getRowScoreValue(rowB);
+        if (scoreA === null && scoreB === null) {
+          return getRowNumberValue(rowA) - getRowNumberValue(rowB);
+        }
+        if (scoreA === null) {
+          return 1;
+        }
+        if (scoreB === null) {
+          return -1;
+        }
+        if (scoreA === scoreB) {
+          return getRowNumberValue(rowA) - getRowNumberValue(rowB);
+        }
+        return scoreboardSortState.direction === "asc" ? scoreA - scoreB : scoreB - scoreA;
+      });
+
+      rows.forEach((row) => scoreboardTableBody.appendChild(row));
+      updateScoreboardHeaderState();
+    }
+
+    function handleScoreboardHeaderKeydown(event) {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      event.preventDefault();
+      sortScoreboardRows(event.currentTarget.dataset.sortKey);
+    }
+
+    function openScoreboardRowHistory(row) {
+      openGroupHistoryModal({
+        id: row.dataset.groupId,
+        label: row.dataset.groupLabel,
+      });
+    }
+
+    function handleScoreboardRowKeydown(event) {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      event.preventDefault();
+      openScoreboardRowHistory(event.currentTarget);
+    }
+
+    scoreboardSortableHeaders.forEach((header) => {
+      header.addEventListener("click", () => sortScoreboardRows(header.dataset.sortKey));
+      header.addEventListener("keydown", handleScoreboardHeaderKeydown);
+    });
+
+    getScoreboardRows().forEach((row) => {
+      row.addEventListener("click", () => openScoreboardRowHistory(row));
+      row.addEventListener("keydown", handleScoreboardRowKeydown);
+    });
+
+    updateScoreboardHeaderState();
+  </script>
+</body>
+</html>

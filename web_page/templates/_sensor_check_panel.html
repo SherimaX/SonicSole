@@ -1,0 +1,97 @@
+{% set sensor_check_group_label = sensor_check_group_label | default("") %}
+{% set sensor_check_group_has_ip = sensor_check_group_has_ip | default(false) %}
+{% set sensor_check_show_group_picker = sensor_check_show_group_picker | default(false) %}
+{% set sensor_check_group_options = sensor_check_group_options | default([]) %}
+{% set sensor_check_selected_group_id = sensor_check_selected_group_id | default(none) %}
+
+<div class="pg-phone-status-sheet__eyebrow">Sensor Check</div>
+<h2 class="pg-phone-status-sheet__title sensor-check-title" id="sensorCheckTitle" {% if not sensor_check_group_label %}hidden{% endif %}>
+  <span class="sensor-check-title__dot{% if sensor_check_group_has_ip %} is-online{% endif %}" id="sensorCheckTitleDot" aria-hidden="true"></span>
+  <span id="sensorCheckTitleLabel">{{ sensor_check_group_label }}</span>
+</h2>
+
+{% if sensor_check_show_group_picker %}
+<div class="sensor-check-toolbar">
+  <label class="sensor-check-picker" for="sensorCheckGroupSelect">
+    <span>Group</span>
+    <select id="sensorCheckGroupSelect" onchange="selectSensorCheckGroup(this.value)">
+      {% for group in sensor_check_group_options %}
+      <option value="{{ group.id }}" {% if sensor_check_selected_group_id and sensor_check_selected_group_id == group.id %}selected{% endif %}>
+        {{ group.label }}{% if group.ip %} - {{ group.ip }}{% else %} - Unassigned{% endif %}
+      </option>
+      {% endfor %}
+    </select>
+  </label>
+</div>
+{% endif %}
+
+<p id="sensorCheckStatusMessage" class="sensor-check-status-message" {% if sensor_check_group_label and not sensor_check_group_has_ip %}hidden{% endif %}>
+  {% if sensor_check_group_label and sensor_check_group_has_ip %}
+    Live sensor data is active.
+  {% elif sensor_check_group_label %}
+    This group does not have a device assigned yet.
+  {% else %}
+    Select a group to begin the sensor check.
+  {% endif %}
+</p>
+
+<div class="sensor-check-carousel" id="sensorCheckCarousel">
+  <div class="sensor-check-track">
+    <section class="sensor-check-page sensor-check-page--pressure sensor-panel sensor-panel--pressure">
+      <h3>Pressure Sensors</h3>
+      <div class="pressure-stage">
+        <svg class="pressure-insole" viewBox="0 0 280 780" role="img" aria-label="Live insole pressure gradient from heel to toe">
+          <defs>
+            <linearGradient id="pressureGradient" x1="50%" y1="100%" x2="50%" y2="0%">
+              <stop id="heelGradientStop" offset="0%" stop-color="#ffffff"></stop>
+              <stop id="midGradientStop" offset="56%" stop-color="#ffffff"></stop>
+              <stop id="forefootGradientStop" offset="100%" stop-color="#ffffff"></stop>
+            </linearGradient>
+          </defs>
+          <path
+            d="M140 20 C195 18 235 50 252 102 C270 156 264 226 243 291 C222 355 204 407 201 489 C198 559 208 633 198 700 C190 752 166 780 134 780 C102 780 77 752 70 702 C61 637 71 561 67 489 C64 408 46 355 25 291 C4 228 -2 158 17 102 C33 54 75 20 140 20 Z"
+            fill="url(#pressureGradient)"
+            stroke="#1f1f1f"
+            stroke-width="5"
+            stroke-linejoin="round"
+          ></path>
+        </svg>
+        <div class="sensor-scale" aria-hidden="true"></div>
+      </div>
+      <div class="sensor-readings">
+        <div class="sensor-reading">
+          <span>Heel Pressure</span>
+          <strong id="heelPressureValue">0</strong>
+        </div>
+        <div class="sensor-reading">
+          <span>Forefoot Pressure</span>
+          <strong id="forePressureValue">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="sensor-check-page sensor-panel">
+      <h3>IMU Orientation</h3>
+      <div id="imuViewer" class="imu-viewer" aria-label="3D IMU orientation preview"></div>
+      <div class="sensor-metadata sensor-metadata--acceleration">
+        <div class="sensor-reading">
+          <span>X Accel</span>
+          <strong id="imuAccelXValue">0.00</strong>
+        </div>
+        <div class="sensor-reading">
+          <span>Y Accel</span>
+          <strong id="imuAccelYValue">0.00</strong>
+        </div>
+        <div class="sensor-reading">
+          <span>Z Accel</span>
+          <strong id="imuAccelZValue">0.00</strong>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="sensor-check-pager" aria-label="Sensor monitor pages">
+  <button type="button" class="sensor-check-dot is-active" data-sensor-check-dot aria-label="Show pressure sensors" aria-current="true"></button>
+  <button type="button" class="sensor-check-dot" data-sensor-check-dot aria-label="Show IMU orientation" aria-current="false"></button>
+</div>

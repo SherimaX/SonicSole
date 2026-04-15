@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% set webapp_theme_color = "#f5f5f0" %}
+{% include '_ios_webapp_meta.html' %}
 <title>SonicSole | Forefoot Walk</title>
 <style>
   :root {
@@ -137,18 +138,6 @@
     color: var(--text);
   }
 
-  .data-box {
-    font-size: 1.3em;
-    background-color: rgba(255, 255, 255, 0.78);
-    padding: 15px;
-    border-radius: 12px;
-    margin: 15px auto;
-    width: 80%;
-    box-shadow: 0 10px 18px rgba(33, 74, 39, 0.08);
-    border: 1px solid rgba(33, 74, 39, 0.12);
-    text-align: center;
-  }
-
   .name-fields {
     display: flex;
     justify-content: center;
@@ -206,7 +195,7 @@
 <script defer src="{{ url_for('static', filename='playground-activity-toggle.js') }}"></script>
 </head>
 
-<body class="pg-screen pg-activity">
+<body class="pg-screen pg-activity{% if phone_group %} pg-phone-app{% endif %}">
 <div class="pg-activity-title">
   <header class="pg-header">
     <h1>Forefoot Walk</h1>
@@ -214,18 +203,22 @@
 </div>
 
 <div class="pg-activity-stage">
+  {% if not (group_selection_locked | default(false)) %}
   <div class="pg-activity-toolbar">
     <div class="pg-header-nav">
       <a href="{{ url_for('w_scoreboard') }}" onclick="openScoreboardModal(); return false;">Scoreboard</a>
     </div>
   </div>
+  {% endif %}
 
   <div class="card pg-card pg-activity-card">
-    <p>Walk on your forefeet for 15 seconds without letting your heels touch the ground.</p>
-
     <div class="pg-status-grid">
-      <div class="data-box" id="timeBox">Timer: --</div>
-      <div class="data-box" id="statusBox">Waiting for walk to start...</div>
+      {% set activity_status_id = "timeBox" %}
+      {% set activity_status_content = "Timer: --" %}
+      {% include '_activity_status_box.html' %}
+      {% set activity_status_id = "statusBox" %}
+      {% set activity_status_content = none %}
+      {% include '_activity_status_box.html' %}
     </div>
 
     <div class="buttons pg-actions">
@@ -247,14 +240,22 @@
   {% include '_group_selector.html' %}
 </div>
 
+{% if not (group_selection_locked | default(false)) %}
 {% set scoreboard_modal_title = "Forefoot Walk Scoreboard" %}
 {% set scoreboard_embed_url = url_for('w_scoreboard', embed=1) %}
 {% include '_scoreboard_modal.html' %}
+{% endif %}
+
+{% include '_activity_dock.html' %}
 
 <script>
   let timerInterval = null;
   let startTime = null;
   let walkActivityToggle = null;
+
+  function setWalkReadyState() {
+    document.getElementById("statusBox").innerHTML = "<strong>Getting Ready</strong>";
+  }
 
   function submitForm(event) {
     event.preventDefault();
@@ -275,7 +276,7 @@
     }
     startTime = null;
     document.getElementById("timeBox").innerText = "Timer: --";
-    document.getElementById("statusBox").innerText = "Waiting for walk to start...";
+    setWalkReadyState();
     document.getElementById("name-form").style.display = "none";
     document.getElementById("thankYouMessage").style.display = "none";
   }

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>SonicSole</title>
     <style>
       body {
@@ -171,27 +171,8 @@
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
     <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      let myChart;
-
       function fetchData() {
-        // fetch("/heel_data")
-        //   .then((response) => response.json())
-        //   .then((data) => {
-        //     document.getElementById("data-window1").innerText = data.data;
-        //   });
-        // fetch("/fore_data")
-        //   .then((response) => response.json())
-        //   .then((data) => {
-        //     document.getElementById("data-window2").innerText = data.data;
-        //   });
-        // fetch("/heel_graph")
-        //   .then((response) => response.json())
-        //   .then((data) => {
-        //     updateChart(data.data);
-        //     window.scrollTo(0, scrollPos);
-        //   });
         fetch("/color_data")
           .then((response) => response.json())
           .then((data) => {
@@ -200,44 +181,7 @@
           });
       }
 
-    //   function updateChart(data) {
-    //     const labels = Array.from({ length: data.length }, (_, i) => i + 1);
-    //     const chartData = {
-    //       labels: labels,
-    //       datasets: [
-    //         {
-    //           label: "Heel Pressure Data",
-    //           data: data,
-    //           backgroundColor: "rgba(75, 192, 192, 0.2)",
-    //           borderColor: "rgba(75, 192, 192, 1)",
-    //           borderWidth: 1,
-    //         },
-    //       ],
-    //     };
-
-        // const config = {
-        //   type: "line",
-        //   data: chartData,
-        //   options: {
-        //     animation: false,
-        //     scales: {
-        //       y: {
-        //         beginAtZero: true,
-        //         max: 2000,
-        //       },
-        //     },
-        //   },
-        // };
-
-    //     const ctx = document.getElementById("myChart").getContext("2d");
-    //     if (myChart) {
-    //       myChart.destroy();
-    //     }
-    //     myChart = new Chart(ctx, config);
-    //   }
-
       window.onload = function () {
-        // fetchData();
         setInterval(fetchData, 200);
       };
 

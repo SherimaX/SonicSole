@@ -1,7 +1,16 @@
+{% set nav_links = phone_group_links if phone_group_links is defined and phone_group_links else {
+  'home': url_for('home'),
+  'jump': url_for('jump'),
+  'balance': url_for('balance'),
+  'reaction': url_for('reaction'),
+  'precision': url_for('precision'),
+} %}
+{% set current_activity = phone_activity if phone_activity is defined and phone_activity else request.endpoint %}
+
 <nav class="pg-activity-dock" aria-label="Activity navigation">
   <a
-    class="pg-dock__item{% if request.endpoint == 'home' %} is-active{% endif %}"
-    href="{{ url_for('home') }}"
+    class="pg-dock__item{% if current_activity == 'home' %} is-active{% endif %}"
+    href="{{ nav_links.home }}"
     aria-label="Home"
     title="Home"
     style="--dock-color: 0, 0, 0;"
@@ -16,8 +25,8 @@
   </a>
   <span class="pg-dock__separator" aria-hidden="true"></span>
   <a
-    class="pg-dock__item{% if request.endpoint == 'jump' %} is-active{% endif %}"
-    href="{{ url_for('jump') }}"
+    class="pg-dock__item{% if current_activity == 'jump' %} is-active{% endif %}"
+    href="{{ nav_links.jump }}"
     aria-label="Jumping"
     title="Jumping"
     style="--dock-color: 174, 200, 151;"
@@ -25,8 +34,8 @@
     <img class="pg-dock__icon" src="{{ url_for('static', filename='Jumping.png') }}" alt="" />
   </a>
   <a
-    class="pg-dock__item{% if request.endpoint == 'balance' %} is-active{% endif %}"
-    href="{{ url_for('balance') }}"
+    class="pg-dock__item{% if current_activity == 'balance' %} is-active{% endif %}"
+    href="{{ nav_links.balance }}"
     aria-label="Balancing"
     title="Balancing"
     style="--dock-color: 214, 191, 133;"
@@ -34,8 +43,8 @@
     <img class="pg-dock__icon" src="{{ url_for('static', filename='Balancing.png') }}" alt="" />
   </a>
   <a
-    class="pg-dock__item{% if request.endpoint == 'reaction' %} is-active{% endif %}"
-    href="{{ url_for('reaction') }}"
+    class="pg-dock__item{% if current_activity == 'reaction' %} is-active{% endif %}"
+    href="{{ nav_links.reaction }}"
     aria-label="Reaction"
     title="Reaction"
     style="--dock-color: 194, 121, 158;"
@@ -43,8 +52,8 @@
     <img class="pg-dock__icon" src="{{ url_for('static', filename='Reaction.png') }}" alt="" />
   </a>
   <a
-    class="pg-dock__item{% if request.endpoint == 'precision' %} is-active{% endif %}"
-    href="{{ url_for('precision') }}"
+    class="pg-dock__item{% if current_activity == 'precision' %} is-active{% endif %}"
+    href="{{ nav_links.precision }}"
     aria-label="Precision"
     title="Precision"
     style="--dock-color: 127, 176, 184;"

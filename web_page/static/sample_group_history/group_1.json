@@ -1,0 +1,86 @@
+{
+  "status": "ok",
+  "group": {
+    "id": "group_1",
+    "label": "Group 1",
+    "slug": "group1",
+    "ip": ""
+  },
+  "history": [
+    {
+      "board_key": "jump",
+      "label": "Jumping",
+      "attempt_count": 6,
+      "attempts": [
+        { "value": 0.42, "formatted_value": "0.42 m" },
+        { "value": 0.41, "formatted_value": "0.41 m" },
+        { "value": 0.39, "formatted_value": "0.39 m" },
+        { "value": 0.36, "formatted_value": "0.36 m" },
+        { "value": 0.34, "formatted_value": "0.34 m" },
+        { "value": 0.31, "formatted_value": "0.31 m" }
+      ],
+      "best_value": 0.42,
+      "best_formatted_value": "0.42 m"
+    },
+    {
+      "board_key": "balance",
+      "label": "Balancing",
+      "attempt_count": 6,
+      "attempts": [
+        { "value": 48.3, "formatted_value": "48.300 s" },
+        { "value": 46.1, "formatted_value": "46.100 s" },
+        { "value": 44.8, "formatted_value": "44.800 s" },
+        { "value": 43.2, "formatted_value": "43.200 s" },
+        { "value": 41.5, "formatted_value": "41.500 s" },
+        { "value": 40.4, "formatted_value": "40.400 s" }
+      ],
+      "best_value": 48.3,
+      "best_formatted_value": "48.300 s"
+    },
+    {
+      "board_key": "reaction",
+      "label": "Reaction",
+      "attempt_count": 6,
+      "attempts": [
+        { "value": 3.24, "formatted_value": "3.240 s" },
+        { "value": 3.31, "formatted_value": "3.310 s" },
+        { "value": 3.58, "formatted_value": "3.580 s" },
+        { "value": 3.67, "formatted_value": "3.670 s" },
+        { "value": 3.79, "formatted_value": "3.790 s" },
+        { "value": 3.92, "formatted_value": "3.920 s" }
+      ],
+      "best_value": 3.24,
+      "best_formatted_value": "3.240 s"
+    },
+    {
+      "board_key": "precision",
+      "label": "Precision",
+      "attempt_count": 6,
+      "attempts": [
+        { "value": 4.8, "formatted_value": "4.8%" },
+        { "value": 5.6, "formatted_value": "5.6%" },
+        { "value": 6.3, "formatted_value": "6.3%" },
+        { "value": 6.7, "formatted_value": "6.7%" },
+        { "value": 7.1, "formatted_value": "7.1%" },
+        { "value": 7.6, "formatted_value": "7.6%" }
+      ],
+      "best_value": 4.8,
+      "best_formatted_value": "4.8%"
+    },
+    {
+      "board_key": "walk",
+      "label": "Forefoot Walk",
+      "attempt_count": 6,
+      "attempts": [
+        { "value": 2.8, "formatted_value": "2.80 m" },
+        { "value": 2.7, "formatted_value": "2.70 m" },
+        { "value": 2.6, "formatted_value": "2.60 m" },
+        { "value": 2.4, "formatted_value": "2.40 m" },
+        { "value": 2.3, "formatted_value": "2.30 m" },
+        { "value": 2.1, "formatted_value": "2.10 m" }
+      ],
+      "best_value": 2.8,
+      "best_formatted_value": "2.80 m"
+    }
+  ]
+}

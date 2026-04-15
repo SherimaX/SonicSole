@@ -1,5 +1,5 @@
-from tkinter import N
 from concurrent.futures import ThreadPoolExecutor
+import json
 import math
 import os
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, abort, session
@@ -41,6 +41,50 @@ GROUP_SLOTS = [
 GROUP_OPTIONS_BY_ID = {group["id"]: group for group in GROUP_SLOTS}
 HARDWARE_PING_TIMEOUT_SECONDS = 1.0
 
+PHONE_ACTIVITY_CARDS = [
+    {
+        "slug": "jump",
+        "label": "Jumping",
+        "kicker": "Performance",
+        "image": "Jumping.png",
+        "template": "jump.html",
+        "phone_activity": "jump",
+    },
+    {
+        "slug": "balance",
+        "label": "Balancing",
+        "kicker": "Stability",
+        "image": "Balancing.png",
+        "template": "balance.html",
+        "phone_activity": "balance",
+    },
+    {
+        "slug": "reaction",
+        "label": "Reaction",
+        "kicker": "Timing",
+        "image": "Reaction.png",
+        "template": "reaction.html",
+        "phone_activity": "reaction",
+    },
+    {
+        "slug": "precision",
+        "label": "Precision",
+        "kicker": "Control",
+        "image": "Pressure.png",
+        "template": "precision.html",
+        "phone_activity": "precision",
+    },
+]
+PHONE_ACTIVITY_CONFIG = {
+    activity["slug"]: activity
+    for activity in PHONE_ACTIVITY_CARDS
+}
+PHONE_ACTIVITY_CARDS_NO_WALK = [
+    activity
+    for activity in PHONE_ACTIVITY_CARDS
+    if activity["slug"] != "walk"
+]
+
 LEADERBOARD_CONFIG = {
     "balance": {
         "file": "SonicSoleBalance.txt",
@@ -71,6 +115,34 @@ LEADERBOARD_CONFIG = {
         "route": "w_scoreboard",
         "value_field": "forefoot_dist",
         "sort_reverse": True,
+    },
+}
+
+GROUP_HISTORY_META = {
+    "jump": {
+        "label": "Jumping",
+        "decimals": 2,
+        "unit": "m",
+    },
+    "balance": {
+        "label": "Balancing",
+        "decimals": 3,
+        "unit": "s",
+    },
+    "reaction": {
+        "label": "Reaction",
+        "decimals": 3,
+        "unit": "s",
+    },
+    "precision": {
+        "label": "Precision",
+        "decimals": 1,
+        "unit": "%",
+    },
+    "walk": {
+        "label": "Forefoot Walk",
+        "decimals": 2,
+        "unit": "m",
     },
 }
 
@@ -112,6 +184,30 @@ DUMMY_LEADERBOARD_ROWS = {
     ],
 }
 
+PC_SCOREBOARD_KEYS = ("jump", "balance", "reaction", "precision")
+PC_SCOREBOARD_META = {
+    "jump": {
+        "label": "Jumping",
+        "title": "Jumping Scoreboard",
+        "summary": "Best jump height from each group.",
+    },
+    "balance": {
+        "label": "Balancing",
+        "title": "Balancing Scoreboard",
+        "summary": "Longest balance hold from each group.",
+    },
+    "reaction": {
+        "label": "Reaction",
+        "title": "Reaction Scoreboard",
+        "summary": "Fastest reaction time from each group.",
+    },
+    "precision": {
+        "label": "Precision",
+        "title": "Precision Scoreboard",
+        "summary": "Lowest precision error from each group.",
+    },
+}
+
 
 def get_leaderboard_config(board_key):
     config = LEADERBOARD_CONFIG.get(board_key)
@@ -125,6 +221,20 @@ def get_leaderboard_path(board_key):
     return os.path.join(PROJECT_ROOT, filename)
 
 
+def get_sample_group_history_path(group):
+    resolved_group = resolve_group_slot(group)
+    if resolved_group is None:
+        return ""
+
+    return os.path.join(
+        PROJECT_ROOT,
+        "web_page",
+        "static",
+        "sample_group_history",
+        f"{resolved_group['id']}.json",
+    )
+
+
 def parse_score(value, allow_blank=False):
     text = "" if value is None else str(value).strip()
     if not text:
@@ -135,10 +245,62 @@ def parse_score(value, allow_blank=False):
         return None
 
 
+def get_display_name_from_entry(raw_name):
+    name = (raw_name or "").strip()
+    split_name = name.rsplit("_", 1)
+    if len(split_name) == 2 and split_name[1] in {"0", "1"}:
+        return split_name[0].strip()
+    return name
+
+
+def normalize_group_name(name):
+    return "".join(character for character in str(name or "").lower() if character.isalnum())
+
+
+def entry_matches_group(raw_name, target_group_name):
+    return normalize_group_name(get_display_name_from_entry(raw_name)) == normalize_group_name(target_group_name)
+
+
+def resolve_group_slot(group):
+    if isinstance(group, str):
+        return GROUP_OPTIONS_BY_ID.get(group)
+    if group is None:
+        return None
+    if "number" in group:
+        return group
+
+    group_id = group.get("id") if isinstance(group, dict) else None
+    if group_id:
+        return GROUP_OPTIONS_BY_ID.get(group_id)
+
+    group_slug = group.get("slug") if isinstance(group, dict) else None
+    if group_slug:
+        return get_group_from_slug(group_slug)
+
+    return None
+
+
+def get_group_phone_slug(group):
+    resolved_group = resolve_group_slot(group)
+    if resolved_group is None:
+        return ""
+    return f"group{resolved_group['number']}"
+
+
+def get_group_from_slug(group_slug):
+    normalized_slug = "".join(character for character in str(group_slug or "").lower() if character.isalnum())
+    if normalized_slug.startswith("group"):
+        normalized_slug = normalized_slug[5:]
+    if not normalized_slug.isdigit():
+        return None
+    return GROUP_OPTIONS_BY_ID.get(f"group_{int(normalized_slug)}")
+
+
 def build_group_option(group, assigned_ip=None):
     return {
         "id": group["id"],
         "label": group["label"],
+        "slug": get_group_phone_slug(group),
         "ip": (assigned_ip if assigned_ip is not None else get_group_assignment_ip(group["id"])).strip(),
     }
 
@@ -305,6 +467,21 @@ def get_selected_group():
         session.pop("selected_group_id", None)
         return None
     return build_group_option(group)
+
+
+def set_selected_group(group_id, activate_device=False):
+    group = GROUP_OPTIONS_BY_ID.get(group_id)
+    if group is None:
+        session.pop("selected_group_id", None)
+        if activate_device:
+            set_active_device_ip(None)
+        return None
+
+    session["selected_group_id"] = group_id
+    selected_group = build_group_option(group)
+    if activate_device:
+        set_active_device_ip((selected_group or {}).get("ip"))
+    return selected_group
 
 
 def clear_selected_group():
@@ -496,6 +673,52 @@ def load_metric_leaderboard(board_key):
     return entries
 
 
+def load_group_best_performance(board_key):
+    if board_key not in PC_SCOREBOARD_KEYS:
+        abort(404)
+
+    config = get_leaderboard_config(board_key)
+    best_scores_by_group_id = {}
+
+    for raw_name, raw_value in read_leaderboard_rows(board_key):
+        score = parse_score(raw_value, allow_blank=True)
+        if score is None:
+            continue
+
+        matched_group = None
+        for group in GROUP_SLOTS:
+            if entry_matches_group(raw_name, group["label"]):
+                matched_group = group
+                break
+
+        if matched_group is None:
+            continue
+
+        current_best = best_scores_by_group_id.get(matched_group["id"])
+        if current_best is None:
+            best_scores_by_group_id[matched_group["id"]] = score
+        elif config["sort_reverse"]:
+            best_scores_by_group_id[matched_group["id"]] = max(current_best, score)
+        else:
+            best_scores_by_group_id[matched_group["id"]] = min(current_best, score)
+
+    rows = []
+    for group in GROUP_SLOTS:
+        score = best_scores_by_group_id.get(group["id"])
+        rows.append(
+            {
+                "group_id": group["id"],
+                "group_label": group["label"],
+                "group_number": group["number"],
+                "score": score,
+                "formatted_score": format_group_history_value(board_key, score) if score is not None else "--",
+                "has_score": score is not None,
+            }
+        )
+
+    return rows
+
+
 def serialize_metric_leaderboard(board_key, entries):
     value_field = get_leaderboard_config(board_key)["value_field"]
     rows = []
@@ -508,11 +731,141 @@ def serialize_metric_leaderboard(board_key, entries):
     return rows
 
 
+def format_group_history_value(board_key, score):
+    meta = GROUP_HISTORY_META[board_key]
+    formatted_value = f"{score:.{meta['decimals']}f}"
+    if meta["unit"] == "%":
+        return f"{formatted_value}%"
+    return f"{formatted_value} {meta['unit']}"
+
+
+def history_has_attempts(history_sections):
+    return any((section.get("attempt_count") or 0) > 0 for section in history_sections)
+
+
+def load_sample_group_history(group):
+    sample_path = get_sample_group_history_path(group)
+    if not sample_path or not os.path.exists(sample_path):
+        return None
+
+    with open(sample_path, "r", encoding="utf-8") as file_obj:
+        payload = json.load(file_obj)
+
+    if not isinstance(payload, dict):
+        return None
+    if not isinstance(payload.get("history"), list):
+        return None
+    return payload
+
+
+def load_group_history(group_name):
+    history_sections = []
+
+    for board_key, meta in GROUP_HISTORY_META.items():
+        attempts = []
+        for raw_name, raw_value in reversed(read_leaderboard_rows(board_key)):
+            if not entry_matches_group(raw_name, group_name):
+                continue
+
+            score = parse_score(raw_value, allow_blank=True)
+            if score is None:
+                continue
+
+            attempts.append(
+                {
+                    "value": score,
+                    "formatted_value": format_group_history_value(board_key, score),
+                }
+            )
+
+        best_attempt = None
+        if attempts:
+            if get_leaderboard_config(board_key)["sort_reverse"]:
+                best_attempt = max(attempts, key=lambda attempt: attempt["value"])
+            else:
+                best_attempt = min(attempts, key=lambda attempt: attempt["value"])
+
+        history_sections.append(
+            {
+                "board_key": board_key,
+                "label": meta["label"],
+                "attempt_count": len(attempts),
+                "attempts": attempts,
+                "best_value": (best_attempt or {}).get("value"),
+                "best_formatted_value": (best_attempt or {}).get("formatted_value"),
+            }
+        )
+
+    return history_sections
+
+
 def redirect_to_leaderboard(board_key):
     route_name = get_leaderboard_config(board_key)["route"]
     if request.args.get("embed") == "1" or request.form.get("embed") == "1":
         return redirect(url_for(route_name, embed=1))
     return redirect(url_for(route_name))
+
+
+def build_phone_group_links(group):
+    group_slug = get_group_phone_slug(group)
+    return {
+        "home": url_for("phone_group_home", group_slug=group_slug),
+        "setup": url_for("phone_group_setup", group_slug=group_slug),
+        "jump": url_for("phone_group_activity", group_slug=group_slug, activity_slug="jump"),
+        "balance": url_for("phone_group_activity", group_slug=group_slug, activity_slug="balance"),
+        "reaction": url_for("phone_group_activity", group_slug=group_slug, activity_slug="reaction"),
+        "precision": url_for("phone_group_activity", group_slug=group_slug, activity_slug="precision"),
+    }
+
+
+def render_phone_group_template(group_slug, template_name, phone_activity, **context):
+    group = get_group_from_slug(group_slug)
+    if group is None:
+        abort(404)
+
+    selected_group = set_selected_group(group["id"])
+    render_context = {
+        "group_selection_locked": True,
+        "hide_group_selector_ui": True,
+        "phone_activity": phone_activity,
+        "phone_group": selected_group,
+        "phone_group_links": build_phone_group_links(group),
+    }
+    render_context.update(context)
+    return render_template(template_name, **render_context)
+
+
+def render_phone_group_home_page(group_slug, activity_cards=None):
+    group = get_group_from_slug(group_slug)
+    if group is None:
+        abort(404)
+
+    selected_group = set_selected_group(group["id"])
+    return render_template(
+        'phone_home.html',
+        group_selection_locked=True,
+        phone_activity="home",
+        phone_group=selected_group,
+        phone_group_links=build_phone_group_links(group),
+        phone_activity_cards=activity_cards or PHONE_ACTIVITY_CARDS,
+    )
+
+
+def render_phone_group_setup_page(group_slug):
+    group = get_group_from_slug(group_slug)
+    if group is None:
+        abort(404)
+
+    start_combined_data_thread()
+    selected_group = set_selected_group(group["id"])
+    return render_template(
+        "assemblyInstructions.html",
+        group_selection_locked=True,
+        hide_group_selector_ui=True,
+        phone_group=selected_group,
+        phone_group_links=build_phone_group_links(group),
+        sensor_check_default_group=selected_group,
+    )
 
 
 @app.context_processor
@@ -643,11 +996,19 @@ forefoot_status = "waiting"
 forefoot_dist = 0
 forefoot_elapsed_time = 0
 
+PRECISION_FORCE_MAX = 2000
+PRECISION_CAPTURE_SECONDS = 5
+PRECISION_TARGET_PERCENTS = [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]
+
 precision_trainer_state = {
-    'status': 'idle', # 'idle', 'calibrating', 'measuring', 'done'
-    'max_force': 1,            
+    'status': 'idle',
+    'max_force': PRECISION_FORCE_MAX,
     'target_percent': 0,
+    'target_force': 0,
+    'current_force': 0,
+    'current_percent': 0,
     'measured_force': 0,
+    'measured_percent': 0,
     'error_percent': 0
 }
 
@@ -789,12 +1150,24 @@ def reset_precision_trainer_state(cancel_session=False):
     precision_start_time = None
     precision_trainer_state = {
         'status': 'idle',
-        'max_force': 1,
+        'max_force': PRECISION_FORCE_MAX,
         'target_percent': 0,
+        'target_force': 0,
+        'current_force': 0,
+        'current_percent': 0,
         'measured_force': 0,
+        'measured_percent': 0,
         'error_percent': 0
     }
     precision_error = 0
+
+
+def get_precision_force_value(raw_value):
+    try:
+        pressure_value = int(float(raw_value))
+    except (TypeError, ValueError):
+        pressure_value = 0
+    return max(0, min(PRECISION_FORCE_MAX, pressure_value))
 
 
 def reset_forefoot_state(cancel_session=False):
@@ -1045,6 +1418,10 @@ def read_combined_data(): #this function to read data and other function to "pro
                 qx_value, qy_value, qz_value, qw_value = estimate_quaternion_from_acceleration(ax_val, ay_val, az_val)
                 orientation_mode = "acceleration"
 
+            ax_meters_per_second_squared = ax_val * g
+            ay_meters_per_second_squared = ay_val * g
+            az_meters_per_second_squared = az_val * g
+
             sensor_snapshot = build_sensor_snapshot(
                 fore_pressure,
                 heel_pressure,
@@ -1053,6 +1430,9 @@ def read_combined_data(): #this function to read data and other function to "pro
                 qz_value,
                 qw_value,
                 orientation_mode,
+                ax_meters_per_second_squared,
+                ay_meters_per_second_squared,
+                az_meters_per_second_squared,
             )
             store_sensor_snapshot(addr[0], sensor_snapshot)
 
@@ -1071,7 +1451,9 @@ def read_combined_data(): #this function to read data and other function to "pro
             qz = sensor_snapshot["qz"]
             qw = sensor_snapshot["qw"]
             imu_orientation_mode = sensor_snapshot["imu_orientation_mode"]
-            ax, ay, az = ax_val * g, ay_val * g, az_val * g # converts g to m/s^2
+            ax = sensor_snapshot["ax"]
+            ay = sensor_snapshot["ay"]
+            az = sensor_snapshot["az"]
             received_vertical_raw = ay_val
             # push to queue (drop old if full)
             if not udp_queue.full():
@@ -1156,7 +1538,18 @@ def get_fore_color_channels(pressure):
     return 255, 0
 
 
-def build_sensor_snapshot(fore_pressure, heel_pressure, qx_value, qy_value, qz_value, qw_value, orientation_mode):
+def build_sensor_snapshot(
+    fore_pressure,
+    heel_pressure,
+    qx_value,
+    qy_value,
+    qz_value,
+    qw_value,
+    orientation_mode,
+    ax_value=0.0,
+    ay_value=0.0,
+    az_value=0.0,
+):
     fore_pressure_int = int(fore_pressure)
     heel_pressure_int = int(heel_pressure)
     heel_r, heel_g = get_heel_color_channels(heel_pressure_int)
@@ -1172,12 +1565,15 @@ def build_sensor_snapshot(fore_pressure, heel_pressure, qx_value, qy_value, qz_v
         "qy": qy_value,
         "qz": qz_value,
         "qw": qw_value,
+        "ax": float(ax_value),
+        "ay": float(ay_value),
+        "az": float(az_value),
         "imu_orientation_mode": orientation_mode,
     }
 
 
 def get_default_sensor_snapshot():
-    return build_sensor_snapshot(0, 0, 0.0, 0.0, 0.0, 1.0, "identity")
+    return build_sensor_snapshot(0, 0, 0.0, 0.0, 0.0, 1.0, "identity", 0.0, 0.0, 0.0)
 
 
 def store_sensor_snapshot(device_ip, snapshot):
@@ -1556,79 +1952,81 @@ def start_precision_trainer():
 def precision_trainer_status():
     global precision_start_time, precision_trainer_state
     if precision_start_time is None:
-        return jsonify(status="idle", time=0.0, target_percent=None, max_force=0)
+        return jsonify(
+            status="idle",
+            time=0.0,
+            target_percent=0,
+            target_force=0,
+            current_force=0,
+            current_percent=0,
+            max_force=PRECISION_FORCE_MAX
+        )
     elapsed = time.time() - precision_start_time
     return jsonify(
         status=precision_trainer_state['status'],
         time=elapsed,
-        target_percent=precision_trainer_state.get('target_percent', None),
-        max_force=precision_trainer_state.get('max_force', 0)
+        target_percent=precision_trainer_state.get('target_percent', 0),
+        target_force=precision_trainer_state.get('target_force', 0),
+        current_force=precision_trainer_state.get('current_force', 0),
+        current_percent=precision_trainer_state.get('current_percent', 0),
+        max_force=precision_trainer_state.get('max_force', PRECISION_FORCE_MAX)
     )
 
 def run_precision_trainer(session_id):
     global precision_trainer_state, received_fore_data, submitted_name2, precision_error
     start_combined_data_thread()
-    precision_trainer_state['status'] = 'calibrating' # Step 1: Calibration
-    precision_trainer_state['max_force'] = 1
-    max_val = 0
-    precision_error = 0
-    start_time = time.time()
-    while time.time() - start_time < 10:
+    try:
+        precision_error = 0
+        target_percent = random.choice(PRECISION_TARGET_PERCENTS)
+        target_force = round((target_percent / 100.0) * PRECISION_FORCE_MAX)
+        precision_trainer_state['status'] = 'measuring'
+        precision_trainer_state['max_force'] = PRECISION_FORCE_MAX
+        precision_trainer_state['target_percent'] = target_percent
+        precision_trainer_state['target_force'] = target_force
+        precision_trainer_state['current_force'] = 0
+        precision_trainer_state['current_percent'] = 0
+        precision_trainer_state['measured_force'] = 0
+        precision_trainer_state['measured_percent'] = 0
+        precision_trainer_state['error_percent'] = 0
+
+        start_time = time.time()
+        while time.time() - start_time < PRECISION_CAPTURE_SECONDS:
+            if not is_activity_session_active("precision", session_id):
+                return
+            current_force = get_precision_force_value(received_fore_data)
+            current_percent = round((current_force / PRECISION_FORCE_MAX) * 100, 1)
+            precision_trainer_state['current_force'] = current_force
+            precision_trainer_state['current_percent'] = current_percent
+            time.sleep(0.01)
+
         if not is_activity_session_active("precision", session_id):
             return
-        current_val = int(received_fore_data)
-        if current_val > max_val:
-            max_val = current_val
-        time.sleep(0.01)
-    precision_trainer_state['max_force'] = max_val if max_val > 0 else 1000 
 
-    precision_trainer_state['status'] = 'cooldown' # Step 2: Cooldown
-    target_percent = random.choice([20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105])
-    precision_trainer_state['target_percent'] = target_percent
-    cooldown_start = time.time()
-    while time.time() - cooldown_start < 3:
-        if not is_activity_session_active("precision", session_id):
-            return
-        time.sleep(0.01)
+        measured_force = get_precision_force_value(received_fore_data)
+        measured_percent = round((measured_force / PRECISION_FORCE_MAX) * 100, 1)
+        precision_error = abs(measured_percent - target_percent)
+        precision_trainer_state['current_force'] = measured_force
+        precision_trainer_state['current_percent'] = measured_percent
+        precision_trainer_state['measured_force'] = measured_force
+        precision_trainer_state['measured_percent'] = measured_percent
+        precision_trainer_state['error_percent'] = round(precision_error, 1)
+        precision_trainer_state['status'] = 'done'
+        precision_error = round(precision_error, 3)
 
-    precision_trainer_state['status'] = 'measuring' # Step 3: Random target percentage
-    # target_percent = random.choice([20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105])
-    precision_trainer_state['target_percent'] = target_percent
-
-    readings = [] # Step 4: Measure pressure hold
-    start_time = time.time()
-    while time.time() - start_time < 12:
-        if not is_activity_session_active("precision", session_id):
-            return
-        readings.append(int(received_fore_data))
-        time.sleep(0.01)
-    if not readings:
-        avg_force = 0
-    else:
-        avg_force = sum(readings) / len(readings)
-    percent_applied = (avg_force / precision_trainer_state['max_force']) * 100
-    precision_error = abs(percent_applied - precision_trainer_state['target_percent'])
-    precision_trainer_state['measured_force'] = round(percent_applied, 1)
-    precision_trainer_state['error_percent'] = round(precision_error, 1)
-    precision_trainer_state['status'] = 'done'
-    finish_start = time.time()
-    while time.time() - finish_start < 1:
-        if not is_activity_session_active("precision", session_id):
-            return
-        time.sleep(0.01)
-    precision_error = round(precision_error, 3)
-
-    # with open("SonicSolePrecision.txt", "a") as f:
-    #     f.write(f"{submitted_name2},{precision_error}\n")
-
-    stop_combined_data_thread()
+        # with open("SonicSolePrecision.txt", "a") as f:
+        #     f.write(f"{submitted_name2},{precision_error}\n")
+    finally:
+        stop_combined_data_thread()
 
 @app.route('/precision_trainer_results')
 def precision_trainer_results():
     return jsonify(
+        target_force=precision_trainer_state.get('target_force', 0),
         measured_force=precision_trainer_state.get('measured_force', 0.0),
+        measured_percent=precision_trainer_state.get('measured_percent', 0.0),
         error_percent=precision_trainer_state.get('error_percent', 0.0),
-        target_percent=precision_trainer_state.get('target_percent', 0)
+        target_percent=precision_trainer_state.get('target_percent', 0),
+        max_force=precision_trainer_state.get('max_force', PRECISION_FORCE_MAX)
     )
 
 # fore walk
@@ -1808,6 +2206,62 @@ def home():
     return render_template('home.html')
 
 
+@app.route('/phone')
+def phone_groups():
+    return render_template(
+        'phone_groups.html',
+        phone_groups=get_group_options(),
+    )
+
+
+@app.route('/phone/<group_slug>')
+def phone_group_home(group_slug):
+    return render_phone_group_home_page(group_slug)
+
+
+@app.route('/phone/<group_slug>/setup')
+def phone_group_setup(group_slug):
+    return render_phone_group_setup_page(group_slug)
+
+
+@app.route('/phone/<group_slug>/<activity_slug>')
+def phone_group_activity(group_slug, activity_slug):
+    if activity_slug == "xxactivity":
+        return render_phone_group_home_page(
+            group_slug,
+            activity_cards=PHONE_ACTIVITY_CARDS_NO_WALK,
+        )
+
+    activity = PHONE_ACTIVITY_CONFIG.get(activity_slug)
+    if activity is None:
+        abort(404)
+
+    if activity_slug == "balance":
+        cancel_balance_session()
+
+    return render_phone_group_template(
+        group_slug,
+        activity["template"],
+        activity["phone_activity"],
+    )
+
+
+@app.route('/<group_slug>')
+def legacy_phone_group_home(group_slug):
+    if get_group_from_slug(group_slug) is None:
+        abort(404)
+    return redirect(url_for("phone_group_home", group_slug=group_slug))
+
+
+@app.route('/<group_slug>/<activity_slug>')
+def legacy_phone_group_activity(group_slug, activity_slug):
+    if get_group_from_slug(group_slug) is None:
+        abort(404)
+    if activity_slug == "setup":
+        return redirect(url_for("phone_group_setup", group_slug=group_slug))
+    return redirect(url_for("phone_group_activity", group_slug=group_slug, activity_slug=activity_slug))
+
+
 @app.route('/hardware_status', methods=['GET'])
 def hardware_status():
     start_combined_data_thread()
@@ -1848,11 +2302,13 @@ def balance():
 
 @app.route('/assemblyInstructions')
 def assembly_instructions():
-    clear_selected_group()
     start_combined_data_thread()
+    phone_group = get_selected_group()
     return render_template(
         'assemblyInstructions.html',
-        sensor_check_default_group=get_default_sensor_check_group(),
+        phone_group=phone_group,
+        phone_group_links=build_phone_group_links(phone_group) if phone_group else None,
+        sensor_check_default_group=phone_group or get_default_sensor_check_group(),
     )
 
 @app.route('/reaction')
@@ -1904,6 +2360,37 @@ def accel_view():
 
 
 # scoreboards
+@app.route('/scoreboard')
+@app.route('/scoreboard/<board_key>')
+def pc_scoreboard(board_key="jump"):
+    if board_key not in PC_SCOREBOARD_KEYS:
+        abort(404)
+
+    scoreboard_rows = load_group_best_performance(board_key)
+    populated_rows = [row for row in scoreboard_rows if row["has_score"]]
+    leaderboard_config = get_leaderboard_config(board_key)
+    scoreboard_leader = None
+
+    if populated_rows:
+        if leaderboard_config["sort_reverse"]:
+            scoreboard_leader = max(populated_rows, key=lambda row: row["score"])
+        else:
+            scoreboard_leader = min(populated_rows, key=lambda row: row["score"])
+
+    scoreboard_activity = {
+        "slug": board_key,
+        **PC_SCOREBOARD_META[board_key],
+    }
+
+    return render_template(
+        'scoreboard.html',
+        scoreboard_activity=scoreboard_activity,
+        scoreboard_rows=scoreboard_rows,
+        scoreboard_leader=scoreboard_leader,
+        scoreboard_sort_reverse=leaderboard_config["sort_reverse"],
+    )
+
+
 @app.route('/bScoreboard')
 def b_scoreboard():
     return render_template(
@@ -1943,6 +2430,69 @@ def w_scoreboard():
         data=load_metric_leaderboard("walk"),
         embed=request.args.get("embed") == "1",
     )
+
+
+@app.route('/group_history_data', methods=['GET'])
+def group_history_data():
+    requested_group_id = request.args.get("group_id", "").strip()
+    if not requested_group_id:
+        requested_group_id = session.get("selected_group_id", "")
+
+    group = GROUP_OPTIONS_BY_ID.get(requested_group_id)
+    if group is None:
+        return jsonify({"status": "error", "message": "Unknown group selection."}), 400
+
+    selected_group = build_group_option(group)
+    try:
+        history = load_group_history(selected_group["label"])
+        sample_payload = None
+        if not history_has_attempts(history):
+            sample_payload = load_sample_group_history(group)
+
+        if sample_payload is not None:
+            sample_group = sample_payload.get("group") if isinstance(sample_payload.get("group"), dict) else {}
+            return jsonify(
+                {
+                    "status": "ok",
+                    "group": {**selected_group, **sample_group},
+                    "history": sample_payload["history"],
+                    "source": "sample",
+                }
+            )
+
+        return jsonify(
+            {
+                "status": "ok",
+                "group": selected_group,
+                "history": history,
+                "source": "live",
+            }
+        )
+    except Exception:
+        app.logger.exception("Failed to load group history for %s", requested_group_id)
+        sample_payload = load_sample_group_history(group)
+        if sample_payload is not None:
+            sample_group = sample_payload.get("group") if isinstance(sample_payload.get("group"), dict) else {}
+            return jsonify(
+                {
+                    "status": "ok",
+                    "group": {**selected_group, **sample_group},
+                    "history": sample_payload["history"],
+                    "source": "sample",
+                }
+            )
+
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": "Unable to load score history right now.",
+                    "group": selected_group,
+                    "history": [],
+                }
+            ),
+            500,
+        )
 
 
 @app.route('/leaderboard/<board_key>/update', methods=['POST'])
@@ -2027,9 +2577,7 @@ def select_group():
     if group is None:
         return jsonify({"status": "error", "message": "Unknown group selection."}), 400
 
-    session["selected_group_id"] = group_id
-    selected_group = get_selected_group()
-    set_active_device_ip((selected_group or {}).get("ip"))
+    selected_group = set_selected_group(group_id, activate_device=True)
     return jsonify({"status": "ok", "group": selected_group})
 
 @app.route('/assign_group_device', methods=['POST'])

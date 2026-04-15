@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {% set webapp_theme_color = "#f5f5f0" %}
+  {% include '_ios_webapp_meta.html' %}
   <title>SonicSole | Precision</title>
   <style>
     :root {
@@ -142,16 +143,93 @@
       color: var(--text);
     }
 
-    .data-box {
-      font-size: 1.3em;
-      background-color: rgba(255, 255, 255, 0.74);
-      padding: 15px;
+    .precision-meter {
+      display: none;
+      width: min(100%, 540px);
+      margin: 0 auto 22px;
+      padding: 18px 18px 12px;
       border-radius: 12px;
-      margin: 15px auto;
-      width: 80%;
-      box-shadow: 0 12px 22px rgba(39, 64, 71, 0.08);
+      background: rgba(255, 255, 255, 0.68);
       border: 1px solid rgba(39, 64, 71, 0.12);
-      text-align: center;
+      box-shadow: 0 12px 22px rgba(39, 64, 71, 0.08);
+    }
+
+    .precision-meter.is-visible {
+      display: block;
+    }
+
+    .precision-meter__bar {
+      position: relative;
+      height: 78px;
+    }
+
+    .precision-meter__track {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 28px;
+      height: 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(109, 158, 166, 0.18), rgba(39, 64, 71, 0.3));
+    }
+
+    .precision-meter__tick {
+      position: absolute;
+      top: 8px;
+      transform: translateX(-50%);
+      width: 0;
+    }
+
+    .precision-meter__tick::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      width: 3px;
+      height: 34px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+    }
+
+    .precision-meter__tick--target::after {
+      background: #274047;
+    }
+
+    .precision-meter__tick--current::after {
+      background: #6d9ea6;
+      height: 46px;
+      top: 12px;
+    }
+
+    .precision-meter__label {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(39, 64, 71, 0.14);
+      color: var(--primary-dark);
+    }
+
+    .precision-meter__tick--target .precision-meter__label {
+      top: -2px;
+    }
+
+    .precision-meter__tick--current .precision-meter__label {
+      top: 50px;
+      color: #2f737f;
+    }
+
+    .precision-meter__scale {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 0.92rem;
+      color: rgba(39, 64, 71, 0.82);
     }
 
     .name-fields {
@@ -224,7 +302,7 @@
   <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
   <script defer src="{{ url_for('static', filename='playground-activity-toggle.js') }}"></script>
 </head>
-<body class="pg-screen pg-activity pg-activity-precision">
+<body class="pg-screen pg-activity pg-activity-precision{% if phone_group %} pg-phone-app{% endif %}">
   <div class="pg-activity-title">
     <header class="pg-header">
       <h1>Precision</h1>
@@ -234,16 +312,34 @@
   <div class="pg-activity-stage">
     <div class="pg-activity-toolbar">
       <div class="pg-header-nav">
-        <a href="{{ url_for('p_scoreboard') }}" onclick="openScoreboardModal(); return false;">Scoreboard</a>
+        {% if group_selection_locked | default(false) %}
+        <a href="#" onclick="openGroupHistoryModal(); return false;">Scoreboard</a>
+        {% else %}
+        <a href="{{ url_for('pc_scoreboard', board_key='precision') }}">Scoreboard</a>
+        {% endif %}
       </div>
     </div>
 
     <div class="card pg-card pg-activity-card">
-      <p>Test your ability to match a target foot pressure level.</p>
-
       <div class="pg-status-grid">
-        <div class="data-box" id="timeBox">Timer: --</div>
-        <div class="data-box" id="statusBox">Waiting for trainer to start...</div>
+        {% set activity_status_id = "statusBox" %}
+        {% include '_activity_status_box.html' %}
+      </div>
+
+      <div class="precision-meter" id="precisionMeter" aria-live="polite">
+        <div class="precision-meter__bar">
+          <div class="precision-meter__track"></div>
+          <div class="precision-meter__tick precision-meter__tick--target" id="targetTick">
+            <span class="precision-meter__label" id="targetLabel">Target: --</span>
+          </div>
+          <div class="precision-meter__tick precision-meter__tick--current" id="currentTick">
+            <span class="precision-meter__label" id="currentLabel">Current: --</span>
+          </div>
+        </div>
+        <div class="precision-meter__scale">
+          <span>0</span>
+          <span id="forceMaxLabel">2000</span>
+        </div>
       </div>
 
       <div class="buttons pg-actions">
@@ -265,16 +361,21 @@
     {% include '_group_selector.html' %}
   </div>
 
-  {% set scoreboard_modal_title = "Precision Scoreboard" %}
-  {% set scoreboard_embed_url = url_for('p_scoreboard', embed=1) %}
-  {% include '_scoreboard_modal.html' %}
+  {% if group_selection_locked | default(false) %}
+  {% set group_history_board_key = "precision" %}
+  {% set group_history_modal_title = "Precision Scoreboard" %}
+  {% include '_group_history_modal.html' %}
+  {% endif %}
 
   {% include '_activity_dock.html' %}
 
   <script>
     let pollingInterval = null;
-    let precisionTrainerTarget = null;
     let precisionActivityToggle = null;
+
+    function setPrecisionReadyState() {
+      document.getElementById("statusBox").innerHTML = "<strong>Getting Ready</strong>";
+    }
 
     function submitForm(event) {
       event.preventDefault();
@@ -293,11 +394,34 @@
         clearInterval(pollingInterval);
         pollingInterval = null;
       }
-      precisionTrainerTarget = null;
-      document.getElementById("statusBox").innerText = "Waiting for trainer to start...";
-      document.getElementById("timeBox").innerText = "Timer: --";
+      setPrecisionReadyState();
+      setMeterVisibility(false);
+      renderForceMeter({
+        targetPercent: 0,
+        targetForce: 0,
+        currentPercent: 0,
+        currentForce: 0,
+        maxForce: 2000,
+      });
       document.getElementById("name-form").style.display = "none";
       document.getElementById("thankYouMessage").style.display = "none";
+    }
+
+    function setMeterVisibility(isVisible) {
+      document.getElementById("precisionMeter").classList.toggle("is-visible", Boolean(isVisible));
+    }
+
+    function setTickPosition(tickId, percent) {
+      const boundedPercent = Math.max(5, Math.min(95, Number(percent) || 0));
+      document.getElementById(tickId).style.left = `${boundedPercent}%`;
+    }
+
+    function renderForceMeter({ targetPercent, targetForce, currentPercent, currentForce, maxForce }) {
+      setTickPosition("targetTick", targetPercent);
+      setTickPosition("currentTick", currentPercent);
+      document.getElementById("targetLabel").innerText = `Target: ${Math.round(targetForce || 0)}`;
+      document.getElementById("currentLabel").innerText = `Current: ${Math.round(currentForce || 0)}`;
+      document.getElementById("forceMaxLabel").innerText = Math.round(maxForce || 0);
     }
 
     async function startPrecision({ signal }) {
@@ -312,8 +436,8 @@
         throw new Error(data.message || "Unable to start precision.");
       }
 
-      document.getElementById("statusBox").innerText = "Starting...";
-      document.getElementById("timeBox").innerText = "Timer: --";
+      document.getElementById("statusBox").innerText = "Match the target force";
+      setMeterVisibility(true);
       startPolling();
     }
 
@@ -330,35 +454,25 @@
             return;
           }
           const messageBox = document.getElementById("statusBox");
-          const timeBox = document.getElementById("timeBox");
           const statusText = data.status;
-          const elapsed = data.time;
+          const targetPercent = data.target_percent || 0;
+          const targetForce = data.target_force || 0;
+          const currentPercent = data.current_percent || 0;
+          const currentForce = data.current_force || 0;
+          const maxForce = data.max_force || 2000;
 
-          if (statusText.includes("calibrating")) {
-            messageBox.innerText = "Step 1: Apply full pressure for calibration!";
-            timeBox.innerText = `Calibrating: ${Math.max(0, 10 - elapsed).toFixed(1)}s`;
-
-          } else if (statusText.includes("cooldown")) {
-            messageBox.innerText = "Cooldown: Get ready!";
-            const cooldownElapsed = elapsed - 10;
-            const cooldownRemaining = Math.max(0, 3 - cooldownElapsed).toFixed(1);
-
-            const target = data.target_percent;
-            const maxForce = data.max_force;
-            messageBox.innerText = `Your target pressure is: ${target !== null ? target + "%" : "..."} (Your maximum pressure was: ${maxForce})`;
-
-            timeBox.innerText = `Cooldown: ${cooldownRemaining}s`;
-
-          } else if (statusText.includes("measuring")) {
-            const target = data.target_percent;
-            const maxForce = data.max_force;
-            messageBox.innerText = `Step 2: Match target pressure: ${target !== null ? target + "%" : "..."} (Max: ${maxForce})`;
-            const measuringElapsed = elapsed - 13;
-            const measuringRemaining = Math.max(0, 10 - measuringElapsed).toFixed(1);
-            timeBox.innerText = `Measuring: ${measuringRemaining}s`;
+          if (statusText.includes("measuring")) {
+            messageBox.innerText = "Match the target force";
+            setMeterVisibility(true);
+            renderForceMeter({
+              targetPercent,
+              targetForce,
+              currentPercent,
+              currentForce,
+              maxForce,
+            });
 
           } else if (statusText.includes("done")) {
-            timeBox.innerText = `Done!`;
             clearInterval(pollingInterval);
             pollingInterval = null;
             showFinalResults();
@@ -366,8 +480,8 @@
             precisionActivityToggle.setActive(false);
 
           } else {
-            messageBox.innerText = "Waiting for trainer to start...";
-            timeBox.innerText = "Timer: --";
+            setPrecisionReadyState();
+            setMeterVisibility(false);
           }
         });
     }
@@ -379,13 +493,20 @@
           if (!precisionActivityToggle) {
             return;
           }
-          precisionTrainerTarget = data.target_percent;
-          const msg = `
-            Target: ${data.target_percent}%<br>
-            You applied: ${data.measured_force}%<br>
-            Error: ${data.error_percent}% off target
+          setMeterVisibility(true);
+          renderForceMeter({
+            targetPercent: data.target_percent || 0,
+            targetForce: data.target_force || 0,
+            currentPercent: data.measured_percent || 0,
+            currentForce: data.measured_force || 0,
+            maxForce: data.max_force || 2000,
+          });
+          document.getElementById("statusBox").innerHTML = `
+            Captured at 5s<br>
+            Target Force: ${Math.round(data.target_force || 0)}<br>
+            Measured Force: ${Math.round(data.measured_force || 0)}<br>
+            Percent Error: ${(data.error_percent || 0).toFixed(1)}%
           `;
-          document.getElementById("statusBox").innerHTML = msg;
         });
     }
 

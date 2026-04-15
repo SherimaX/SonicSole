@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8">
   <title>Accel Plot</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --bg: #08131b;
@@ -93,44 +92,155 @@
     </div>
   </main>
   <script>
-    const ctx = document.getElementById('chart').getContext('2d');
-    const N = 100, labels = Array(N).fill(""), ax=[], ay=[], az=[];
-    const chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {label:"ax", data:ax, borderColor:"#ff7a59", fill:false, tension:0.25},
-          {label:"ay", data:ay, borderColor:"#58d68d", fill:false, tension:0.25},
-          {label:"az", data:az, borderColor:"#4aa3ff", fill:false, tension:0.25}
-        ]
-      },
-      options: {
-        animation:false,
-        plugins: {
-          legend: {
-            labels: {
-              color: "#dff6ff"
-            }
-          }
-        },
-        scales:{
-          x:{display:false, grid:{display:false}},
-          y:{
-            ticks:{color:"#8db3c1"},
-            grid:{color:"rgba(141,179,193,0.18)"}
-          }
+    const canvas = document.getElementById("chart");
+    const ctx = canvas.getContext("2d");
+    const sampleCount = 100;
+    const series = [
+      { label: "ax", color: "#ff7a59", values: [] },
+      { label: "ay", color: "#58d68d", values: [] },
+      { label: "az", color: "#4aa3ff", values: [] }
+    ];
+
+    function resizeCanvas() {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      const nextWidth = Math.max(Math.round(rect.width * ratio), 1);
+      const nextHeight = Math.max(Math.round(rect.height * ratio), 1);
+
+      if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
+        canvas.width = nextWidth;
+        canvas.height = nextHeight;
+      }
+
+      drawChart();
+    }
+
+    function getScaleLimit() {
+      let maxMagnitude = 0;
+      for (const { values } of series) {
+        for (const value of values) {
+          maxMagnitude = Math.max(maxMagnitude, Math.abs(Number(value) || 0));
         }
       }
-    });
-
-    async function poll(){
-      const r = await fetch('/accel'); const d = await r.json();
-      ax.push(d.ax); ay.push(d.ay); az.push(d.az);
-      if(ax.length>N){ax.shift(); ay.shift(); az.shift();}
-      chart.update();
+      return Math.max(1, Math.ceil(maxMagnitude * 1.2));
     }
-    setInterval(poll, 50); // poll every 50ms
+
+    function drawFrame(bounds, scaleLimit) {
+      const { left, top, width, height, bottom, ratio } = bounds;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = "rgba(141,179,193,0.18)";
+      ctx.lineWidth = 1;
+      ctx.font = `${12 * ratio}px Trebuchet MS`;
+      ctx.fillStyle = "#8db3c1";
+
+      for (let index = 0; index <= 4; index += 1) {
+        const y = top + (height / 4) * index;
+        const value = ((2 - index) / 2) * scaleLimit;
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(left + width, y);
+        ctx.stroke();
+        ctx.fillText(value.toFixed(1), 10 * ratio, y + (4 * ratio));
+      }
+
+      ctx.strokeStyle = "rgba(223,246,255,0.32)";
+      ctx.beginPath();
+      ctx.moveTo(left, bottom - (height / 2));
+      ctx.lineTo(left + width, bottom - (height / 2));
+      ctx.stroke();
+    }
+
+    function drawLegend(ratio) {
+      let offsetX = 22 * ratio;
+      const offsetY = 22 * ratio;
+
+      ctx.font = `${12 * ratio}px Trebuchet MS`;
+      ctx.textBaseline = "middle";
+      for (const { label, color } of series) {
+        ctx.fillStyle = color;
+        ctx.fillRect(offsetX, offsetY - (5 * ratio), 14 * ratio, 10 * ratio);
+        offsetX += 20 * ratio;
+        ctx.fillStyle = "#dff6ff";
+        ctx.fillText(label, offsetX, offsetY);
+        offsetX += 34 * ratio;
+      }
+    }
+
+    function drawSeries(bounds, scaleLimit) {
+      const { left, top, width, height } = bounds;
+      const maxIndex = Math.max(sampleCount - 1, 1);
+
+      for (const { values, color } of series) {
+        if (!values.length) continue;
+
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+
+        values.forEach((value, index) => {
+          const x = left + (width * index) / maxIndex;
+          const y = top + ((scaleLimit - value) / (scaleLimit * 2)) * height;
+
+          if (index === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+
+        ctx.stroke();
+      }
+    }
+
+    function drawChart() {
+      if (!canvas.width || !canvas.height) return;
+
+      const ratio = canvas.width / Math.max(canvas.clientWidth || 1, 1);
+      const bounds = {
+        left: 42 * ratio,
+        top: 34 * ratio,
+        width: canvas.width - (62 * ratio),
+        height: canvas.height - (62 * ratio),
+        bottom: canvas.height - (28 * ratio),
+        ratio
+      };
+      const scaleLimit = getScaleLimit();
+
+      drawFrame(bounds, scaleLimit);
+      drawSeries(bounds, scaleLimit);
+      drawLegend(ratio);
+    }
+
+    async function poll() {
+      try {
+        const response = await fetch("/accel", { cache: "no-store" });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        series[0].values.push(Number(data.ax) || 0);
+        series[1].values.push(Number(data.ay) || 0);
+        series[2].values.push(Number(data.az) || 0);
+
+        for (const entry of series) {
+          if (entry.values.length > sampleCount) {
+            entry.values.shift();
+          }
+        }
+
+        drawChart();
+      } catch (error) {
+        // Ignore transient polling failures and keep the last frame visible.
+      }
+    }
+
+    if (window.ResizeObserver) {
+      new ResizeObserver(resizeCanvas).observe(canvas);
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+    poll();
+    setInterval(poll, 50);
   </script>
 </body>
 </html>

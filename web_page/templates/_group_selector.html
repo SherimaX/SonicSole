@@ -1,3 +1,6 @@
+{% set show_group_selector_ui = not (hide_group_selector_ui | default(false)) %}
+
+{% if show_group_selector_ui and not (group_selection_locked | default(false)) %}
 <style>
   .pg-group-selector-band {
     width: min(100%, var(--pg-card-max));
@@ -15,6 +18,18 @@
     background: var(--primary);
     color: #fff;
     border-color: var(--primary);
+  }
+
+  .pg-group-trigger.is-locked {
+    cursor: default;
+  }
+
+  .pg-group-lock-note {
+    margin: 10px 0 0;
+    text-align: center;
+    color: var(--text-subtle);
+    font-size: 0.92rem;
+    line-height: 1.5;
   }
 
   .pg-group-list {
@@ -103,9 +118,11 @@
     </div>
   </div>
 </div>
+{% endif %}
 
 <script>
   window.sonicSoleSelectedGroup = {{ selected_group | tojson }};
+  window.sonicSoleGroupLocked = {{ group_selection_locked | default(false) | tojson }};
 
   function updateSelectedGroupUI(group) {
     window.sonicSoleSelectedGroup = group;
@@ -126,17 +143,35 @@
   }
 
   function openGroupModal() {
-    document.getElementById("groupModal").style.display = "flex";
+    if (window.sonicSoleGroupLocked) {
+      return;
+    }
+
+    const modal = document.getElementById("groupModal");
+    if (!modal) {
+      return;
+    }
+
+    modal.style.display = "flex";
     refreshGroupOptionStatuses();
   }
 
   function closeGroupModal() {
-    document.getElementById("groupModal").style.display = "none";
+    const modal = document.getElementById("groupModal");
+    if (!modal) {
+      return;
+    }
+
+    modal.style.display = "none";
   }
 
   function ensureGroupSelected(message) {
     if (window.sonicSoleSelectedGroup) {
       return true;
+    }
+
+    if (window.sonicSoleGroupLocked) {
+      return false;
     }
 
     openGroupModal();
@@ -161,6 +196,10 @@
   }
 
   async function refreshGroupOptionStatuses() {
+    if (window.sonicSoleGroupLocked) {
+      return;
+    }
+
     try {
       const response = await fetch("{{ url_for('hardware_status') }}", { cache: "no-store" });
       if (!response.ok) {
@@ -202,6 +241,10 @@
   }
 
   function selectGroup(groupId) {
+    if (window.sonicSoleGroupLocked) {
+      return;
+    }
+
     fetch("{{ url_for('select_group') }}", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -220,12 +263,14 @@
         closeGroupModal();
       })
       .catch((error) => {
-        alert(error.message);
+        alert(error.message || "Unable to select that group.");
       });
   }
 
   document.addEventListener("DOMContentLoaded", function () {
     updateSelectedGroupUI(window.sonicSoleSelectedGroup);
-    refreshGroupOptionStatuses();
+    if (!window.sonicSoleGroupLocked) {
+      refreshGroupOptionStatuses();
+    }
   });
 </script>

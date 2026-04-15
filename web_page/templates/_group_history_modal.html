@@ -1,0 +1,659 @@
+<style>
+  .pg-group-history-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(18, 22, 20, 0.32);
+    backdrop-filter: blur(8px);
+  }
+
+  .pg-group-history-modal__content {
+    width: min(100%, 720px);
+    max-width: 720px;
+    max-height: min(88vh, 980px);
+    padding: 28px 24px 22px;
+    overflow-y: auto;
+    text-align: left;
+  }
+
+  .pg-group-history-modal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .pg-group-history-modal__header-copy {
+    min-width: 0;
+  }
+
+  .pg-group-history-modal__eyebrow {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.72;
+    margin-bottom: 6px;
+  }
+
+  .pg-group-history-modal__title {
+    margin: 0;
+  }
+
+  .pg-group-history-modal__close {
+    flex: 0 0 auto;
+  }
+
+  .pg-group-history-modal__meta {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .pg-group-history-modal__chart-block {
+    margin-bottom: 18px;
+  }
+
+  .pg-group-history-modal__chart-heading {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .pg-group-history-modal__chart-title {
+    margin: 0;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.72;
+  }
+
+  .pg-group-history-modal__chart-stage {
+    min-height: 220px;
+    padding: 12px 14px 14px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.56);
+    border: 1px solid rgba(23, 23, 23, 0.08);
+  }
+
+  .pg-group-history-modal__chart-shell {
+    display: flex;
+    align-items: stretch;
+    min-height: 220px;
+  }
+
+  .pg-group-history-modal__chart-axis {
+    flex: 0 0 56px;
+    width: 56px;
+    padding-right: 10px;
+    border-right: 1px solid rgba(23, 23, 23, 0.08);
+  }
+
+  .pg-group-history-modal__chart-axis-svg {
+    width: 56px;
+    height: 220px;
+    display: block;
+  }
+
+  .pg-group-history-modal__chart-viewport {
+    flex: 1 1 auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-left: 10px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .pg-group-history-modal__chart-viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pg-group-history-modal__chart {
+    width: auto;
+    min-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .pg-group-history-modal__chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.52);
+    border: 1px solid rgba(23, 23, 23, 0.08);
+  }
+
+  .pg-group-history-modal__chip span {
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.65;
+  }
+
+  .pg-group-history-modal__chip strong {
+    font-size: 0.98rem;
+  }
+
+  .pg-group-history-modal__empty {
+    font-size: 0.95rem;
+    opacity: 0.72;
+  }
+
+  .pg-group-history-modal__table-block {
+    display: grid;
+    gap: 10px;
+  }
+
+  .pg-group-history-modal__table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(23, 23, 23, 0.08);
+    background: rgba(255, 255, 255, 0.56);
+  }
+
+  .pg-group-history-modal__table {
+    width: 100%;
+    min-width: 320px;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .pg-group-history-modal__table th,
+  .pg-group-history-modal__table td {
+    padding: 12px 14px !important;
+    text-align: left !important;
+    font-size: 0.98rem !important;
+  }
+
+  .pg-group-history-modal__table th {
+    cursor: default;
+    background: rgba(23, 23, 23, 0.92) !important;
+    color: #f6f7f2 !important;
+  }
+
+  .pg-group-history-modal__table td:last-child,
+  .pg-group-history-modal__table th:last-child {
+    text-align: right !important;
+  }
+</style>
+
+<div
+  id="groupHistoryModal"
+  class="modal pg-group-history-modal"
+  onclick="if (event.target === this) closeGroupHistoryModal();"
+>
+  <div class="modal-content pg-group-history-modal__content">
+    <div class="pg-group-history-modal__header">
+      <div class="pg-group-history-modal__header-copy">
+        <p class="pg-group-history-modal__eyebrow">Score History</p>
+        <h2 class="pg-group-history-modal__title">{{ group_history_modal_title }}</h2>
+      </div>
+      <button
+        type="button"
+        class="pg-manage-close pg-group-history-modal__close"
+        aria-label="Close score history"
+        onclick="closeGroupHistoryModal()"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="pg-group-history-modal__meta">
+      <div class="pg-group-history-modal__chip">
+        <span>Group</span>
+        <strong id="groupHistoryGroupLabel">{{ selected_group.label if selected_group else "Unknown group" }}</strong>
+      </div>
+      <div class="pg-group-history-modal__chip">
+        <span>Best</span>
+        <strong id="groupHistoryBestValue">--</strong>
+      </div>
+    </div>
+
+    <div class="pg-group-history-modal__chart-block">
+      <div class="pg-group-history-modal__chart-heading">
+        <p class="pg-group-history-modal__chart-title">Performance Timeline</p>
+      </div>
+      <div class="pg-group-history-modal__chart-stage" id="groupHistoryTimeline">
+        <div class="pg-group-history-modal__chart-shell">
+          <div class="pg-group-history-modal__chart-axis" id="groupHistoryTimelineAxis"></div>
+          <div class="pg-group-history-modal__chart-viewport" id="groupHistoryTimelineViewport">
+            <span class="pg-group-history-modal__empty">Building timeline...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pg-group-history-modal__table-block">
+      <div class="pg-group-history-modal__chart-heading">
+        <p class="pg-group-history-modal__chart-title">Attempts</p>
+      </div>
+      <div class="pg-group-history-modal__table-wrap">
+        <table class="pg-group-history-modal__table" aria-label="Group attempt history">
+          <thead>
+            <tr>
+              <th>Attempt</th>
+              <th>Performance</th>
+            </tr>
+          </thead>
+          <tbody id="groupHistoryAttemptsBody">
+            <tr>
+              <td colspan="2" class="pg-group-history-modal__empty">Loading attempts...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const groupHistoryBoardKey = {{ group_history_board_key | tojson }};
+  const fallbackGroupHistoryGroupId = {{ (selected_group.id if selected_group else none) | tojson }};
+  const fallbackGroupHistoryLabel = {{ (selected_group.label if selected_group else "this group") | tojson }};
+  const groupHistorySampleBaseUrl = {{ url_for('static', filename='sample_group_history/') | tojson }};
+  let activeGroupHistoryTarget = null;
+
+  function createHistorySvgElement(tagName, attributes) {
+    const element = document.createElementNS("http://www.w3.org/2000/svg", tagName);
+    Object.entries(attributes || {}).forEach(([name, value]) => {
+      element.setAttribute(name, value);
+    });
+    return element;
+  }
+
+  function resolveHistoryDecimals(section) {
+    const attempts = section && Array.isArray(section.attempts) ? section.attempts : [];
+    for (const attempt of attempts) {
+      const match = String(attempt && attempt.formatted_value ? attempt.formatted_value : "").match(/-?\d+(?:\.(\d+))?/);
+      if (match) {
+        return match[1] ? match[1].length : 0;
+      }
+    }
+    return 2;
+  }
+
+  function formatHistoryAxisValue(section, value) {
+    if (!Number.isFinite(value)) {
+      return "--";
+    }
+    return value.toFixed(resolveHistoryDecimals(section));
+  }
+
+  function normalizeHistoryColor(colorValue) {
+    const context = document.createElement("canvas").getContext("2d");
+    if (!context) {
+      return colorValue || "#2e8eff";
+    }
+    context.fillStyle = "#2e8eff";
+    context.fillStyle = colorValue || "#2e8eff";
+    return context.fillStyle || "#2e8eff";
+  }
+
+  function applyHistoryAlpha(colorValue, alpha) {
+    const normalized = normalizeHistoryColor(colorValue).trim();
+    if (normalized.startsWith("#")) {
+      let hex = normalized.slice(1);
+      if (hex.length === 3 || hex.length === 4) {
+        hex = hex.split("").map((char) => char + char).join("");
+      }
+      if (hex.length === 6 || hex.length === 8) {
+        const red = parseInt(hex.slice(0, 2), 16);
+        const green = parseInt(hex.slice(2, 4), 16);
+        const blue = parseInt(hex.slice(4, 6), 16);
+        return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+      }
+    }
+
+    const rgbMatch = normalized.match(/^rgba?\(([^)]+)\)$/i);
+    if (rgbMatch) {
+      const channels = rgbMatch[1].split(",").map((channel) => channel.trim());
+      if (channels.length >= 3) {
+        return `rgba(${channels[0]}, ${channels[1]}, ${channels[2]}, ${alpha})`;
+      }
+    }
+
+    return colorValue || "#2e8eff";
+  }
+
+  function resolveGroupHistoryActivityColor(alpha) {
+    const bodyStyles = document.body ? getComputedStyle(document.body) : null;
+    const activityRgb = bodyStyles ? bodyStyles.getPropertyValue("--activity-rgb").trim() : "";
+    if (activityRgb && /^[0-9.\s]+,[0-9.\s]+,[0-9.\s]+$/.test(activityRgb)) {
+      return typeof alpha === "number"
+        ? `rgba(${activityRgb}, ${alpha})`
+        : `rgb(${activityRgb})`;
+    }
+
+    const rootStyles = getComputedStyle(document.documentElement);
+    const baseColor = rootStyles.getPropertyValue("--primary").trim() || "#2e8eff";
+    return typeof alpha === "number" ? applyHistoryAlpha(baseColor, alpha) : normalizeHistoryColor(baseColor);
+  }
+
+  function renderGroupHistoryTimeline(section) {
+    const axis = document.getElementById("groupHistoryTimelineAxis");
+    const viewport = document.getElementById("groupHistoryTimelineViewport");
+    axis.replaceChildren();
+    viewport.replaceChildren();
+    viewport.scrollLeft = 0;
+
+    const sectionAttempts = section && Array.isArray(section.attempts) ? section.attempts : [];
+    if (!sectionAttempts.length) {
+      const empty = document.createElement("span");
+      empty.className = "pg-group-history-modal__empty";
+      empty.textContent = "No scores yet to plot.";
+      viewport.appendChild(empty);
+      return;
+    }
+
+    const chronologicalAttempts = sectionAttempts.slice().reverse();
+    const values = chronologicalAttempts.map((attempt) => Number(attempt.value)).filter((value) => Number.isFinite(value));
+    if (!values.length) {
+      const empty = document.createElement("span");
+      empty.className = "pg-group-history-modal__empty";
+      empty.textContent = "No scores yet to plot.";
+      viewport.appendChild(empty);
+      return;
+    }
+
+    const visibleWindowPoints = 5;
+    const height = 220;
+    const axisWidth = 56;
+    const padding = { top: 18, right: 22, bottom: 44, left: 18 };
+    const viewportWidth = Math.max(420, viewport.clientWidth || 540);
+    const pointSpacing = Math.max(88, (viewportWidth - padding.left - padding.right) / Math.max(1, visibleWindowPoints - 1));
+    const width = Math.max(
+      viewportWidth,
+      padding.left + padding.right + pointSpacing * Math.max(values.length - 1, visibleWindowPoints - 1)
+    );
+    const plotWidth = width - padding.left - padding.right;
+    const plotHeight = height - padding.top - padding.bottom;
+    const rawMin = Math.min(...values);
+    const rawMax = Math.max(...values);
+    const spread = rawMax - rawMin;
+    const paddingAmount = spread === 0 ? Math.max(Math.abs(rawMax) * 0.08, 1) : spread * 0.18;
+    const domainMin = rawMin - paddingAmount;
+    const domainMax = rawMax + paddingAmount;
+    const activityLineColor = resolveGroupHistoryActivityColor();
+    const activityFillColor = resolveGroupHistoryActivityColor(0.16);
+    const activityPointColor = resolveGroupHistoryActivityColor(0.92);
+
+    const xForIndex = (index) => {
+      if (values.length === 1) {
+        return padding.left + plotWidth / 2;
+      }
+      return padding.left + (plotWidth * index) / (values.length - 1);
+    };
+
+    const yForValue = (value) => {
+      if (domainMax === domainMin) {
+        return padding.top + plotHeight / 2;
+      }
+      return padding.top + ((domainMax - value) / (domainMax - domainMin)) * plotHeight;
+    };
+
+    const points = values.map((value, index) => ({
+      value,
+      x: xForIndex(index),
+      y: yForValue(value),
+      attemptNumber: index + 1,
+      formattedValue: chronologicalAttempts[index] && chronologicalAttempts[index].formatted_value
+        ? chronologicalAttempts[index].formatted_value
+        : formatHistoryAxisValue(section, value),
+    }));
+
+    const svg = createHistorySvgElement("svg", {
+      viewBox: `0 0 ${width} ${height}`,
+      width: `${width}`,
+      height: `${height}`,
+      class: "pg-group-history-modal__chart",
+      role: "img",
+      "aria-label": `Performance timeline with ${points.length} attempts.`,
+    });
+
+    const axisSvg = createHistorySvgElement("svg", {
+      viewBox: `0 0 ${axisWidth} ${height}`,
+      width: `${axisWidth}`,
+      height: `${height}`,
+      class: "pg-group-history-modal__chart-axis-svg",
+      "aria-hidden": "true",
+    });
+
+    [0, 0.5, 1].forEach((ratio) => {
+      const y = padding.top + plotHeight * ratio;
+      const value = domainMax - (domainMax - domainMin) * ratio;
+      svg.appendChild(createHistorySvgElement("line", {
+        x1: 0,
+        y1: y,
+        x2: width,
+        y2: y,
+        stroke: "rgba(23, 23, 23, 0.12)",
+        "stroke-width": "1",
+      }));
+      axisSvg.appendChild(createHistorySvgElement("line", {
+        x1: axisWidth - 2,
+        y1: y,
+        x2: axisWidth - 10,
+        y2: y,
+        stroke: "rgba(23, 23, 23, 0.12)",
+        "stroke-width": "1",
+      }));
+      const label = createHistorySvgElement("text", {
+        x: axisWidth - 8,
+        y: y + 5,
+        "text-anchor": "end",
+        fill: "rgba(23, 23, 23, 0.58)",
+        "font-size": "14",
+        "font-weight": "700",
+        "font-family": "inherit",
+      });
+      label.textContent = formatHistoryAxisValue(section, value);
+      axisSvg.appendChild(label);
+    });
+
+    svg.appendChild(createHistorySvgElement("line", {
+      x1: 0,
+      y1: height - padding.bottom,
+      x2: width,
+      y2: height - padding.bottom,
+      stroke: "rgba(23, 23, 23, 0.16)",
+      "stroke-width": "1.5",
+    }));
+
+    points.forEach((point) => {
+      svg.appendChild(createHistorySvgElement("line", {
+        x1: point.x,
+        y1: height - padding.bottom,
+        x2: point.x,
+        y2: height - padding.bottom + 6,
+        stroke: "rgba(23, 23, 23, 0.28)",
+        "stroke-width": "1",
+      }));
+
+      const label = createHistorySvgElement("text", {
+        x: point.x,
+        y: height - padding.bottom + 24,
+        "text-anchor": "middle",
+        fill: "rgba(23, 23, 23, 0.64)",
+        "font-size": "14",
+        "font-weight": "700",
+        "font-family": "inherit",
+      });
+      label.textContent = point.attemptNumber;
+      svg.appendChild(label);
+    });
+
+    const linePath = points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");
+    const areaPath = `${linePath} L ${points[points.length - 1].x} ${height - padding.bottom} L ${points[0].x} ${height - padding.bottom} Z`;
+
+    svg.appendChild(createHistorySvgElement("path", {
+      d: areaPath,
+      fill: activityFillColor,
+    }));
+    svg.appendChild(createHistorySvgElement("path", {
+      d: linePath,
+      fill: "none",
+      stroke: activityLineColor,
+      "stroke-width": "3",
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+    }));
+
+    points.forEach((point) => {
+      svg.appendChild(createHistorySvgElement("circle", {
+        cx: point.x,
+        cy: point.y,
+        r: "5",
+        fill: activityPointColor,
+      }));
+    });
+
+    axis.appendChild(axisSvg);
+    viewport.appendChild(svg);
+    requestAnimationFrame(() => {
+      viewport.scrollLeft = viewport.scrollWidth;
+    });
+  }
+
+  function renderGroupHistoryAttempts(section) {
+    const body = document.getElementById("groupHistoryAttemptsBody");
+    body.replaceChildren();
+
+    const sectionAttempts = section && Array.isArray(section.attempts) ? section.attempts : [];
+    if (!sectionAttempts.length) {
+      const emptyRow = document.createElement("tr");
+      const emptyCell = document.createElement("td");
+      emptyCell.colSpan = 2;
+      emptyCell.className = "pg-group-history-modal__empty";
+      emptyCell.textContent = "No scores yet.";
+      emptyRow.appendChild(emptyCell);
+      body.appendChild(emptyRow);
+      return;
+    }
+
+    const chronologicalAttempts = sectionAttempts.slice().reverse();
+    chronologicalAttempts.forEach((attempt, index) => {
+      const row = document.createElement("tr");
+      const attemptCell = document.createElement("td");
+      const valueCell = document.createElement("td");
+      attemptCell.textContent = String(index + 1);
+      valueCell.textContent = attempt && attempt.formatted_value ? attempt.formatted_value : "--";
+      row.appendChild(attemptCell);
+      row.appendChild(valueCell);
+      body.appendChild(row);
+    });
+  }
+
+  function renderGroupHistoryState(section, groupLabel) {
+    const label = document.getElementById("groupHistoryGroupLabel");
+    const best = document.getElementById("groupHistoryBestValue");
+
+    label.textContent = groupLabel;
+    best.textContent = section && section.best_formatted_value ? section.best_formatted_value : "--";
+    renderGroupHistoryTimeline(section);
+    renderGroupHistoryAttempts(section);
+  }
+
+  function renderGroupHistoryError(message) {
+    const best = document.getElementById("groupHistoryBestValue");
+    const label = document.getElementById("groupHistoryGroupLabel");
+    best.textContent = "--";
+    label.textContent = fallbackGroupHistoryLabel;
+    renderGroupHistoryTimeline(null);
+    renderGroupHistoryAttempts(null);
+  }
+
+  function resolveGroupHistorySampleUrl(groupId) {
+    if (!groupId) {
+      return "";
+    }
+    return `${groupHistorySampleBaseUrl}${encodeURIComponent(groupId)}.json`;
+  }
+
+  async function loadGroupHistoryResponse(groupId) {
+    const response = await fetch(`/group_history_data?group_id=${encodeURIComponent(groupId)}`, { cache: "no-store" });
+    const contentType = response.headers.get("content-type") || "";
+
+    if (!contentType.includes("application/json")) {
+      throw new Error("Unable to load live score history.");
+    }
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Unable to load score history.");
+    }
+    return data;
+  }
+
+  async function loadSampleGroupHistory(groupId) {
+    const sampleUrl = resolveGroupHistorySampleUrl(groupId);
+    if (!sampleUrl) {
+      return null;
+    }
+
+    const response = await fetch(sampleUrl, { cache: "no-store" });
+    if (!response.ok) {
+      return null;
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      return null;
+    }
+
+    return response.json();
+  }
+
+  async function refreshGroupHistoryModal() {
+    const selectedGroup = activeGroupHistoryTarget || window.sonicSoleSelectedGroup || null;
+    const groupId = selectedGroup && selectedGroup.id ? selectedGroup.id : fallbackGroupHistoryGroupId;
+    const groupLabel = selectedGroup && selectedGroup.label ? selectedGroup.label : fallbackGroupHistoryLabel;
+
+    if (!groupId) {
+      renderGroupHistoryError("Select a group before opening the scoreboard.");
+      return;
+    }
+
+    try {
+      const data = await loadGroupHistoryResponse(groupId);
+      const historySections = Array.isArray(data.history) ? data.history : [];
+      const matchingSection = historySections.find((section) => section.board_key === groupHistoryBoardKey) || null;
+      const resolvedLabel = data.group && data.group.label ? data.group.label : groupLabel;
+      renderGroupHistoryState(matchingSection, resolvedLabel);
+    } catch (error) {
+      const sampleData = await loadSampleGroupHistory(groupId);
+      if (sampleData) {
+        const historySections = Array.isArray(sampleData.history) ? sampleData.history : [];
+        const matchingSection = historySections.find((section) => section.board_key === groupHistoryBoardKey) || null;
+        const resolvedLabel = sampleData.group && sampleData.group.label ? sampleData.group.label : groupLabel;
+        renderGroupHistoryState(matchingSection, resolvedLabel);
+        return;
+      }
+
+      renderGroupHistoryError(error.message);
+    }
+  }
+
+  function openGroupHistoryModal(groupTarget = null) {
+    activeGroupHistoryTarget = groupTarget && groupTarget.id
+      ? { id: groupTarget.id, label: groupTarget.label || fallbackGroupHistoryLabel }
+      : null;
+    document.getElementById("groupHistoryModal").style.display = "flex";
+    refreshGroupHistoryModal();
+  }
+
+  function closeGroupHistoryModal() {
+    document.getElementById("groupHistoryModal").style.display = "none";
+    activeGroupHistoryTarget = null;
+  }
+</script>

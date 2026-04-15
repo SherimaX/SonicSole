@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  {% set webapp_theme_color = "#f7f1e8" %}
+  {% include '_ios_webapp_meta.html' %}
+  <title>SonicSole</title>
+  <style>
+    :root {
+      --phone-max: 560px;
+      --phone-dock-icon-size: 88px;
+      --phone-liquid-shell: rgba(255, 255, 255, 0.16);
+      --phone-liquid-shell-stroke: rgba(255, 255, 255, 0.34);
+      --phone-liquid-icon-fill: rgba(255, 255, 255, 0.14);
+      --phone-liquid-icon-stroke: rgba(255, 255, 255, 0.28);
+    }
+
+    body.pg-screen {
+      min-height: 100vh;
+      padding: 28px 18px 28px;
+      background: #f7f1e8;
+      color: #171717;
+    }
+
+    body.pg-screen::before {
+      display: none;
+    }
+
+    .pg-phone-home {
+      width: min(100%, var(--phone-max));
+      display: grid;
+      gap: 10px;
+      padding-bottom: calc(118px + var(--pg-phone-bottom-safe-space, 0px));
+      overflow-y: hidden;
+    }
+
+    .pg-phone-home.pg-overflows-y {
+      padding-bottom: calc(118px + var(--pg-phone-bottom-safe-space, 0px));
+    }
+
+    body.pg-ios-browser-web.pg-phone-app .pg-phone-home {
+      padding-bottom: calc(118px + var(--pg-browser-bottom-safe-space, 0px));
+    }
+
+    body.pg-ios-browser-web.pg-phone-app .pg-phone-home.pg-overflows-y {
+      padding-bottom: calc(118px + var(--pg-browser-bottom-safe-space, 0px));
+    }
+
+    body.pg-screen.pg-phone-app .pg-phone-home {
+      overflow-y: hidden;
+      overscroll-behavior-y: none;
+    }
+
+    .pg-phone-home__header {
+      display: grid;
+      gap: 0;
+      margin-bottom: -56px;
+      padding-top: clamp(30px, 5.5vh, 44px);
+      text-align: center;
+    }
+
+    .pg-phone-home__subtitle {
+      margin-top: 6px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #6b6b67;
+    }
+
+    .pg-phone-home__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 26px;
+      row-gap: 26px;
+      margin-top: 44px;
+      align-items: stretch;
+      justify-items: center;
+    }
+
+    .pg-phone-home__card {
+      --card-panel-bg: #eef4e7;
+      --card-border: rgba(52, 16, 16, 0.08);
+      --card-title-color: #171717;
+      --card-lift: 0px;
+      --card-shift-x: 0px;
+      --card-shift-y: 0px;
+      --card-rotate-x: 0deg;
+      --card-rotate-y: 0deg;
+      --card-scale: 1;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 0;
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      position: relative;
+      isolation: isolate;
+      text-decoration: none;
+      color: inherit;
+      border-radius: 34px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+      background: var(--card-panel-bg);
+      transform:
+        perspective(820px)
+        translate3d(var(--card-shift-x), calc(var(--card-shift-y) - var(--card-lift)), 0)
+        rotateX(var(--card-rotate-x))
+        rotateY(var(--card-rotate-y))
+        scale(var(--card-scale));
+      transform-style: preserve-3d;
+      transition:
+        transform 0.18s ease,
+        border-color 0.18s ease;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      will-change: transform;
+    }
+
+    .pg-phone-home__card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        radial-gradient(120% 110% at 18% 0%, rgba(255, 255, 255, 0.32), transparent 54%),
+        radial-gradient(96% 88% at 82% 100%, rgba(17, 17, 17, 0.07), transparent 52%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .pg-phone-home__card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.34),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .pg-phone-home__card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .pg-phone-home__card:nth-child(1) {
+      --card-panel-bg: #eff5e9;
+    }
+
+    .pg-phone-home__card:nth-child(2) {
+      --card-panel-bg: #f8f1df;
+    }
+
+    .pg-phone-home__card:nth-child(3) {
+      --card-panel-bg: #f5e3ee;
+    }
+
+    .pg-phone-home__card:nth-child(4) {
+      --card-panel-bg: #e4f1f6;
+    }
+
+    .pg-phone-home__card.is-tilting {
+      --card-lift: 8px;
+      --card-scale: 1.012;
+    }
+
+    .pg-phone-home__card.is-pressed {
+      --card-lift: 3px;
+      --card-scale: 0.996;
+    }
+
+    .pg-phone-home__icon {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      background: #f9ddb1;
+    }
+
+    .pg-phone-home__icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(1.04) contrast(1.01);
+    }
+
+    .pg-phone-home__card-copy {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      min-height: 108px;
+      padding: 12px 16px;
+      text-align: center;
+      background: var(--card-panel-bg);
+    }
+
+    .pg-phone-home__card-kicker {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      font-size: 0.76rem;
+      line-height: 0.94;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #717171;
+    }
+
+    .pg-phone-home__card-title {
+      width: 100%;
+      min-height: 0;
+      padding: 0;
+      font-size: 1.12rem;
+      line-height: 1.05;
+      font-weight: 700;
+      color: var(--card-title-color);
+      letter-spacing: 0.02em;
+      overflow-wrap: anywhere;
+      text-align: center;
+      background: none;
+    }
+
+    @media (hover: hover) {
+      .pg-phone-home__card:hover {
+        border-color: color-mix(in srgb, var(--card-border) 76%, white 24%);
+      }
+    }
+
+    .pg-phone-dock {
+      position: fixed;
+      left: 50%;
+      bottom: max(8px, calc(var(--pg-phone-bottom-safe-space, 0px) - 6px));
+      transform: translateX(-50%);
+      width: min(482px, calc(100% - 20px));
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      justify-items: center;
+      align-items: center;
+      gap: 22px;
+      padding: 18px 24px;
+      min-height: 128px;
+      border-radius: 38px;
+      background:
+        radial-gradient(140% 140% at 18% 0%, rgba(255, 255, 255, 0.54) 0%, rgba(255, 255, 255, 0.14) 34%, rgba(255, 255, 255, 0.05) 68%, rgba(255, 255, 255, 0.03) 100%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.26), var(--phone-liquid-shell));
+      border: 1px solid var(--phone-liquid-shell-stroke);
+      box-shadow:
+        0 18px 42px rgba(17, 17, 17, 0.14),
+        0 2px 10px rgba(255, 255, 255, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.56),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(30px) saturate(1.35) brightness(1.06);
+      -webkit-backdrop-filter: blur(30px) saturate(1.35) brightness(1.06);
+      overflow: hidden;
+      isolation: isolate;
+      z-index: 20;
+    }
+
+    body.pg-ios-browser-web.pg-phone-app .pg-phone-dock {
+      bottom: max(8px, calc(var(--pg-browser-bottom-safe-space, 0px) - 6px));
+    }
+
+    body.pg-standalone-webapp.pg-phone-app .pg-phone-dock {
+      width: min(468px, calc(100% - 34px));
+    }
+
+    .pg-phone-dock::before,
+    .pg-phone-dock::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    .pg-phone-dock::before {
+      inset: 1px;
+      background:
+        radial-gradient(110% 92% at 18% 0%, rgba(255, 255, 255, 0.42), transparent 56%),
+        radial-gradient(96% 82% at 82% 100%, rgba(255, 255, 255, 0.16), transparent 48%);
+      opacity: 0.92;
+    }
+
+    .pg-phone-dock::after {
+      inset: 0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 -10px 18px rgba(255, 255, 255, 0.05);
+    }
+
+    .pg-phone-dock__item,
+    .pg-phone-dock__item:link,
+    .pg-phone-dock__item:visited,
+    .pg-phone-dock button.pg-phone-dock__item {
+      display: grid !important;
+      gap: 0 !important;
+      justify-items: center !important;
+      align-items: center !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      color: inherit !important;
+      text-decoration: none !important;
+      cursor: pointer;
+      font-size: inherit !important;
+      font-weight: inherit !important;
+      line-height: 1 !important;
+      appearance: none;
+      -webkit-appearance: none;
+      position: relative;
+      z-index: 1;
+      transition:
+        transform 0.22s cubic-bezier(0.22, 0.74, 0.2, 1),
+        filter 0.22s ease;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .pg-phone-dock__item:hover,
+    .pg-phone-dock button.pg-phone-dock__item:hover {
+      transform: translateY(-1px) scale(1.015);
+      background: none !important;
+      box-shadow: none !important;
+    }
+
+    .pg-phone-dock__item:active,
+    .pg-phone-dock button.pg-phone-dock__item:active {
+      transform: translateY(1px) scale(0.97);
+    }
+
+    .pg-phone-dock__item:focus,
+    .pg-phone-dock__item:focus-visible,
+    .pg-phone-dock button.pg-phone-dock__item:focus,
+    .pg-phone-dock button.pg-phone-dock__item:focus-visible {
+      background: none !important;
+      box-shadow: none !important;
+    }
+
+    .pg-phone-dock__icon {
+      position: relative;
+      width: var(--phone-dock-icon-size);
+      aspect-ratio: 1 / 1;
+      border-radius: 28px;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(130% 120% at 22% 4%, rgba(255, 255, 255, 0.44) 0%, rgba(255, 255, 255, 0.18) 36%, rgba(255, 255, 255, 0.08) 68%, rgba(255, 255, 255, 0.04) 100%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.22), var(--phone-liquid-icon-fill));
+      border: 1px solid var(--phone-liquid-icon-stroke);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.62),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+        0 10px 24px rgba(17, 17, 17, 0.12);
+      backdrop-filter: blur(20px) saturate(1.2);
+      -webkit-backdrop-filter: blur(20px) saturate(1.2);
+      overflow: hidden;
+    }
+
+    .pg-phone-dock__icon::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 52%),
+        radial-gradient(110% 90% at 18% 2%, rgba(255, 255, 255, 0.24), transparent 56%);
+      pointer-events: none;
+    }
+
+    .pg-phone-dock__icon::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow:
+        inset 0 8px 14px rgba(255, 255, 255, 0.06),
+        inset 0 -8px 12px rgba(255, 255, 255, 0.03);
+      pointer-events: none;
+    }
+
+    .pg-phone-dock__icon svg {
+      width: 38px;
+      height: 38px;
+      stroke: currentColor;
+      color: #171717;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .pg-phone-dock__icon svg * {
+      pointer-events: none;
+    }
+
+    .pg-phone-dock__item:hover .pg-phone-dock__icon,
+    .pg-phone-dock button.pg-phone-dock__item:hover .pg-phone-dock__icon {
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.68),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+        0 14px 28px rgba(17, 17, 17, 0.14);
+    }
+
+    .pg-phone-dock__item:active .pg-phone-dock__icon,
+    .pg-phone-dock button.pg-phone-dock__item:active .pg-phone-dock__icon {
+      box-shadow:
+        inset 0 2px 6px rgba(255, 255, 255, 0.16),
+        0 8px 14px rgba(17, 17, 17, 0.12);
+    }
+
+    .pg-phone-dock__badge {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: #ff7d7d;
+      box-shadow: 0 0 0 4px rgba(255, 125, 125, 0.16);
+      z-index: 2;
+    }
+
+    .pg-phone-dock__badge.is-online {
+      background: #44db7a;
+      box-shadow: 0 0 0 4px rgba(68, 219, 122, 0.16);
+    }
+
+    .pg-phone-dock__badge.is-unavailable {
+      background: #ffd25c;
+      box-shadow: 0 0 0 4px rgba(255, 210, 92, 0.16);
+    }
+
+    .pg-phone-status-sheet {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(8, 14, 30, 0.38);
+      backdrop-filter: blur(8px);
+      z-index: 30;
+    }
+
+    .pg-phone-status-sheet[hidden] {
+      display: none;
+    }
+
+    .pg-phone-status-sheet__card {
+      width: min(100%, 360px);
+      padding: 22px 20px 18px;
+      border-radius: 28px;
+      background: rgba(248, 251, 255, 0.94);
+      color: #16213f;
+      border: 1px solid rgba(255, 255, 255, 0.58);
+      box-shadow: 0 28px 50px rgba(11, 18, 37, 0.24);
+    }
+
+    .pg-phone-status-sheet__eyebrow {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #6b7696;
+      margin-bottom: 6px;
+    }
+
+    .pg-phone-status-sheet__title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #16213f;
+    }
+
+    .pg-phone-status-sheet__summary {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #415073;
+      margin-bottom: 16px;
+    }
+
+    .pg-phone-status-sheet__panel {
+      display: grid;
+      gap: 10px;
+      padding: 14px 16px;
+      border-radius: 20px;
+      background: rgba(236, 241, 251, 0.9);
+      border: 1px solid rgba(22, 33, 63, 0.08);
+      margin-bottom: 16px;
+    }
+
+    .pg-phone-status-sheet__row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      font-size: 0.92rem;
+      color: #233154;
+    }
+
+    .pg-phone-status-sheet__row strong {
+      font-weight: 700;
+    }
+
+    .pg-phone-status-sheet__state {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .pg-phone-status-sheet__dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #ff7d7d;
+    }
+
+    .pg-phone-status-sheet__dot.is-online {
+      background: #2dcc6f;
+    }
+
+    .pg-phone-status-sheet__dot.is-unavailable {
+      background: #d6a100;
+    }
+
+    .pg-phone-status-sheet__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .pg-phone-status-sheet__button {
+      padding: 11px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(22, 33, 63, 0.12);
+      background: #fff;
+      color: #16213f;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .pg-phone-status-sheet__card--sensor-check {
+      width: min(100%, 980px);
+      max-height: min(92vh, 900px);
+      overflow: hidden;
+    }
+
+    .pg-phone-status-sheet__actions--sensor-check {
+      margin-top: 18px;
+    }
+
+    .sensor-scale {
+      background: linear-gradient(180deg, #c85a2d 0%, #ef9e4a 24%, #f2d65c 50%, #dff4a3 76%, #ffffff 92%, #ffffff 100%);
+      border: 1px solid rgba(21, 62, 92, 0.18);
+      border-radius: 999px;
+      bottom: 1rem;
+      margin: 0;
+      overflow: hidden;
+      pointer-events: none;
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      width: 12px;
+    }
+
+    .sensor-check-title {
+      align-items: center;
+      display: flex;
+      gap: 0.7rem;
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .sensor-check-title[hidden] {
+      display: none;
+    }
+
+    .sensor-check-title__dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: #ff7d7d;
+      box-shadow: 0 0 0 4px rgba(255, 125, 125, 0.16);
+      flex: 0 0 auto;
+    }
+
+    .sensor-check-title__dot.is-online {
+      background: #44db7a;
+      box-shadow: 0 0 0 4px rgba(68, 219, 122, 0.16);
+    }
+
+    .sensor-check-title__dot.is-waiting {
+      background: #ffd25c;
+      box-shadow: 0 0 0 4px rgba(255, 210, 92, 0.16);
+    }
+
+    .sensor-check-status-message {
+      background: rgba(21, 62, 92, 0.06);
+      border: 1px solid rgba(21, 62, 92, 0.12);
+      border-radius: 14px;
+      color: #16213f;
+      font-size: 0.98rem;
+      line-height: 1.5;
+      margin: 0 0 1rem;
+      padding: 0.85rem 1rem;
+    }
+
+    .sensor-check-status-message[hidden] {
+      display: none;
+    }
+
+    .sensor-check-status-message.is-waiting {
+      background: rgba(242, 166, 74, 0.12);
+      border-color: rgba(242, 166, 74, 0.24);
+    }
+
+    .sensor-check-status-message.is-error {
+      background: rgba(200, 90, 45, 0.1);
+      border-color: rgba(200, 90, 45, 0.2);
+      color: #7a341b;
+    }
+
+    .sensor-check-carousel {
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      transition: height 0.22s ease;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
+    }
+
+    .sensor-check-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .sensor-check-track {
+      display: grid;
+      grid-auto-columns: 100%;
+      grid-auto-flow: column;
+    }
+
+    .sensor-check-page {
+      min-width: 0;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+
+    .sensor-check-page--pressure {
+      align-self: start;
+    }
+
+    .sensor-check-pager {
+      display: flex;
+      justify-content: center;
+      gap: 0.55rem;
+      margin: 1rem auto 0;
+      width: fit-content;
+    }
+
+    .sensor-check-dot {
+      width: 8px !important;
+      min-width: 8px;
+      height: 8px !important;
+      min-height: 8px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+      border-radius: 999px;
+      background: rgba(21, 62, 92, 0.24) !important;
+      box-shadow: none !important;
+      display: inline-block !important;
+      vertical-align: middle;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    .sensor-check-dot:hover {
+      background: rgba(21, 62, 92, 0.4) !important;
+      transform: scale(1.08);
+    }
+
+    .sensor-check-dot.is-active {
+      background: rgba(21, 62, 92, 0.82) !important;
+    }
+
+    .sensor-panel {
+      background: rgba(255, 255, 255, 0.56);
+      border: 1px solid rgba(21, 62, 92, 0.12);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-height: 100%;
+      padding: 1.25rem;
+    }
+
+    .sensor-panel--pressure {
+      min-height: 0;
+    }
+
+    .sensor-panel h3 {
+      color: #16213f;
+      font-size: 1.35rem;
+      margin: 0;
+      text-align: left;
+    }
+
+    .sensor-panel p {
+      color: #415073;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .pressure-stage,
+    .imu-viewer {
+      align-items: center;
+      background:
+        radial-gradient(circle at 20% 18%, rgba(242, 166, 74, 0.14), transparent 20%),
+        linear-gradient(180deg, rgba(13, 40, 61, 0.06) 0%, rgba(19, 62, 92, 0.12) 100%);
+      box-sizing: border-box;
+      border: 1px solid rgba(21, 62, 92, 0.12);
+      border-radius: 20px;
+      display: flex;
+      height: 372px;
+      justify-content: center;
+      min-height: 372px;
+      overflow: hidden;
+      padding: 1rem 2.4rem 1rem 1rem;
+      position: relative;
+    }
+
+    .pressure-insole {
+      display: block;
+      filter: drop-shadow(0 14px 24px rgba(16, 32, 45, 0.18));
+      height: auto;
+      margin: 0 auto;
+      max-height: calc(100% - 0.5rem);
+      max-width: 100%;
+      transform: translateY(-10px);
+    }
+
+    .sensor-readings,
+    .sensor-metadata {
+      display: grid;
+      gap: 0.85rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sensor-metadata--acceleration {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .sensor-reading {
+      background: rgba(244, 247, 250, 0.92);
+      border: 1px solid rgba(21, 62, 92, 0.12);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding: 0.9rem 1rem;
+    }
+
+    .sensor-reading--wide {
+      grid-column: span 2;
+    }
+
+    .sensor-reading span {
+      color: #415073;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .sensor-reading strong {
+      color: #16213f;
+      font-size: 1.28rem;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .sensor-metadata--acceleration .sensor-reading strong {
+      font-size: 1.12rem;
+    }
+
+    .imu-viewer {
+      perspective: 1200px;
+    }
+
+    .imu-stage {
+      align-items: center;
+      display: flex;
+      height: 100%;
+      justify-content: center;
+      position: relative;
+      transform-style: preserve-3d;
+      width: min(100%, 360px);
+    }
+
+    .imu-shadow {
+      background: radial-gradient(circle, rgba(16, 32, 45, 0.22) 0%, rgba(16, 32, 45, 0) 70%);
+      border-radius: 999px;
+      bottom: 18%;
+      filter: blur(12px);
+      height: 18%;
+      left: 50%;
+      position: absolute;
+      transform: translate3d(-50%, 0, -60px);
+      transform-origin: center;
+      width: 52%;
+    }
+
+    .imu-card {
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.08s linear;
+      width: min(190px, 58%);
+      will-change: transform;
+    }
+
+    .imu-card__surface {
+      display: block;
+      filter: drop-shadow(0 18px 28px rgba(16, 32, 45, 0.18));
+      height: auto;
+      overflow: visible;
+      width: 100%;
+    }
+
+    @media (max-width: 720px) {
+      .sensor-metadata {
+        grid-template-columns: 1fr;
+      }
+
+      .sensor-metadata--acceleration {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .sensor-reading--wide {
+        grid-column: span 1;
+      }
+    }
+
+    @media (max-width: 420px) {
+      body.pg-screen {
+        padding-inline: 14px;
+      }
+
+      .pg-phone-home__grid {
+        column-gap: 14px;
+        row-gap: 14px;
+      }
+
+      .pg-phone-home__card {
+        max-width: 180px;
+      }
+
+      .pg-phone-dock {
+        width: min(402px, calc(100% - 28px));
+        gap: 18px;
+        padding: 15px 18px;
+        min-height: 112px;
+      }
+
+      .pg-phone-dock__icon {
+        width: 74px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      body.pg-standalone-webapp.pg-phone-app .pg-phone-dock {
+        width: min(388px, calc(100% - 42px));
+      }
+    }
+
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .pg-phone-dock {
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .pg-phone-dock__icon {
+        background: rgba(255, 255, 255, 0.82);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pg-phone-home__card,
+      .pg-phone-dock__item,
+      .pg-phone-dock button.pg-phone-dock__item {
+        transition: none;
+      }
+
+      .pg-phone-home__card {
+        transform: none !important;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='playground-theme.css') }}" data-live-css-src="{{ url_for('static', filename='playground-theme.css') }}">
+  <script defer src="{{ url_for('static', filename='playground-live.css.js') }}"></script>
+</head>
+<body class="pg-screen pg-phone-app">
+  <main class="pg-phone-home">
+    <header class="pg-phone-home__header">
+      <div class="pg-phone-home__subtitle">{{ phone_group.label }}</div>
+    </header>
+
+    <section class="pg-phone-home__grid" aria-label="{{ phone_group.label }} activities">
+      {% for activity in phone_activity_cards %}
+      {% if activity.slug != "walk" %}
+      <a
+        class="pg-phone-home__card"
+        href="{{ phone_group_links[activity.slug] }}"
+        aria-label="{{ activity.label }}"
+      >
+        <div class="pg-phone-home__icon" aria-hidden="true">
+          <img src="{{ url_for('static', filename=activity.image) }}" alt="" />
+        </div>
+        <div class="pg-phone-home__card-copy">
+          <span class="pg-phone-home__card-kicker">{{ activity.kicker }}</span>
+          <span class="pg-phone-home__card-title">{{ activity.label }}</span>
+        </div>
+      </a>
+      {% endif %}
+      {% endfor %}
+    </section>
+  </main>
+
+  <nav class="pg-phone-dock" aria-label="Utilities">
+    <a class="pg-phone-dock__item" id="setupGuideDockLink" href="{{ phone_group_links.setup }}" aria-label="Setup Guide">
+      <span class="pg-phone-dock__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 6.1c-1.45-1.03-3.2-1.55-5.24-1.55A1.76 1.76 0 0 0 5 6.31v10.92A1.76 1.76 0 0 0 6.76 19c2.02 0 3.79.52 5.24 1.55"></path>
+          <path d="M12 6.1c1.45-1.03 3.2-1.55 5.24-1.55A1.76 1.76 0 0 1 19 6.31v10.92A1.76 1.76 0 0 1 17.24 19c-2.02 0-3.79.52-5.24 1.55"></path>
+          <path d="M12 6.1V20.55"></path>
+          <path d="M8.2 9.1h1.95"></path>
+          <path d="M13.85 9.1h1.95"></path>
+        </svg>
+      </span>
+    </a>
+
+    <button class="pg-phone-dock__item" id="sensorCheckDockButton" type="button" aria-label="Sensor Check">
+      <span class="pg-phone-dock__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4.5" y="5.5" width="15" height="10.5" rx="2.4"></rect>
+          <path d="M7.5 11.2h2l1.3-2.1 2.4 4.2 1.5-2.2h1.8"></path>
+          <path d="M9.2 19h5.6"></path>
+          <path d="M12 16v3"></path>
+        </svg>
+      </span>
+    </button>
+
+    <button class="pg-phone-dock__item" id="connectivityDockButton" type="button" aria-label="Connectivity">
+      <span class="pg-phone-dock__icon" aria-hidden="true">
+        <span class="pg-phone-dock__badge" id="connectivityDockBadge"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4.2" y="4.2" width="15.6" height="15.6" rx="2.3"></rect>
+          <path d="M7.3 1.9v3"></path>
+          <path d="M12 1.9v3"></path>
+          <path d="M16.7 1.9v3"></path>
+          <path d="M7.3 19.1v3"></path>
+          <path d="M12 19.1v3"></path>
+          <path d="M16.7 19.1v3"></path>
+          <path d="M1.9 7.3h3"></path>
+          <path d="M1.9 12h3"></path>
+          <path d="M1.9 16.7h3"></path>
+          <path d="M19.1 7.3h3"></path>
+          <path d="M19.1 12h3"></path>
+          <path d="M19.1 16.7h3"></path>
+          <rect x="8.1" y="8.1" width="7.8" height="7.8" rx="1.2" fill="currentColor" stroke="none"></rect>
+        </svg>
+      </span>
+    </button>
+  </nav>
+
+  <div class="pg-phone-status-sheet" id="connectivitySheet" hidden>
+    <div class="pg-phone-status-sheet__card" role="dialog" aria-modal="true" aria-labelledby="connectivityTitle">
+      <div class="pg-phone-status-sheet__eyebrow">Connectivity Status</div>
+      <h2 class="pg-phone-status-sheet__title" id="connectivityTitle">{{ phone_group.label }}</h2>
+      <p class="pg-phone-status-sheet__summary" id="connectivitySummary">Checking device status...</p>
+
+      <div class="pg-phone-status-sheet__panel">
+        <div class="pg-phone-status-sheet__row">
+          <span>State</span>
+          <span class="pg-phone-status-sheet__state">
+            <span class="pg-phone-status-sheet__dot" id="connectivityStateDot"></span>
+            <strong id="connectivityStateText">Checking</strong>
+          </span>
+        </div>
+        <div class="pg-phone-status-sheet__row">
+          <span>Device IP</span>
+          <strong id="connectivityIp">--</strong>
+        </div>
+        <div class="pg-phone-status-sheet__row">
+          <span>Last check</span>
+          <strong id="connectivityAge">--</strong>
+        </div>
+      </div>
+
+      <div class="pg-phone-status-sheet__actions">
+        <button class="pg-phone-status-sheet__button" id="connectivityRefreshButton" type="button">Refresh</button>
+        <button class="pg-phone-status-sheet__button" id="connectivityCloseButton" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pg-phone-status-sheet" id="sensorCheckSheet" hidden>
+    <div class="pg-phone-status-sheet__card pg-phone-status-sheet__card--sensor-check" role="dialog" aria-modal="true" aria-labelledby="sensorCheckTitle">
+      {% set sensor_check_group_label = phone_group.label %}
+      {% set sensor_check_group_has_ip = phone_group.ip %}
+      {% set sensor_check_show_group_picker = false %}
+      {% include '_sensor_check_panel.html' %}
+    </div>
+  </div>
+
+  <script>
+    const phoneGroupId = {{ phone_group.id | tojson }};
+    const phoneGroupDeviceIp = {{ (phone_group.ip or "") | tojson }};
+    const activityCards = Array.from(document.querySelectorAll(".pg-phone-home__card"));
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const setupGuideDockLink = document.getElementById("setupGuideDockLink");
+    const sensorCheckDockButton = document.getElementById("sensorCheckDockButton");
+    const connectivityDockButton = document.getElementById("connectivityDockButton");
+    const connectivityDockBadge = document.getElementById("connectivityDockBadge");
+    const sensorCheckSheet = document.getElementById("sensorCheckSheet");
+    const sensorCheckTitleDot = document.getElementById("sensorCheckTitleDot");
+    const sensorCheckStatusMessage = document.getElementById("sensorCheckStatusMessage");
+    const heelPressureValue = document.getElementById("heelPressureValue");
+    const forePressureValue = document.getElementById("forePressureValue");
+    const imuAccelXValue = document.getElementById("imuAccelXValue");
+    const imuAccelYValue = document.getElementById("imuAccelYValue");
+    const imuAccelZValue = document.getElementById("imuAccelZValue");
+    const connectivitySheet = document.getElementById("connectivitySheet");
+    const connectivitySummary = document.getElementById("connectivitySummary");
+    const connectivityStateDot = document.getElementById("connectivityStateDot");
+    const connectivityStateText = document.getElementById("connectivityStateText");
+    const connectivityIp = document.getElementById("connectivityIp");
+    const connectivityAge = document.getElementById("connectivityAge");
+    const connectivityRefreshButton = document.getElementById("connectivityRefreshButton");
+    const connectivityCloseButton = document.getElementById("connectivityCloseButton");
+    let sensorCheckPoller = null;
+    const defaultSensorCheckState = {
+      R_heel: 0,
+      G_heel: 0,
+      R_fore: 0,
+      G_fore: 0,
+      heel_pressure: 0,
+      fore_pressure: 0,
+      qx: 0,
+      qy: 0,
+      qz: 0,
+      qw: 1,
+      ax: 0,
+      ay: 0,
+      az: 0,
+      imu_orientation_mode: "identity",
+    };
+
+    function resetActivityCard(card) {
+      card.style.setProperty("--card-shift-x", "0px");
+      card.style.setProperty("--card-shift-y", "0px");
+      card.style.setProperty("--card-rotate-x", "0deg");
+      card.style.setProperty("--card-rotate-y", "0deg");
+      card.classList.remove("is-tilting", "is-pressed");
+    }
+
+    function updateActivityCard(card, event, isPressed = false) {
+      if (reducedMotionQuery.matches) {
+        resetActivityCard(card);
+        return;
+      }
+
+      const rect = card.getBoundingClientRect();
+      if (!rect.width || !rect.height) {
+        return;
+      }
+
+      const ratioX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+      const ratioY = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+      const offsetX = ratioX - 0.5;
+      const offsetY = ratioY - 0.5;
+
+      card.style.setProperty("--card-shift-x", `${(offsetX * 8).toFixed(2)}px`);
+      card.style.setProperty("--card-shift-y", `${(offsetY * 8).toFixed(2)}px`);
+      card.style.setProperty("--card-rotate-x", `${(-offsetY * 11).toFixed(2)}deg`);
+      card.style.setProperty("--card-rotate-y", `${(offsetX * 11).toFixed(2)}deg`);
+      card.classList.add("is-tilting");
+      card.classList.toggle("is-pressed", isPressed);
+    }
+
+    function bindActivityCardTilt(card) {
+      let activePointerId = null;
+
+      card.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "mouse") {
+          updateActivityCard(card, event, false);
+        }
+      });
+
+      card.addEventListener("pointermove", (event) => {
+        if (event.pointerType !== "mouse" && activePointerId !== event.pointerId) {
+          return;
+        }
+        updateActivityCard(card, event, activePointerId === event.pointerId);
+      });
+
+      card.addEventListener("pointerdown", (event) => {
+        activePointerId = event.pointerId;
+        if (typeof card.setPointerCapture === "function") {
+          try {
+            card.setPointerCapture(event.pointerId);
+          } catch (error) {
+            // Ignore browsers that reject capture on anchor elements.
+          }
+        }
+        updateActivityCard(card, event, true);
+      });
+
+      function releaseCard(event) {
+        if (activePointerId === event.pointerId) {
+          activePointerId = null;
+        }
+        if (event.pointerType === "mouse") {
+          updateActivityCard(card, event, false);
+        } else {
+          resetActivityCard(card);
+        }
+      }
+
+      card.addEventListener("pointerup", releaseCard);
+      card.addEventListener("pointercancel", releaseCard);
+      card.addEventListener("pointerleave", (event) => {
+        if (event.pointerType === "mouse" && activePointerId === null) {
+          resetActivityCard(card);
+        }
+      });
+      card.addEventListener("lostpointercapture", () => {
+        activePointerId = null;
+        resetActivityCard(card);
+      });
+    }
+
+    activityCards.forEach((card) => {
+      resetActivityCard(card);
+      bindActivityCardTilt(card);
+    });
+
+    if (typeof reducedMotionQuery.addEventListener === "function") {
+      reducedMotionQuery.addEventListener("change", () => {
+        activityCards.forEach(resetActivityCard);
+      });
+    }
+
+    function formatAgeLabel(seconds) {
+      if (typeof seconds !== "number" || Number.isNaN(seconds)) {
+        return "Just now";
+      }
+      if (seconds < 1) {
+        return "Just now";
+      }
+      if (seconds < 60) {
+        return `${Math.round(seconds)}s ago`;
+      }
+      return `${Math.round(seconds / 60)}m ago`;
+    }
+
+    function renderConnectivity(device) {
+      const statusVariant = device.connected
+        ? "online"
+        : !device.assigned
+          ? "offline"
+          : device.probe_error
+          ? "unavailable"
+          : "offline";
+      const stateLabel = device.connected
+        ? "Live"
+        : !device.assigned
+          ? "Unassigned"
+          : device.probe_error
+          ? "Unavailable"
+          : "Offline";
+      const summary = device.connected
+        ? `${device.label} is connected and sending data.`
+        : !device.assigned
+          ? `${device.label} does not have a device assigned yet.`
+          : device.probe_error
+          ? `${device.label} has a device assigned, but it could not be reached right now.`
+          : `${device.label} has a device assigned, but it is currently offline.`;
+
+      connectivityDockBadge.classList.toggle("is-online", statusVariant === "online");
+      connectivityDockBadge.classList.toggle("is-unavailable", statusVariant === "unavailable");
+      connectivityStateDot.classList.toggle("is-online", statusVariant === "online");
+      connectivityStateDot.classList.toggle("is-unavailable", statusVariant === "unavailable");
+      connectivityStateText.textContent = stateLabel;
+      connectivitySummary.textContent = summary;
+      connectivityIp.textContent = device.ip || "Unassigned";
+      connectivityAge.textContent = formatAgeLabel(device.checked_age_seconds);
+    }
+
+    function renderConnectivityError() {
+      connectivityDockBadge.classList.remove("is-online", "is-unavailable");
+      connectivityStateDot.classList.remove("is-online", "is-unavailable");
+      connectivityStateText.textContent = "Offline";
+      connectivitySummary.textContent = "Unable to load connectivity status right now.";
+      connectivityIp.textContent = "--";
+      connectivityAge.textContent = "--";
+    }
+
+    async function refreshConnectivity() {
+      try {
+        const response = await fetch("/hardware_status", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`hardware_status returned ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const devices = Array.isArray(payload.devices) ? payload.devices : [];
+        const currentDevice = devices.find((device) => device.id === phoneGroupId);
+        if (!currentDevice) {
+          throw new Error("Current group device not found");
+        }
+
+        renderConnectivity(currentDevice);
+      } catch (error) {
+        renderConnectivityError();
+      }
+    }
+
+    function hexToRgb(hex) {
+      const normalized = hex.replace("#", "");
+      const value = parseInt(normalized, 16);
+      return [
+        (value >> 16) & 255,
+        (value >> 8) & 255,
+        value & 255,
+      ];
+    }
+
+    function mixRgb(colorA, colorB, weight) {
+      return colorA.map((channel, index) => {
+        const mixed = channel + ((colorB[index] - channel) * weight);
+        return Math.round(mixed);
+      });
+    }
+
+    function rgbString(rgb) {
+      return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+    }
+
+    function updateSensorCheckGroupUI(data = {}) {
+      const deviceIp = (
+        Object.prototype.hasOwnProperty.call(data, "device_ip")
+          ? data.device_ip
+          : phoneGroupDeviceIp
+      ) || "";
+      const assigned = Object.prototype.hasOwnProperty.call(data, "assigned")
+        ? Boolean(data.assigned)
+        : Boolean(deviceIp);
+      const hasLiveData = Object.prototype.hasOwnProperty.call(data, "has_live_data")
+        ? Boolean(data.has_live_data)
+        : false;
+      const fallbackMessage = assigned
+        ? (hasLiveData
+            ? "Live sensor data is active."
+            : "Waiting for live sensor data.")
+        : "This group does not have a device assigned yet.";
+      const isError = Boolean(data.is_error) || !assigned;
+
+      sensorCheckTitleDot.classList.toggle("is-online", assigned && hasLiveData && !isError);
+      sensorCheckTitleDot.classList.toggle("is-waiting", assigned && !hasLiveData && !isError);
+
+      if (!assigned) {
+        sensorCheckStatusMessage.hidden = true;
+        sensorCheckStatusMessage.textContent = "";
+        sensorCheckStatusMessage.classList.remove("is-waiting", "is-error");
+        updateSensorCheckCarouselHeight();
+        return;
+      }
+
+      sensorCheckStatusMessage.hidden = false;
+      sensorCheckStatusMessage.textContent = data.ui_message || fallbackMessage;
+      sensorCheckStatusMessage.classList.toggle("is-waiting", !isError && !hasLiveData);
+      sensorCheckStatusMessage.classList.toggle("is-error", isError);
+      updateSensorCheckCarouselHeight();
+    }
+
+    function getPressureColor(pressure, maxPressure = 2000) {
+      const pressureValue = Math.max(0, Number(pressure) || 0);
+      if (pressureValue <= 0) {
+        return hexToRgb("#ffffff");
+      }
+
+      const palette = ["#ffffff", "#dff4a3", "#f2d65c", "#ef9e4a", "#c85a2d"].map(hexToRgb);
+      const intensity = Math.max(0, Math.min(1, pressureValue / maxPressure));
+      const scaled = intensity * (palette.length - 1);
+      const lowerIndex = Math.floor(scaled);
+      const upperIndex = Math.min(lowerIndex + 1, palette.length - 1);
+      const weight = scaled - lowerIndex;
+      return mixRgb(palette[lowerIndex], palette[upperIndex], weight);
+    }
+
+    function updatePressureInsole(data) {
+      const heelColor = getPressureColor(data.heel_pressure, 3000);
+      const forefootColor = getPressureColor(data.fore_pressure, 2000);
+      const midColor = mixRgb(heelColor, forefootColor, 0.5);
+
+      document.getElementById("heelGradientStop").setAttribute("stop-color", rgbString(heelColor));
+      document.getElementById("midGradientStop").setAttribute("stop-color", rgbString(midColor));
+      document.getElementById("forefootGradientStop").setAttribute("stop-color", rgbString(forefootColor));
+    }
+
+    function updateSensorReadouts(data) {
+      heelPressureValue.textContent = Math.round(data.heel_pressure ?? 0);
+      forePressureValue.textContent = Math.round(data.fore_pressure ?? 0);
+      imuAccelXValue.textContent = Number(data.ax ?? 0).toFixed(2);
+      imuAccelYValue.textContent = Number(data.ay ?? 0).toFixed(2);
+      imuAccelZValue.textContent = Number(data.az ?? 0).toFixed(2);
+    }
+
+    function normalizeQuaternion(quaternion) {
+      const length = Math.hypot(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+      if (!length || length < 1e-8) {
+        return { x: 0, y: 0, z: 0, w: 1 };
+      }
+
+      return {
+        x: quaternion.x / length,
+        y: quaternion.y / length,
+        z: quaternion.z / length,
+        w: quaternion.w / length,
+      };
+    }
+
+    function slerpQuaternion(currentQuaternion, targetQuaternion, amount) {
+      let cosHalfTheta =
+        (currentQuaternion.x * targetQuaternion.x) +
+        (currentQuaternion.y * targetQuaternion.y) +
+        (currentQuaternion.z * targetQuaternion.z) +
+        (currentQuaternion.w * targetQuaternion.w);
+
+      let adjustedTarget = targetQuaternion;
+      if (cosHalfTheta < 0) {
+        adjustedTarget = {
+          x: -targetQuaternion.x,
+          y: -targetQuaternion.y,
+          z: -targetQuaternion.z,
+          w: -targetQuaternion.w,
+        };
+        cosHalfTheta = -cosHalfTheta;
+      }
+
+      if (cosHalfTheta > 0.9995) {
+        return normalizeQuaternion({
+          x: currentQuaternion.x + ((adjustedTarget.x - currentQuaternion.x) * amount),
+          y: currentQuaternion.y + ((adjustedTarget.y - currentQuaternion.y) * amount),
+          z: currentQuaternion.z + ((adjustedTarget.z - currentQuaternion.z) * amount),
+          w: currentQuaternion.w + ((adjustedTarget.w - currentQuaternion.w) * amount),
+        });
+      }
+
+      const halfTheta = Math.acos(Math.min(Math.max(cosHalfTheta, -1), 1));
+      const sinHalfTheta = Math.sqrt(1 - (cosHalfTheta * cosHalfTheta));
+
+      if (Math.abs(sinHalfTheta) < 0.001) {
+        return normalizeQuaternion({
+          x: (currentQuaternion.x * 0.5) + (adjustedTarget.x * 0.5),
+          y: (currentQuaternion.y * 0.5) + (adjustedTarget.y * 0.5),
+          z: (currentQuaternion.z * 0.5) + (adjustedTarget.z * 0.5),
+          w: (currentQuaternion.w * 0.5) + (adjustedTarget.w * 0.5),
+        });
+      }
+
+      const ratioA = Math.sin((1 - amount) * halfTheta) / sinHalfTheta;
+      const ratioB = Math.sin(amount * halfTheta) / sinHalfTheta;
+
+      return {
+        x: (currentQuaternion.x * ratioA) + (adjustedTarget.x * ratioB),
+        y: (currentQuaternion.y * ratioA) + (adjustedTarget.y * ratioB),
+        z: (currentQuaternion.z * ratioA) + (adjustedTarget.z * ratioB),
+        w: (currentQuaternion.w * ratioA) + (adjustedTarget.w * ratioB),
+      };
+    }
+
+    function quaternionToAxisAngle(quaternion) {
+      const normalized = normalizeQuaternion(quaternion);
+      const clampedW = Math.min(Math.max(normalized.w, -1), 1);
+      const angle = 2 * Math.acos(clampedW);
+      const axisScale = Math.sqrt(Math.max(1 - (clampedW * clampedW), 0));
+
+      if (axisScale < 0.001 || angle < 0.001) {
+        return { x: 0, y: 0, z: 1, angle: 0 };
+      }
+
+      return {
+        x: normalized.x / axisScale,
+        y: normalized.y / axisScale,
+        z: normalized.z / axisScale,
+        angle,
+      };
+    }
+
+    const viewerState = {
+      initialized: false,
+      container: null,
+      card: null,
+      shadow: null,
+      animationFrame: null,
+      deviceQuaternion: null,
+      deviceOrientationSource: null,
+      deviceMotionListening: false,
+      deviceOrientationListening: false,
+      useDeviceOrientationFallback: true,
+      displayQuaternion: { x: 0, y: 0, z: 0, w: 1 },
+      targetQuaternion: { x: 0, y: 0, z: 0, w: 1 },
+    };
+
+    function multiplyQuaternions(firstQuaternion, secondQuaternion) {
+      return {
+        x:
+          (firstQuaternion.w * secondQuaternion.x) +
+          (firstQuaternion.x * secondQuaternion.w) +
+          (firstQuaternion.y * secondQuaternion.z) -
+          (firstQuaternion.z * secondQuaternion.y),
+        y:
+          (firstQuaternion.w * secondQuaternion.y) -
+          (firstQuaternion.x * secondQuaternion.z) +
+          (firstQuaternion.y * secondQuaternion.w) +
+          (firstQuaternion.z * secondQuaternion.x),
+        z:
+          (firstQuaternion.w * secondQuaternion.z) +
+          (firstQuaternion.x * secondQuaternion.y) -
+          (firstQuaternion.y * secondQuaternion.x) +
+          (firstQuaternion.z * secondQuaternion.w),
+        w:
+          (firstQuaternion.w * secondQuaternion.w) -
+          (firstQuaternion.x * secondQuaternion.x) -
+          (firstQuaternion.y * secondQuaternion.y) -
+          (firstQuaternion.z * secondQuaternion.z),
+      };
+    }
+
+    function axisAngleToQuaternion(axisX, axisY, axisZ, angle) {
+      const halfAngle = angle / 2;
+      const sine = Math.sin(halfAngle);
+      return normalizeQuaternion({
+        x: axisX * sine,
+        y: axisY * sine,
+        z: axisZ * sine,
+        w: Math.cos(halfAngle),
+      });
+    }
+
+    function getScreenOrientationRadians() {
+      if (
+        window.screen &&
+        window.screen.orientation &&
+        typeof window.screen.orientation.angle === "number"
+      ) {
+        return window.screen.orientation.angle * (Math.PI / 180);
+      }
+      if (typeof window.orientation === "number") {
+        return window.orientation * (Math.PI / 180);
+      }
+      return 0;
+    }
+
+    function getDeviceOrientationQuaternion(alphaDegrees, betaDegrees, gammaDegrees) {
+      const alpha = (alphaDegrees || 0) * (Math.PI / 180);
+      const beta = (betaDegrees || 0) * (Math.PI / 180);
+      const gamma = (gammaDegrees || 0) * (Math.PI / 180);
+
+      const rotationAroundZ = axisAngleToQuaternion(0, 0, 1, alpha);
+      const rotationAroundX = axisAngleToQuaternion(1, 0, 0, beta);
+      const rotationAroundY = axisAngleToQuaternion(0, 1, 0, gamma);
+      const screenAdjustment = axisAngleToQuaternion(0, 0, 1, -getScreenOrientationRadians());
+
+      return normalizeQuaternion(
+        multiplyQuaternions(
+          multiplyQuaternions(
+            multiplyQuaternions(rotationAroundZ, rotationAroundX),
+            rotationAroundY
+          ),
+          screenAdjustment
+        )
+      );
+    }
+
+    function eulerToQuaternion(rollRadians, pitchRadians, yawRadians) {
+      const halfRoll = rollRadians / 2;
+      const halfPitch = pitchRadians / 2;
+      const halfYaw = yawRadians / 2;
+      const sinRoll = Math.sin(halfRoll);
+      const cosRoll = Math.cos(halfRoll);
+      const sinPitch = Math.sin(halfPitch);
+      const cosPitch = Math.cos(halfPitch);
+      const sinYaw = Math.sin(halfYaw);
+      const cosYaw = Math.cos(halfYaw);
+
+      return normalizeQuaternion({
+        x: (sinRoll * cosPitch * cosYaw) - (cosRoll * sinPitch * sinYaw),
+        y: (cosRoll * sinPitch * cosYaw) + (sinRoll * cosPitch * sinYaw),
+        z: (cosRoll * cosPitch * sinYaw) - (sinRoll * sinPitch * cosYaw),
+        w: (cosRoll * cosPitch * cosYaw) + (sinRoll * sinPitch * sinYaw),
+      });
+    }
+
+    function estimateQuaternionFromAcceleration(axValue, ayValue, azValue) {
+      const magnitude = Math.hypot(axValue || 0, ayValue || 0, azValue || 0);
+      if (!magnitude || magnitude < 1e-6) {
+        return { x: 0, y: 0, z: 0, w: 1 };
+      }
+
+      const normalizedX = axValue / magnitude;
+      const normalizedY = ayValue / magnitude;
+      const normalizedZ = azValue / magnitude;
+      const safeZ = Math.abs(normalizedZ) < 1e-6 ? (normalizedZ || 1) * 1e-6 : normalizedZ;
+      const rollRadians = Math.atan2(normalizedY, safeZ);
+      const pitchRadians = Math.atan2(
+        -normalizedX,
+        Math.sqrt((normalizedY * normalizedY) + (normalizedZ * normalizedZ))
+      );
+
+      return eulerToQuaternion(rollRadians, pitchRadians, 0);
+    }
+
+    function handleDeviceOrientation(event) {
+      if (
+        typeof event.alpha !== "number" &&
+        typeof event.beta !== "number" &&
+        typeof event.gamma !== "number"
+      ) {
+        return;
+      }
+
+      viewerState.deviceQuaternion = getDeviceOrientationQuaternion(
+        event.alpha,
+        event.beta,
+        event.gamma
+      );
+      viewerState.deviceOrientationSource = "orientation";
+
+      if (viewerState.useDeviceOrientationFallback) {
+        viewerState.targetQuaternion = viewerState.deviceQuaternion;
+      }
+    }
+
+    function handleDeviceMotion(event) {
+      if (viewerState.deviceOrientationSource === "orientation") {
+        return;
+      }
+
+      const gravity = event.accelerationIncludingGravity;
+      if (!gravity) {
+        return;
+      }
+
+      viewerState.deviceQuaternion = estimateQuaternionFromAcceleration(
+        gravity.x,
+        gravity.y,
+        gravity.z
+      );
+      viewerState.deviceOrientationSource = "motion";
+
+      if (viewerState.useDeviceOrientationFallback) {
+        viewerState.targetQuaternion = viewerState.deviceQuaternion;
+      }
+    }
+
+    async function requestMotionPermissionIfNeeded() {
+      if (
+        typeof window.DeviceMotionEvent !== "undefined" &&
+        typeof window.DeviceMotionEvent.requestPermission === "function"
+      ) {
+        try {
+          return (await window.DeviceMotionEvent.requestPermission()) === "granted";
+        } catch (error) {
+          return false;
+        }
+      }
+      if (
+        typeof window.DeviceOrientationEvent !== "undefined" &&
+        typeof window.DeviceOrientationEvent.requestPermission === "function"
+      ) {
+        try {
+          return (await window.DeviceOrientationEvent.requestPermission()) === "granted";
+        } catch (error) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    async function ensureDeviceOrientationAccess() {
+      if (viewerState.deviceOrientationListening || viewerState.deviceMotionListening) {
+        return;
+      }
+      if (
+        typeof window.DeviceOrientationEvent === "undefined" &&
+        typeof window.DeviceMotionEvent === "undefined"
+      ) {
+        return;
+      }
+
+      try {
+        const permissionGranted = await requestMotionPermissionIfNeeded();
+        if (!permissionGranted) {
+          return;
+        }
+
+        if (typeof window.DeviceOrientationEvent !== "undefined") {
+          window.addEventListener("deviceorientation", handleDeviceOrientation, true);
+          window.addEventListener("deviceorientationabsolute", handleDeviceOrientation, true);
+          viewerState.deviceOrientationListening = true;
+        }
+        if (typeof window.DeviceMotionEvent !== "undefined") {
+          window.addEventListener("devicemotion", handleDeviceMotion, true);
+          viewerState.deviceMotionListening = true;
+        }
+      } catch (error) {
+        // Ignore devices or browsers that decline orientation access.
+      }
+    }
+
+    function setTargetQuaternion(qxValue, qyValue, qzValue, qwValue) {
+      viewerState.targetQuaternion = normalizeQuaternion({
+        x: Number(qxValue) || 0,
+        y: Number(qyValue) || 0,
+        z: Number(qzValue) || 0,
+        w: Number(qwValue) || 1,
+      });
+    }
+
+    function renderViewer() {
+      if (!viewerState.card || !viewerState.shadow) {
+        return;
+      }
+
+      const axisAngle = quaternionToAxisAngle(viewerState.displayQuaternion);
+      const angleDegrees = axisAngle.angle * (180 / Math.PI);
+      viewerState.card.style.transform = `rotate3d(${axisAngle.x.toFixed(5)}, ${axisAngle.y.toFixed(5)}, ${axisAngle.z.toFixed(5)}, ${angleDegrees.toFixed(2)}deg)`;
+
+      const tilt = Math.min(Math.hypot(axisAngle.x, axisAngle.y) * (axisAngle.angle / Math.PI), 1);
+      const shiftX = axisAngle.y * angleDegrees * 0.18;
+      const shiftY = -axisAngle.x * angleDegrees * 0.12;
+      const scale = 1 - (tilt * 0.16);
+      viewerState.shadow.style.opacity = (0.14 + (tilt * 0.16)).toFixed(3);
+      viewerState.shadow.style.transform = `translate3d(calc(-50% + ${shiftX.toFixed(1)}px), ${shiftY.toFixed(1)}px, -60px) scale(${scale.toFixed(3)})`;
+    }
+
+    function animateViewer() {
+      viewerState.animationFrame = requestAnimationFrame(animateViewer);
+      if (!viewerState.card) {
+        return;
+      }
+
+      viewerState.displayQuaternion = slerpQuaternion(
+        viewerState.displayQuaternion,
+        viewerState.targetQuaternion,
+        0.18
+      );
+      renderViewer();
+    }
+
+    function buildViewerMarkup() {
+      return `
+        <div class="imu-stage">
+          <div class="imu-shadow" data-imu-shadow></div>
+          <div class="imu-card" data-imu-card>
+            <svg class="imu-card__surface" viewBox="0 0 280 780" role="presentation" aria-hidden="true">
+              <defs>
+                <linearGradient id="imuBodyGradient" x1="15%" y1="0%" x2="78%" y2="100%">
+                  <stop offset="0%" stop-color="#fff6d6"></stop>
+                  <stop offset="42%" stop-color="#f2d37d"></stop>
+                  <stop offset="100%" stop-color="#d38238"></stop>
+                </linearGradient>
+                <linearGradient id="imuStripeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"></stop>
+                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0.08"></stop>
+                </linearGradient>
+              </defs>
+              <path
+                d="M140 20 C195 18 235 50 252 102 C270 156 264 226 243 291 C222 355 204 407 201 489 C198 559 208 633 198 700 C190 752 166 780 134 780 C102 780 77 752 70 702 C61 637 71 561 67 489 C64 408 46 355 25 291 C4 228 -2 158 17 102 C33 54 75 20 140 20 Z"
+                fill="url(#imuBodyGradient)"
+                stroke="#8c551d"
+                stroke-width="8"
+                stroke-linejoin="round"
+              ></path>
+              <path
+                d="M147 86 C186 84 213 111 222 150 C231 190 222 232 208 270 C193 309 183 343 181 388"
+                fill="none"
+                opacity="0.85"
+                stroke="url(#imuStripeGradient)"
+                stroke-linecap="round"
+                stroke-width="22"
+              ></path>
+              <circle cx="140" cy="214" r="44" fill="rgba(21, 62, 92, 0.86)"></circle>
+              <circle cx="140" cy="214" r="18" fill="rgba(244, 247, 250, 0.92)"></circle>
+              <path
+                d="M138 116 L154 152"
+                fill="none"
+                stroke="rgba(16, 32, 45, 0.55)"
+                stroke-linecap="round"
+                stroke-width="10"
+              ></path>
+              <path
+                d="M111 502 C148 484 171 453 176 412"
+                fill="none"
+                opacity="0.7"
+                stroke="rgba(16, 32, 45, 0.18)"
+                stroke-linecap="round"
+                stroke-width="16"
+              ></path>
+            </svg>
+          </div>
+        </div>
+      `;
+    }
+
+    window.initSensorCheckViewer = function initSensorCheckViewer() {
+      if (viewerState.initialized) {
+        renderViewer();
+        return;
+      }
+
+      const container = document.getElementById("imuViewer");
+      if (!container) {
+        return;
+      }
+
+      viewerState.initialized = true;
+      viewerState.container = container;
+      container.innerHTML = buildViewerMarkup();
+      viewerState.card = container.querySelector("[data-imu-card]");
+      viewerState.shadow = container.querySelector("[data-imu-shadow]");
+      renderViewer();
+      animateViewer();
+    };
+
+    window.updateInsoleOrientation = function updateInsoleOrientation(data) {
+      viewerState.useDeviceOrientationFallback = !Boolean(data && data.has_live_data);
+
+      if (viewerState.useDeviceOrientationFallback && viewerState.deviceQuaternion) {
+        viewerState.targetQuaternion = viewerState.deviceQuaternion;
+        return;
+      }
+
+      setTargetQuaternion(data.qx ?? 0, data.qy ?? 0, data.qz ?? 0, data.qw ?? 1);
+    };
+
+    window.refreshInsoleViewer = function refreshInsoleViewer() {
+      renderViewer();
+    };
+
+    function setSensorCheckPage(index) {
+      document.querySelectorAll("[data-sensor-check-dot]").forEach((dot, dotIndex) => {
+        const isActive = dotIndex === index;
+        dot.classList.toggle("is-active", isActive);
+        dot.setAttribute("aria-current", isActive ? "true" : "false");
+      });
+      updateSensorCheckCarouselHeight(index);
+    }
+
+    function updateSensorCheckCarouselHeight(index = null) {
+      const carousel = document.getElementById("sensorCheckCarousel");
+      if (!carousel) {
+        return;
+      }
+
+      const pages = Array.from(carousel.querySelectorAll(".sensor-check-page"));
+      if (!pages.length) {
+        return;
+      }
+
+      const resolvedIndex = typeof index === "number"
+        ? index
+        : Math.min(
+            pages.length - 1,
+            Math.max(0, Math.round(carousel.scrollLeft / Math.max(carousel.clientWidth, 1)))
+          );
+      const activePage = pages[resolvedIndex] || pages[0];
+      carousel.style.height = `${activePage.offsetHeight}px`;
+    }
+
+    function initSensorCheckCarousel() {
+      const carousel = document.getElementById("sensorCheckCarousel");
+      if (!carousel || carousel.dataset.bound === "true") {
+        return;
+      }
+
+      carousel.dataset.bound = "true";
+      let scrollTicking = false;
+
+      function syncSensorCheckCarousel() {
+        scrollTicking = false;
+        const pageWidth = Math.max(carousel.clientWidth, 1);
+        const nextIndex = Math.min(
+          document.querySelectorAll("[data-sensor-check-dot]").length - 1,
+          Math.round(carousel.scrollLeft / pageWidth)
+        );
+        setSensorCheckPage(nextIndex);
+      }
+
+      carousel.addEventListener("scroll", () => {
+        if (scrollTicking) {
+          return;
+        }
+        scrollTicking = true;
+        requestAnimationFrame(syncSensorCheckCarousel);
+      }, { passive: true });
+
+      document.querySelectorAll("[data-sensor-check-dot]").forEach((dot, dotIndex) => {
+        dot.addEventListener("click", () => {
+          carousel.scrollTo({
+            left: carousel.clientWidth * dotIndex,
+            behavior: "smooth",
+          });
+          setSensorCheckPage(dotIndex);
+        });
+      });
+
+      window.addEventListener("resize", syncSensorCheckCarousel);
+      setSensorCheckPage(0);
+    }
+
+    function resetSensorCheckCarousel() {
+      const carousel = document.getElementById("sensorCheckCarousel");
+      if (!carousel) {
+        return;
+      }
+      carousel.scrollLeft = 0;
+      setSensorCheckPage(0);
+    }
+
+    function updateSensorCheck(data) {
+      updateSensorCheckGroupUI(data);
+      updatePressureInsole(data);
+      updateSensorReadouts(data);
+      if (window.updateInsoleOrientation) {
+        window.updateInsoleOrientation(data);
+      }
+      updateSensorCheckCarouselHeight();
+    }
+
+    function renderSensorCheckError() {
+      updateSensorCheck(defaultSensorCheckState);
+      updateSensorCheckGroupUI({
+        assigned: Boolean(phoneGroupDeviceIp),
+        has_live_data: false,
+        is_error: Boolean(phoneGroupDeviceIp),
+        ui_message: phoneGroupDeviceIp ? "Unable to load sensor data right now." : "",
+      });
+    }
+
+    async function refreshSensorCheck() {
+      try {
+        const response = await fetch(`/sensor_check_data?group_id=${encodeURIComponent(phoneGroupId)}`, { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Unable to load sensor data.");
+        }
+        updateSensorCheck(data);
+      } catch (error) {
+        renderSensorCheckError();
+      }
+    }
+
+    function openConnectivitySheet() {
+      connectivitySheet.hidden = false;
+      refreshConnectivity();
+    }
+
+    function closeConnectivitySheet() {
+      connectivitySheet.hidden = true;
+    }
+
+    function openSensorCheckSheet() {
+      ensureDeviceOrientationAccess();
+      sensorCheckSheet.hidden = false;
+      resetSensorCheckCarousel();
+      if (window.initSensorCheckViewer) {
+        window.initSensorCheckViewer();
+      }
+      refreshSensorCheck();
+      if (window.refreshInsoleViewer) {
+        window.refreshInsoleViewer();
+      }
+      if (sensorCheckPoller !== null) {
+        clearInterval(sensorCheckPoller);
+      }
+      sensorCheckPoller = window.setInterval(refreshSensorCheck, 200);
+    }
+
+    function closeSensorCheckSheet() {
+      sensorCheckSheet.hidden = true;
+      if (sensorCheckPoller !== null) {
+        clearInterval(sensorCheckPoller);
+        sensorCheckPoller = null;
+      }
+    }
+
+    setupGuideDockLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      window.location.assign(setupGuideDockLink.href);
+    });
+    sensorCheckDockButton.addEventListener("click", openSensorCheckSheet);
+    sensorCheckSheet.addEventListener("click", (event) => {
+      if (event.target === sensorCheckSheet) {
+        closeSensorCheckSheet();
+      }
+    });
+    connectivityDockButton.addEventListener("click", openConnectivitySheet);
+    connectivityRefreshButton.addEventListener("click", refreshConnectivity);
+    connectivityCloseButton.addEventListener("click", closeConnectivitySheet);
+    connectivitySheet.addEventListener("click", (event) => {
+      if (event.target === connectivitySheet) {
+        closeConnectivitySheet();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !sensorCheckSheet.hidden) {
+        closeSensorCheckSheet();
+      }
+      if (event.key === "Escape" && !connectivitySheet.hidden) {
+        closeConnectivitySheet();
+      }
+    });
+
+    updateSensorCheck(defaultSensorCheckState);
+    initSensorCheckCarousel();
+    refreshConnectivity();
+  </script>
+</body>
+</html>

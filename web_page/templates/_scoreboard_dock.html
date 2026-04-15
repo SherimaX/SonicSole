@@ -1,0 +1,40 @@
+{% set current_activity = scoreboard_activity.slug if scoreboard_activity is defined and scoreboard_activity and scoreboard_activity.slug is defined else "jump" %}
+
+<nav class="pg-activity-dock" aria-label="Scoreboard activity navigation">
+  <a
+    class="pg-dock__item{% if current_activity == 'jump' %} is-active{% endif %}"
+    href="{{ url_for('pc_scoreboard', board_key='jump') }}"
+    aria-label="Jumping scoreboard"
+    title="Jumping"
+    style="--dock-color: 174, 200, 151;"
+  >
+    <img class="pg-dock__icon" src="{{ url_for('static', filename='Jumping.png') }}" alt="" />
+  </a>
+  <a
+    class="pg-dock__item{% if current_activity == 'balance' %} is-active{% endif %}"
+    href="{{ url_for('pc_scoreboard', board_key='balance') }}"
+    aria-label="Balancing scoreboard"
+    title="Balancing"
+    style="--dock-color: 214, 191, 133;"
+  >
+    <img class="pg-dock__icon" src="{{ url_for('static', filename='Balancing.png') }}" alt="" />
+  </a>
+  <a
+    class="pg-dock__item{% if current_activity == 'reaction' %} is-active{% endif %}"
+    href="{{ url_for('pc_scoreboard', board_key='reaction') }}"
+    aria-label="Reaction scoreboard"
+    title="Reaction"
+    style="--dock-color: 194, 121, 158;"
+  >
+    <img class="pg-dock__icon" src="{{ url_for('static', filename='Reaction.png') }}" alt="" />
+  </a>
+  <a
+    class="pg-dock__item{% if current_activity == 'precision' %} is-active{% endif %}"
+    href="{{ url_for('pc_scoreboard', board_key='precision') }}"
+    aria-label="Precision scoreboard"
+    title="Precision"
+    style="--dock-color: 127, 176, 184;"
+  >
+    <img class="pg-dock__icon" src="{{ url_for('static', filename='Pressure.png') }}" alt="" />
+  </a>
+</nav>
