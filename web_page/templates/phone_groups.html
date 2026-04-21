@@ -38,6 +38,25 @@
       margin: 0 auto;
     }
 
+    .pg-phone-qr-link {
+      display: inline-flex;
+      align-self: center;
+      gap: 6px;
+      align-items: center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .pg-phone-qr-link:hover {
+      border-color: rgba(23, 23, 23, 0.18);
+    }
+
     .pg-phone-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -128,6 +147,9 @@
       <p class="pg-phone-subtitle">
         Each link opens a phone-friendly activity hub that stays tied to that group.
       </p>
+      <a class="pg-phone-qr-link" href="{{ url_for('phone_group_qr_page') }}">
+        Show QR codes for each group
+      </a>
     </header>
 
     <section class="pg-phone-grid" aria-label="Phone group links">
