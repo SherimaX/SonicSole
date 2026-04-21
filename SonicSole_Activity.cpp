@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <iomanip>
 #include <iostream>
+#include <random>
 #include <sstream>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -169,6 +170,102 @@ void BalanceActivity::onCancel(SonicSole& /*sole*/, ActivityResult& result)
     result.success = false;
     result.reason = "cancelled";
     phase_ = Phase::WaitLift;
+}
+
+// ReactionActivity --------------------------------------------------------
+
+namespace {
+
+std::mt19937& reactionRng()
+{
+    static std::mt19937 engine{std::random_device{}()};
+    return engine;
+}
+
+} // namespace
+
+ReactionActivity::ReactionActivity(AudioPlayer* beepPlayer)
+    : beepPlayer_(beepPlayer)
+{
+    threshold = readEnvInt("SONICSOLE_REACTION_THRESHOLD", threshold);
+    minDelaySec = readEnvDouble("SONICSOLE_REACTION_MIN_DELAY", minDelaySec);
+    maxDelaySec = readEnvDouble("SONICSOLE_REACTION_MAX_DELAY", maxDelaySec);
+    maxReactSec = readEnvDouble("SONICSOLE_REACTION_MAX_REACT", maxReactSec);
+    if (maxDelaySec < minDelaySec) {
+        maxDelaySec = minDelaySec;
+    }
+}
+
+void ReactionActivity::onStart(SonicSole& /*sole*/)
+{
+    std::uniform_real_distribution<double> delayDist(minDelaySec, maxDelaySec);
+    plannedDelaySec_ = delayDist(reactionRng());
+
+    phase_ = Phase::WaitBeep;
+    phaseStartMicros_ = getMicrosTimeStamp();
+    beepMicros_ = 0;
+    std::cout << "[Activity] reaction started, waiting " << plannedDelaySec_
+              << "s before beep (threshold=" << threshold << ")" << std::endl;
+}
+
+bool ReactionActivity::onStep(SonicSole& sole, ActivityResult& result)
+{
+    const int peak = currentPeakPressure(sole);
+    const std::uint64_t nowMicros = getMicrosTimeStamp();
+
+    if (phase_ == Phase::WaitBeep) {
+        const double elapsedSec = static_cast<double>(nowMicros - phaseStartMicros_) / 1e6;
+        if (peak >= threshold) {
+            result.activityName = name();
+            result.success = false;
+            result.reason = "too_early";
+            std::cout << "[Activity] reaction: pressed too early after "
+                      << elapsedSec << "s" << std::endl;
+            return true;
+        }
+        if (elapsedSec >= plannedDelaySec_) {
+            if (beepPlayer_ != nullptr && beepPlayer_->isOpen()) {
+                beepMicros_ = beepPlayer_->play();
+            } else {
+                beepMicros_ = nowMicros;
+                std::cerr << "[Activity] reaction: beep player not ready; "
+                          << "using virtual start marker" << std::endl;
+            }
+            phase_ = Phase::Reacting;
+            std::cout << "[Activity] reaction: beep fired at +"
+                      << elapsedSec << "s, awaiting press" << std::endl;
+            return false;
+        }
+        return false;
+    }
+
+    const double reactSec = static_cast<double>(nowMicros - beepMicros_) / 1e6;
+    if (peak >= threshold) {
+        result.activityName = name();
+        result.success = true;
+        result.score = reactSec;
+        result.reason.clear();
+        std::cout << "[Activity] reaction: pressed after " << reactSec
+                  << "s (peak=" << peak << ")" << std::endl;
+        return true;
+    }
+    if (reactSec >= maxReactSec) {
+        result.activityName = name();
+        result.success = false;
+        result.reason = "react_timeout";
+        std::cout << "[Activity] reaction: react timeout after "
+                  << reactSec << "s" << std::endl;
+        return true;
+    }
+    return false;
+}
+
+void ReactionActivity::onCancel(SonicSole& /*sole*/, ActivityResult& result)
+{
+    result.activityName = name();
+    result.success = false;
+    result.reason = "cancelled";
+    phase_ = Phase::WaitBeep;
 }
 
 // ActivityManager ---------------------------------------------------------

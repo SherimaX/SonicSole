@@ -2,12 +2,15 @@
 #define SONICSOLE_ACTIVITY_H
 
 #include "SonicSole.h"
+#include "SonicSole_Audio.h"
 
 #include <cstdint>
 #include <memory>
 #include <netinet/in.h>
 #include <string>
 #include <vector>
+
+class AudioPlayer;
 
 struct ActivityResult {
     bool success = false;
@@ -43,6 +46,29 @@ private:
     Phase phase_ = Phase::WaitLift;
     std::uint64_t phaseStartMicros_ = 0;
     std::uint64_t liftMicros_ = 0;
+};
+
+class ReactionActivity : public ActivityBase {
+public:
+    explicit ReactionActivity(AudioPlayer* beepPlayer);
+    const std::string& name() const override { return kName; }
+    void onStart(SonicSole& sole) override;
+    bool onStep(SonicSole& sole, ActivityResult& result) override;
+    void onCancel(SonicSole& sole, ActivityResult& result) override;
+
+    int threshold = 350;           // pressure reading that counts as foot-down
+    double minDelaySec = 3.0;
+    double maxDelaySec = 6.0;
+    double maxReactSec = 5.0;      // give up if the user never reacts
+
+private:
+    enum class Phase { WaitBeep, Reacting };
+    const std::string kName = "reaction";
+    AudioPlayer* beepPlayer_ = nullptr;
+    Phase phase_ = Phase::WaitBeep;
+    std::uint64_t phaseStartMicros_ = 0;
+    std::uint64_t beepMicros_ = 0;
+    double plannedDelaySec_ = 0.0;
 };
 
 class ActivityManager {

@@ -1,10 +1,12 @@
 #include "SonicSole.h"
 #include "SonicSole_Activity.h"
+#include "SonicSole_Audio.h"
 
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <sys/time.h>
 #include <vector>
 
@@ -12,6 +14,8 @@ namespace {
 
 constexpr int kDefaultActivityPort = 21010;
 const char* const kActivityPortEnv = "SONICSOLE_ACTIVITY_PORT";
+const char* const kBeepPathEnv = "SONICSOLE_BEEP_WAV";
+const char* const kAlsaDeviceEnv = "SONICSOLE_ALSA_DEVICE";
 
 int resolveActivityPort()
 {
@@ -27,6 +31,15 @@ int resolveActivityPort()
         return kDefaultActivityPort;
     }
     return static_cast<int>(parsed);
+}
+
+std::string envOrDefault(const char* name, const std::string& fallback)
+{
+    const char* raw = std::getenv(name);
+    if (raw == nullptr || *raw == '\0') {
+        return fallback;
+    }
+    return std::string(raw);
 }
 
 void sendCurrentSensorPacket(SonicSole& sole)
@@ -53,11 +66,18 @@ int main(int /*argc*/, char* /*argv*/[])
     SonicSole sole;
     std::cout << "SonicSole Class Initialized" << std::endl;
 
+    AudioPlayer beepPlayer;
+    const std::string beepPath = envOrDefault(kBeepPathEnv, "beep.wav");
+    const std::string alsaDevice = envOrDefault(kAlsaDeviceEnv, "default");
+    if (!beepPlayer.loadAndOpen(beepPath, alsaDevice)) {
+        std::cerr << "Reaction audio disabled; continuing with a silent reaction cue."
+                  << std::endl;
+    }
+
     ActivityManager activityManager;
     activityManager.registerActivity(std::make_unique<BalanceActivity>());
-    // Add more activities here (jump, reaction, precision) by registering
-    // additional subclasses of ActivityBase. The command/response protocol
-    // and client wiring in the webapp are shared across activities.
+    activityManager.registerActivity(std::make_unique<ReactionActivity>(&beepPlayer));
+    // Add jump and precision the same way: subclass ActivityBase and register.
     if (!activityManager.start(resolveActivityPort())) {
         std::cerr << "Activity control listener disabled; sensor streaming only."
                   << std::endl;
