@@ -201,6 +201,28 @@
       margin-top: auto;
     }
 
+    .pg-activity-status-box--compact {
+      aspect-ratio: auto !important;
+      min-height: 200px !important;
+      padding: 28px 20px !important;
+    }
+
+    .pg-activity-status-box--compact strong {
+      font-size: 1.4em;
+    }
+
+    .pg-status-stacked {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .pg-status-stacked .pg-status-sub {
+      font-size: 0.8em;
+      color: rgba(36, 50, 44, 0.72);
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -237,6 +259,8 @@
     <div class="card pg-card pg-activity-card">
       <div class="pg-status-grid">
         {% set activity_status_id = "statusBox" %}
+        {% set activity_status_square = false %}
+        {% set activity_status_classes = "pg-activity-status-box--compact" %}
         {% include '_activity_status_box.html' %}
       </div>
 
@@ -293,7 +317,16 @@
       fetch("/balancing")
         .then((response) => response.json())
         .then((data) => {
-          if ((!balanceActivityToggle || !balanceActivityToggle.isActive()) && !data.done && String(data.data) === "0") {
+          const toggleActive = balanceActivityToggle && balanceActivityToggle.isActive();
+          if (data.status === "error") {
+            setBalanceStatusHTML(
+              `<div class="pg-status-stacked"><strong>Try again</strong><span class="pg-status-sub">${data.reason || "Measurement failed"}</span></div>`
+            );
+          } else if (data.status === "measuring") {
+            setBalanceStatusHTML(
+              `<div class="pg-status-stacked"><strong>Lift your leg!</strong><span class="pg-status-sub">Timing on the SonicSole...</span></div>`
+            );
+          } else if (!toggleActive && !data.done && String(data.data) === "0") {
             setBalanceReadyState();
           } else {
             setBalanceStatusText(data.data + " seconds");

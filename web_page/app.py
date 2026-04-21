@@ -924,12 +924,16 @@ def probe_hardware_device(group):
 
 #UDP_IP = "127.0.0.1" #accept data from localhost
 UDP_IP = "0.0.0.0" # accept connections on any available network interface of the server
-UDP_PORT = 21000 
+UDP_PORT = 21000
 DISCOVERY_PORT = int(os.environ.get("SONICSOLE_DISCOVERY_PORT", "21001"))
 DISCOVERY_REQUEST = b"SONICSOLE_DISCOVER_SERVER_V1"
 DISCOVERY_RESPONSE = b"SONICSOLE_SERVER_V1"
 DISCOVERY_BUFFER_SIZE = 256
 bufferSize = 1024
+
+ACTIVITY_COMMAND_PORT = int(os.environ.get("SONICSOLE_ACTIVITY_PORT", "21010"))
+ACTIVITY_COMMAND_TIMEOUT_SECONDS = float(os.environ.get("SONICSOLE_ACTIVITY_TIMEOUT", "180.0"))
+ACTIVITY_RESPONSE_BUFFER_SIZE = 1024
 
 udp_queue = queue.Queue(maxsize=1) #hold latest packet only
 
@@ -1083,12 +1087,34 @@ def get_balance_session_id():
 
 def cancel_balance_session():
     global totalTime, recording_time, received_heel_data, received_fore_data
+    was_recording = recording_time
     cancel_activity_session("balance")
     recording_time = False
     totalTime = "0"
     received_heel_data = "0"
     received_fore_data = "0"
     stop_combined_data_thread()
+    try:
+        set_balance_status("idle")
+    except NameError:
+        pass
+    if was_recording:
+        cancel_device_ip = resolve_activity_device_ip()
+        if cancel_device_ip:
+            threading.Thread(
+                target=_send_activity_command_fire_and_forget,
+                args=(cancel_device_ip, "CANCEL balance"),
+                daemon=True,
+            ).start()
+
+
+def _send_activity_command_fire_and_forget(device_ip, command):
+    try:
+        send_rpi_activity_command(device_ip, command, timeout_seconds=2.0)
+    except ActivityCommandError:
+        pass
+    except Exception:
+        pass
 
 
 def create_activity_session(activity_name):
@@ -1191,6 +1217,87 @@ def stop_all_activities():
     G_heel = 255
     R_fore = 0
     G_fore = 255
+
+
+class ActivityCommandError(Exception):
+    def __init__(self, reason, detail=""):
+        super().__init__(detail or reason)
+        self.reason = reason
+        self.detail = detail
+
+
+def send_rpi_activity_command(device_ip, command, timeout_seconds=ACTIVITY_COMMAND_TIMEOUT_SECONDS):
+    """Send a command to the RPi activity listener and block for the reply.
+
+    Parses responses of the form "OK <activity> <score> [reason]" or
+    "ERR <activity> <reason>" and returns a dict describing the outcome:
+
+        {"success": bool, "activity": str, "score": float|None, "reason": str}
+
+    Raises ActivityCommandError on network or protocol failures.
+    """
+    if not device_ip:
+        raise ActivityCommandError("no_device", "no RPi device ip available")
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        sock.settimeout(max(0.5, timeout_seconds))
+        try:
+            sock.sendto(command.encode("utf-8"), (device_ip, ACTIVITY_COMMAND_PORT))
+        except OSError as send_error:
+            raise ActivityCommandError("send_failed", str(send_error)) from send_error
+        try:
+            payload, _ = sock.recvfrom(ACTIVITY_RESPONSE_BUFFER_SIZE)
+        except socket.timeout as timeout_error:
+            raise ActivityCommandError("timeout", "no reply from RPi") from timeout_error
+        except OSError as recv_error:
+            raise ActivityCommandError("recv_failed", str(recv_error)) from recv_error
+    finally:
+        sock.close()
+
+    response_text = payload.decode("utf-8", errors="replace").strip()
+    if not response_text:
+        raise ActivityCommandError("empty_reply", "RPi returned empty response")
+
+    tokens = response_text.split()
+    status = tokens[0].upper()
+    activity_name = tokens[1] if len(tokens) >= 2 else ""
+
+    if status == "OK":
+        score_value = None
+        if len(tokens) >= 3:
+            try:
+                score_value = float(tokens[2])
+            except ValueError as parse_error:
+                raise ActivityCommandError("bad_score", response_text) from parse_error
+        reason = " ".join(tokens[3:]) if len(tokens) > 3 else ""
+        return {
+            "success": True,
+            "activity": activity_name,
+            "score": score_value,
+            "reason": reason,
+        }
+
+    if status == "ERR":
+        reason = " ".join(tokens[2:]) if len(tokens) > 2 else "unknown"
+        return {
+            "success": False,
+            "activity": activity_name,
+            "score": None,
+            "reason": reason,
+        }
+
+    raise ActivityCommandError("bad_response", response_text)
+
+
+def resolve_activity_device_ip():
+    device_ip = get_active_device_ip()
+    if device_ip:
+        return device_ip
+    selected_group = get_selected_group()
+    if selected_group and selected_group.get("ip"):
+        return selected_group["ip"]
+    return None
 
 
 def normalize_quaternion(x_value, y_value, z_value, w_value):
@@ -1805,51 +1912,53 @@ def jump_metrics():
     })
 
 # balance
-def balancing_pressure(session_id):
-    global totalTime, submitted_name, recording_time, received_heel_data, received_fore_data, threshold_heel, threshold_fore
-    print("[balancing_pressure] Called")
-    received_heel_data = "0"
-    received_fore_data = "0"
-    totalTime = "0"
-    start_combined_data_thread()
-    print("[balancing_pressure] balance_started")
-    start_time = None
-    start_delay_period = 0.5 #gives grace period so repeated runs are possible 
-    start = time.time()
-    while True:
-        if session_id != get_balance_session_id():
-            break
-        now = time.time()
-        if recording_time:
-            if start_time is None:
-                start_time = now
-            if now - start < start_delay_period:
-                time.sleep(0.01)
-                continue
-            heel = int(received_heel_data)
-            fore = int(received_fore_data)
+balance_status = {
+    "status": "idle",
+    "reason": "",
+}
 
-            if heel < threshold_heel and fore < threshold_fore:
-                totalTime = "{:.3f}".format(now - start_time)
-            else:
-                recording_time = False
-                print("[balancing_pressure] balance_stopped")
-                    
-                # with open("SonicSoleBalance.txt", "a") as f:
-                #     f.write(f"{submitted_name},{totalTime}\n")
 
-                stop_combined_data_thread()
-                break
-        else:
-            stop_combined_data_thread()
-            break
-        time.sleep(0.01)
-    print("[balancing_pressure] thread complete, combined_data_running:", combined_data_running)
+def set_balance_status(status, reason=""):
+    global balance_status
+    balance_status = {"status": status, "reason": reason or ""}
 
-# @app.route('/balancing', methods=['GET'])
-# def balancing():
-#     global totalTime
-#     return jsonify({'data': totalTime})
+
+def balancing_pressure(session_id, device_ip):
+    """Run the balance activity on the RPi and wait for the score.
+
+    Framework contract: the webapp sends START <activity> to the RPi over
+    UDP and blocks until the RPi replies with OK/ERR. All threshold
+    detection and timing happen on the RPi to avoid wireless jitter.
+    """
+    global totalTime, recording_time
+
+    print(f"[balance] sending START balance to RPi at {device_ip}")
+    set_balance_status("measuring")
+    try:
+        reply = send_rpi_activity_command(device_ip, "START balance")
+    except ActivityCommandError as command_error:
+        print(f"[balance] command failed: {command_error.reason} ({command_error.detail})")
+        if session_id == get_balance_session_id():
+            recording_time = False
+            set_balance_status("error", command_error.reason)
+        return
+
+    if session_id != get_balance_session_id():
+        print("[balance] session changed while waiting for RPi; discarding reply")
+        return
+
+    if reply["success"] and reply.get("score") is not None:
+        score_value = float(reply["score"])
+        totalTime = "{:.3f}".format(score_value)
+        recording_time = False
+        set_balance_status("done", reply.get("reason", ""))
+        print(f"[balance] score={score_value:.3f}s from RPi")
+    else:
+        reason = reply.get("reason") or "error"
+        print(f"[balance] RPi reported failure: {reason}")
+        recording_time = False
+        set_balance_status("error", reason)
+
 
 @app.route('/balancing', methods=['GET'])
 def balancing():
@@ -1858,7 +1967,12 @@ def balancing():
         done = not recording_time and float(totalTime) != 0
     except ValueError:
         done = False
-    return jsonify({'data': totalTime, 'done': done})
+    return jsonify({
+        'data': totalTime,
+        'done': done,
+        'status': balance_status.get("status", "idle"),
+        'reason': balance_status.get("reason", ""),
+    })
 
 
 @app.route('/button_click', methods=['POST'])
@@ -1867,15 +1981,29 @@ def button_click():
     _, error_response = require_selected_group()
     if error_response is not None:
         return error_response
+
+    device_ip = resolve_activity_device_ip()
+    if not device_ip:
+        return jsonify({
+            "status": "error",
+            "message": "No SonicSole device is linked to the selected group yet.",
+        }), 400
+
     session_id = create_balance_session()
+    start_combined_data_thread()
+    set_balance_status("countdown")
     CountSound.play()
-    time.sleep(3.12) #sleeps so countdown can run before timer begins
+    time.sleep(3.12)
     if session_id != get_balance_session_id():
+        set_balance_status("idle")
         return jsonify({"status": "Data transmission cancelled"})
     recording_time = True
     totalTime = "0"
-    thread = threading.Thread(target=balancing_pressure, args=(session_id,))
-    thread.daemon = True
+    thread = threading.Thread(
+        target=balancing_pressure,
+        args=(session_id, device_ip),
+        daemon=True,
+    )
     thread.start()
     return jsonify({"status": "Data transmission started"})
 
