@@ -3,15 +3,21 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
-// Lightweight WAV player built on `aplay`.
+// Low-latency WAV player backed by a long-running `aplay` child.
 //
-// We fork + execvp `aplay` so we don't depend on libasound dev headers
-// being installable on the target (Raspbian Buster's repositories are
-// EOL, and matching `libasound2-dev` is hard to get onto those images).
-// The audible lag is dominated by aplay's startup (~50-150 ms on a
-// Pi 3/4). For the reaction-game use case this is a constant per-run
-// bias rather than a precision issue.
+// Approach:
+//   1. Parse the WAV file once at startup into raw PCM + format metadata.
+//   2. Fork `aplay -q -t raw ...` reading from a pipe we keep open.
+//   3. Pre-warm the pipe with a short silence so the ALSA device opens
+//      (and its click/pop fires) before the participant is listening.
+//   4. play() just writes the cached PCM bytes into the pipe — no
+//      fork/exec, no WAV parse, no ALSA open on the hot path.
+//
+// Compared with fork+exec'ing aplay on every shot this cuts audible
+// latency from ~50-150 ms down to a few ms, and removes the startup
+// click that was landing right before the real beep.
 class AudioPlayer {
 public:
     AudioPlayer();
@@ -20,24 +26,38 @@ public:
     AudioPlayer(const AudioPlayer&) = delete;
     AudioPlayer& operator=(const AudioPlayer&) = delete;
 
-    // Validates that `wavPath` exists and remembers the paired ALSA
-    // device (passed through as `aplay -D <device>`).
+    // Loads `wavPath` into memory and spawns the persistent aplay
+    // worker. After this returns true, the ALSA device is already open
+    // and a short silence has been pushed through it.
     bool loadAndOpen(const std::string& wavPath, const std::string& alsaDevice);
 
+    // Shuts down the aplay worker; the child drains whatever is in
+    // flight and then exits when it sees EOF on stdin.
     void close();
-    bool isOpen() const { return open_; }
 
-    // Forks aplay asynchronously. Returns the micro-timestamp captured
-    // just before forking, so the caller can anchor a stopwatch against
-    // the moment we dispatched the beep.
+    bool isOpen() const { return aplayStdin_ >= 0; }
+
+    // Non-blocking. Returns the micro-timestamp captured just before we
+    // hand off the PCM bytes to the background writer thread.
     std::uint64_t play();
 
     const std::string& lastError() const { return lastError_; }
 
 private:
-    std::string wavPath_;
-    std::string alsaDevice_ = "default";
-    bool open_ = false;
+    bool parseWav(const std::string& path);
+    bool spawnAplay(const std::string& alsaDevice);
+    // Writes `len` bytes into the aplay stdin pipe. Returns number of
+    // bytes actually written; -1 on fatal error.
+    long blockingWrite(const std::uint8_t* data, std::size_t len);
+
+    std::vector<std::uint8_t> pcmData_;
+    unsigned int channels_ = 2;
+    unsigned int sampleRate_ = 44100;
+    unsigned int bitsPerSample_ = 16;
+
+    int aplayStdin_ = -1;
+    int aplayPid_ = -1;
+
     std::string lastError_;
 };
 
