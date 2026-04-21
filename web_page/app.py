@@ -5,17 +5,17 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, abort, session
 import socket
 import threading
-import time    
-import csv   
+import time
+import csv
 import random
 import struct
 import subprocess
 import sys
 import numpy as np
 import logging
-from threading import Thread 
+from threading import Thread
 
-import queue 
+import queue
 
 logging.getLogger('werkzeug').disabled = True #Suppress werkzeug logs
 
@@ -2335,11 +2335,33 @@ def home():
     return render_template('home.html')
 
 
+PHONE_QR_DEFAULT_HOST = "172.20.10.2:5001"
+
+
 @app.route('/phone')
 def phone_groups():
     return render_template(
         'phone_groups.html',
         phone_groups=get_group_options(),
+    )
+
+
+@app.route('/phone/qr')
+def phone_group_qr_page():
+    qr_host = PHONE_QR_DEFAULT_HOST
+    qr_groups = [
+        {
+            "label": group["label"],
+            "slug": group["slug"],
+            "url": f"http://{qr_host}/phone/{group['slug']}",
+            "qr_src": url_for("static", filename=f"qr/{group['slug']}.png"),
+        }
+        for group in get_group_options()
+    ]
+    return render_template(
+        'phone_qr.html',
+        phone_qr_groups=qr_groups,
+        phone_qr_host=qr_host,
     )
 
 
