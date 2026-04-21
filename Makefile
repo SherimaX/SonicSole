@@ -1,7 +1,7 @@
 CXX := g++
 CPPFLAGS := -MMD -MP
 CXXFLAGS := -std=c++17
-LDLIBS := -lwiringPi -lpthread
+LDLIBS := -lwiringPi -lpthread -lasound
 
 TARGET := SonicSole_RPi
 BUILD_DIR := build/sonicsole_rpi
@@ -11,7 +11,8 @@ SRCS := \
 	SonicSole_Pressure.cpp \
 	SonicSole_IMU.cpp \
 	SonicSole_UDP.cpp \
-	SonicSole_Activity.cpp
+	SonicSole_Activity.cpp \
+	SonicSole_Audio.cpp
 OBJS := $(patsubst %.cpp,$(BUILD_DIR)/%.o,$(SRCS))
 DEPS := $(OBJS:.o=.d)
 
@@ -22,7 +23,7 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDLIBS)
 
-$(BUILD_DIR)/%.o: %.cpp SonicSole.h SonicSole_Activity.h RPi_combined_Header.h RPi_Raj_Header.h
+$(BUILD_DIR)/%.o: %.cpp SonicSole.h SonicSole_Activity.h SonicSole_Audio.h RPi_combined_Header.h RPi_Raj_Header.h
 	@mkdir -p $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 

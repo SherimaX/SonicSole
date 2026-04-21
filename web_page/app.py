@@ -11,7 +11,6 @@ import random
 import struct
 import subprocess
 import sys
-import pygame
 import numpy as np
 import logging
 from threading import Thread 
@@ -1071,10 +1070,8 @@ threshold_fore = 350
 threshold_heel = 350
 dt = 0.009 #approx time (s) between samples from udp 
 
-pygame.init()
-pygame.mixer.init()
-CountSound = pygame.mixer.Sound("countdown.wav")
-CountSound.set_volume(0.1) 
+# Audio cues are produced on the RPi (see SonicSole_Audio / ReactionActivity
+# in the C++ source). The webapp is headless w.r.t. sound.
 
 
 def create_balance_session():
@@ -1160,6 +1157,7 @@ def reset_jump_state(cancel_session=False):
 
 def reset_reaction_state(cancel_session=False):
     global reaction_data, reaction_time
+    was_active = bool(reaction_data) and reaction_data.get("status") == "timing"
     if cancel_session:
         cancel_activity_session("reaction")
     reaction_data = {
@@ -1167,6 +1165,14 @@ def reset_reaction_state(cancel_session=False):
         "reaction_time": 0.0
     }
     reaction_time = "0"
+    if cancel_session and was_active:
+        device_ip = resolve_activity_device_ip()
+        if device_ip:
+            threading.Thread(
+                target=_send_activity_command_fire_and_forget,
+                args=(device_ip, "CANCEL reaction"),
+                daemon=True,
+            ).start()
 
 
 def reset_precision_trainer_state(cancel_session=False):
@@ -1457,18 +1463,6 @@ def stop_piano_activity():
     distance_from_origin = 0.0
     print("[Piano] Activity stopped")
 '''
-# sound
-@app.route("/play", methods=["GET", "POST"])
-def play():
-    # play sound using py
-    try:
-        CountSound.play()
-    except Exception as e:
-        print("Error playing sound:", e)
-        return jsonify({"error": str(e)}), 500
-    return send_file("countdown.wav") #to also play on laptop
-
-
 @app.after_request
 def add_no_cache_headers(response):
     if response.mimetype in ("text/html", "text/css", "application/javascript"):
@@ -1977,7 +1971,7 @@ def balancing():
 
 @app.route('/button_click', methods=['POST'])
 def button_click():
-    global recording_time, totalTime, CountSound
+    global recording_time, totalTime
     _, error_response = require_selected_group()
     if error_response is not None:
         return error_response
@@ -1992,7 +1986,7 @@ def button_click():
     session_id = create_balance_session()
     start_combined_data_thread()
     set_balance_status("countdown")
-    CountSound.play()
+    # Visual countdown runs in the browser; audio cues are emitted by the RPi.
     time.sleep(3.12)
     if session_id != get_balance_session_id():
         set_balance_status("idle")
@@ -2014,49 +2008,56 @@ def start_reaction():
     _, error_response = require_selected_group()
     if error_response is not None:
         return error_response
+    device_ip = resolve_activity_device_ip()
+    if not device_ip:
+        return jsonify({
+            "status": "error",
+            "message": "No SonicSole device is linked to the selected group yet.",
+        }), 400
+
     session_id = create_activity_session("reaction")
     reset_reaction_state(cancel_session=False)
-    received_fore_data = "0"
-    received_heel_data = "0"
     start_combined_data_thread()
-    reaction_data = {
-        "status": "waiting",
-        "reaction_time": 0.0
-    }
-    delay = random.uniform(3, 6.0)
-    print(f"[Reaction] Waiting for {delay:.2f}s")
-    start_time = time.time()
-    while time.time() - start_time < delay:
-        if not is_activity_session_active("reaction", session_id):
-            return jsonify({"status": "cancelled"})
-        if int(received_heel_data) > threshold_heel or int(received_fore_data) > threshold_fore:
-            print("[Reaction] Too early")
-            reaction_data["status"] = "invalid"
-            stop_combined_data_thread()
-            return jsonify({"status": "invalid"})
-        time.sleep(0.005)
-    beep = pygame.mixer.Sound("beep.wav")
-    beep.set_volume(1.0)
-    beep.play()
-    print("[Reaction] Beep")
-    reaction_data["status"] = "timing"
-    reaction_start = time.time()
-    while True:
-        if not is_activity_session_active("reaction", session_id):
-            return jsonify({"status": "cancelled"})
-        if int(received_heel_data) > threshold_heel or int(received_fore_data) > threshold_fore:
-            reaction_end = time.time()
-            reaction_time = round(reaction_end - reaction_start, 4)
-            reaction_data["reaction_time"] = reaction_time
-            reaction_data["status"] = "success"
-            print(f"[Reaction] Success! Reaction time: {reaction_time}")
-          
-            # with open("SonicSoleReaction.txt", "a") as f:
-            #     f.write(f"{submitted_name2},{reaction_time}\n")
-            
-            stop_combined_data_thread()
-            return jsonify({"status": "success"})
-        time.sleep(0.001)
+    reaction_data = {"status": "timing", "reaction_time": 0.0}
+
+    threading.Thread(
+        target=_run_reaction_on_rpi,
+        args=(session_id, device_ip),
+        daemon=True,
+    ).start()
+    return jsonify({"status": "timing"})
+
+
+def _run_reaction_on_rpi(session_id, device_ip):
+    global reaction_data, reaction_time
+    try:
+        reply = send_rpi_activity_command(device_ip, "START reaction")
+    except ActivityCommandError as command_error:
+        print(f"[reaction] command failed: {command_error.reason}")
+        if session_id == get_activity_session_id("reaction"):
+            reaction_data = {"status": "error", "reaction_time": 0.0, "reason": command_error.reason}
+        return
+
+    if session_id != get_activity_session_id("reaction"):
+        print("[reaction] session changed while waiting for RPi; discarding reply")
+        return
+
+    if reply["success"] and reply.get("score") is not None:
+        score_value = round(float(reply["score"]), 4)
+        reaction_time = score_value
+        reaction_data = {"status": "success", "reaction_time": score_value}
+        print(f"[reaction] score={score_value}s from RPi")
+        return
+
+    reason = reply.get("reason") or "error"
+    if reason == "too_early":
+        reaction_data = {"status": "invalid", "reaction_time": 0.0}
+        print("[reaction] RPi reported: too_early")
+        return
+
+    reaction_data = {"status": "error", "reaction_time": 0.0, "reason": reason}
+    print(f"[reaction] RPi reported failure: {reason}")
+
 
 @app.route('/reaction_status')
 def reaction_status():
