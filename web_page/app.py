@@ -2036,7 +2036,7 @@ def start_reaction():
             return jsonify({"status": "invalid"})
         time.sleep(0.005)
     beep = pygame.mixer.Sound("beep.wav")
-    beep.set_volume(0.0) 
+    beep.set_volume(1.0)
     beep.play()
     print("[Reaction] Beep")
     reaction_data["status"] = "timing"
