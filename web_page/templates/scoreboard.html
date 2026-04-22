@@ -255,12 +255,77 @@
       header.addEventListener("keydown", handleScoreboardHeaderKeydown);
     });
 
-    getScoreboardRows().forEach((row) => {
+    function wireScoreboardRow(row) {
       row.addEventListener("click", () => openScoreboardRowHistory(row));
       row.addEventListener("keydown", handleScoreboardRowKeydown);
-    });
+    }
+
+    getScoreboardRows().forEach(wireScoreboardRow);
 
     updateScoreboardHeaderState();
+
+    const scoreboardBoardKey = {{ scoreboard_activity.slug | tojson }};
+    const scoreboardRefreshUrl = "/api/scoreboard/" + encodeURIComponent(scoreboardBoardKey);
+    const SCOREBOARD_REFRESH_MS = 3000;
+
+    function orderRowsForCurrentSort(rows) {
+      const { key, direction } = scoreboardSortState;
+      return rows.slice().sort((rowA, rowB) => {
+        if (key === "group") {
+          const diff = getRowNumberValue(rowA) - getRowNumberValue(rowB);
+          return direction === "asc" ? diff : -diff;
+        }
+        const scoreA = getRowScoreValue(rowA);
+        const scoreB = getRowScoreValue(rowB);
+        if (scoreA === null && scoreB === null) return getRowNumberValue(rowA) - getRowNumberValue(rowB);
+        if (scoreA === null) return 1;
+        if (scoreB === null) return -1;
+        if (scoreA === scoreB) return getRowNumberValue(rowA) - getRowNumberValue(rowB);
+        return direction === "asc" ? scoreA - scoreB : scoreB - scoreA;
+      });
+    }
+
+    function refreshScoreboard(payload) {
+      const rowsById = new Map();
+      getScoreboardRows().forEach((row) => rowsById.set(row.dataset.groupId, row));
+
+      const leaderId = payload.leader_group_id;
+      const updatedRows = [];
+
+      (payload.rows || []).forEach((rowData) => {
+        const row = rowsById.get(rowData.group_id);
+        if (!row) return;
+
+        const scoreCell = row.children[1];
+        const formatted = rowData.formatted_score || "--";
+        if (scoreCell && scoreCell.textContent !== formatted) {
+          scoreCell.textContent = formatted;
+        }
+        row.dataset.score = rowData.score === null || rowData.score === undefined ? "" : String(rowData.score);
+        row.classList.toggle("pg-scoreboard-table__row--leader", Boolean(leaderId) && rowData.group_id === leaderId);
+        updatedRows.push(row);
+      });
+
+      orderRowsForCurrentSort(updatedRows).forEach((row) => scoreboardTableBody.appendChild(row));
+    }
+
+    async function pollScoreboard() {
+      try {
+        const response = await fetch(scoreboardRefreshUrl, { cache: "no-store" });
+        if (!response.ok) return;
+        const payload = await response.json();
+        refreshScoreboard(payload);
+      } catch (error) {
+        // Network blip — try again on the next tick.
+      }
+    }
+
+    setInterval(pollScoreboard, SCOREBOARD_REFRESH_MS);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        pollScoreboard();
+      }
+    });
   </script>
 </body>
 </html>
