@@ -1998,6 +1998,19 @@ def button_click():
 
     session_id = create_balance_session()
     start_combined_data_thread()
+
+    time.sleep(0.3)
+    try:
+        standing_pressure = int(received_heel_data) + int(received_fore_data)
+    except (TypeError, ValueError):
+        standing_pressure = 0
+    if standing_pressure <= 500:
+        cancel_balance_session()
+        return jsonify({
+            'status': 'warning',
+            'message': f'Please stand on the insole before starting (pressure {standing_pressure} must be > 500).'
+        }), 400
+
     set_balance_status("countdown")
     # Visual countdown runs in the browser; audio cues are emitted by the RPi.
     time.sleep(3.12)

@@ -395,6 +395,9 @@
           }
           alert(error.message || "Unable to start balancing.");
           console.error("Error:", error);
+          if (balanceActivityToggle) {
+            balanceActivityToggle.deactivate();
+          }
         },
       });
     });
