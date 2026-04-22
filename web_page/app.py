@@ -1887,7 +1887,7 @@ def start_jump():
         standing_pressure = int(received_heel_data) + int(received_fore_data)
     except (TypeError, ValueError):
         standing_pressure = 0
-    if standing_pressure <= 500:
+    if standing_pressure <= 100:
         reset_jump_state(cancel_session=True)
         return jsonify({
             'status': 'warning',
@@ -2004,7 +2004,7 @@ def button_click():
         standing_pressure = int(received_heel_data) + int(received_fore_data)
     except (TypeError, ValueError):
         standing_pressure = 0
-    if standing_pressure <= 500:
+    if standing_pressure <= 100:
         cancel_balance_session()
         return jsonify({
             'status': 'warning',
