@@ -241,6 +241,9 @@
         {% else %}
         <a href="{{ url_for('pc_scoreboard', board_key='jump') }}">Scoreboard</a>
         {% endif %}
+        <button type="button" class="pg-info-btn" aria-label="Show jumping instructions" onclick="openInstructionsModal()">
+          <span class="pg-info-btn__glyph">i</span>
+        </button>
       </div>
     </div>
 
@@ -274,6 +277,10 @@
   {% set group_history_modal_title = "Jumping Scoreboard" %}
   {% include '_group_history_modal.html' %}
   {% endif %}
+
+  {% set instructions_title = "How to Jump" %}
+  {% set instructions_body = "Stand on the insole with your full weight on it first, then jump straight up as high as you can and land back on the insole. The system detects takeoff and landing to estimate your jump height." %}
+  {% include '_instructions_modal.html' %}
 
   {% include '_activity_dock.html' %}
 

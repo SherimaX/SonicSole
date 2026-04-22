@@ -207,6 +207,17 @@
   <div class="pg-activity-toolbar">
     <div class="pg-header-nav">
       <a href="{{ url_for('w_scoreboard') }}" onclick="openScoreboardModal(); return false;">Scoreboard</a>
+      <button type="button" class="pg-info-btn" aria-label="Show forefoot walk instructions" onclick="openInstructionsModal()">
+        <span class="pg-info-btn__glyph">i</span>
+      </button>
+    </div>
+  </div>
+  {% else %}
+  <div class="pg-activity-toolbar">
+    <div class="pg-header-nav">
+      <button type="button" class="pg-info-btn" aria-label="Show forefoot walk instructions" onclick="openInstructionsModal()">
+        <span class="pg-info-btn__glyph">i</span>
+      </button>
     </div>
   </div>
   {% endif %}
@@ -245,6 +256,10 @@
 {% set scoreboard_embed_url = url_for('w_scoreboard', embed=1) %}
 {% include '_scoreboard_modal.html' %}
 {% endif %}
+
+{% set instructions_title = "How to Forefoot Walk" %}
+{% set instructions_body = "Walk on the forefoot area of the insole, keeping your heel lifted so the heel sensor stays unloaded. The timer runs while you walk forefoot-only; your total distance or time becomes your score." %}
+{% include '_instructions_modal.html' %}
 
 {% include '_activity_dock.html' %}
 

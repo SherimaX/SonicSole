@@ -243,6 +243,9 @@
         {% else %}
         <a href="{{ url_for('pc_scoreboard', board_key='balance') }}">Scoreboard</a>
         {% endif %}
+        <button type="button" class="pg-info-btn" aria-label="Show balancing instructions" onclick="openInstructionsModal()">
+          <span class="pg-info-btn__glyph">i</span>
+        </button>
       </div>
     </div>
 
@@ -275,6 +278,10 @@
   {% set group_history_modal_title = "Balance Scoreboard" %}
   {% include '_group_history_modal.html' %}
   {% endif %}
+
+  {% set instructions_title = "How to Balance" %}
+  {% set instructions_body = "Stand on the insole on one foot and hold as still as you can for the full session. The insole tracks micro-motion and rewards steadier posture with a higher score." %}
+  {% include '_instructions_modal.html' %}
 
   {% include '_activity_dock.html' %}
 

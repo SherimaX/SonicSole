@@ -484,6 +484,24 @@ body > a[href]:hover {
   background: var(--primary-dark) !important;
 }
 
+.pg-info-btn {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px;
+  min-height: 48px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  font-family: "Georgia", "Times New Roman", serif !important;
+  font-style: italic;
+  font-size: 1.35rem !important;
+  line-height: 1;
+}
+
+.pg-info-btn__glyph {
+  display: inline-block;
+  transform: translateY(-1px);
+}
+
 .btn-outline,
 a.btn-outline,
 button.btn-outline,

@@ -317,6 +317,9 @@
         {% else %}
         <a href="{{ url_for('pc_scoreboard', board_key='precision') }}">Scoreboard</a>
         {% endif %}
+        <button type="button" class="pg-info-btn" aria-label="Show precision instructions" onclick="openInstructionsModal()">
+          <span class="pg-info-btn__glyph">i</span>
+        </button>
       </div>
     </div>
 
@@ -366,6 +369,10 @@
   {% set group_history_modal_title = "Precision Scoreboard" %}
   {% include '_group_history_modal.html' %}
   {% endif %}
+
+  {% set instructions_title = "How to Train Precision" %}
+  {% set instructions_body = "Press down on the forefoot sensor to match the target force shown on the meter. Hold as close to the target as possible — the closer your current force is to the target, the better your score." %}
+  {% include '_instructions_modal.html' %}
 
   {% include '_activity_dock.html' %}
 
