@@ -359,6 +359,14 @@
       if (data.status === "cancelled") {
         return;
       }
+      if (data.status === "invalid_jump") {
+        resetJumpUI();
+        if (jumpActivityToggle) {
+          jumpActivityToggle.setActive(false);
+        }
+        alert(`Jump rejected: ${data.reason || "not a real jump"}. Please try again.`);
+        return;
+      }
       startJumpWaitingAnimation();
       pollJumpData();
     }

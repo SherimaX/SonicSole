@@ -1068,7 +1068,14 @@ reaction_time = "0"
 
 threshold_fore = 350
 threshold_heel = 350
-dt = 0.009 #approx time (s) between samples from udp 
+dt = 0.009 #approx time (s) between samples from udp
+
+# Jump anti-cheat bounds (pressure-only)
+jump_min_airtime = 0.1   # seconds; below this is sensor chatter, not a real jump
+jump_max_airtime = 1.2   # seconds; ~1s airtime == ~1.2m vertical, beyond human
+jump_impact_window = 0.15  # seconds after landing to look for an impact peak
+jump_impact_multiplier = 2.0  # peak pressure must exceed threshold * this to count as a real landing
+
 
 # Audio cues are produced on the RPi (see SonicSole_Audio / ReactionActivity
 # in the C++ source). The webapp is headless w.r.t. sound.
@@ -1836,10 +1843,12 @@ def get_airtime_and_height():
 
 def get_airtime_and_height(session_id):
     global received_heel_data, received_fore_data, jump_vertical_buffer, jump_collecting
+    impact_threshold_heel = int(threshold_heel * jump_impact_multiplier)
+    impact_threshold_fore = int(threshold_fore * jump_impact_multiplier)
     while True:
         if not is_activity_session_active("jump", session_id):
             jump_collecting = False
-            return 0.0, 0.0, True
+            return 0.0, 0.0, True, None
         if int(received_heel_data) < threshold_heel and int(received_fore_data) < threshold_fore:
             start_time = time.time()
             jump_vertical_buffer = []  # Reset buffer
@@ -1850,26 +1859,57 @@ def get_airtime_and_height(session_id):
     while True:
         if not is_activity_session_active("jump", session_id):
             jump_collecting = False
-            return 0.0, 0.0, True
+            stop_combined_data_thread()
+            return 0.0, 0.0, True, None
         if int(received_heel_data) >= threshold_heel or int(received_fore_data) >= threshold_fore:
             end_time = time.time()
             jump_collecting = False
-            stop_combined_data_thread()
             print("Landing detected")
             break
         time.sleep(0.01)
     airtime = end_time - start_time
+
+    # Anti-cheat #5: airtime bounds
+    if airtime < jump_min_airtime or airtime > jump_max_airtime:
+        stop_combined_data_thread()
+        reason = f"airtime out of bounds ({airtime:.3f}s)"
+        print(f"Invalid jump: {reason}")
+        return 0.0, 0.0, False, reason
+
+    # Anti-cheat #4: landing impact peak within jump_impact_window
+    peak_heel = int(received_heel_data)
+    peak_fore = int(received_fore_data)
+    impact_deadline = end_time + jump_impact_window
+    while time.time() < impact_deadline:
+        if not is_activity_session_active("jump", session_id):
+            stop_combined_data_thread()
+            return 0.0, 0.0, True, None
+        h = int(received_heel_data)
+        f = int(received_fore_data)
+        if h > peak_heel:
+            peak_heel = h
+        if f > peak_fore:
+            peak_fore = f
+        time.sleep(0.01)
+
+    stop_combined_data_thread()
+
+    if peak_heel < impact_threshold_heel and peak_fore < impact_threshold_fore:
+        reason = f"no landing impact (peak heel={peak_heel}, fore={peak_fore})"
+        print(f"Invalid jump: {reason}")
+        return 0.0, 0.0, False, reason
+
     samples = []
     # Safely copy collected data
     with jump_lock:
         samples = jump_vertical_buffer[:]
     if len(samples) < 10:
         print("Not enough samples for jump height. Returning 0.")
-        return round(airtime, 5), 0.0, False
+        return round(airtime, 5), 0.0, False, None
     #jump_height = estimate_jump_height(samples) #calculus approach
     jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics formula approach
     #print(f"Estimated height: {jump_height:.5f} m")
-    return round(airtime, 4), jump_height, False
+    return round(airtime, 4), jump_height, False, None
 
 @app.route('/start_jump')
 def start_jump():
@@ -1881,9 +1921,11 @@ def start_jump():
     session_id = create_activity_session("jump")
     reset_jump_state(cancel_session=False)
     start_combined_data_thread()
-    airtime, height, was_cancelled = get_airtime_and_height(session_id)
+    airtime, height, was_cancelled, invalid_reason = get_airtime_and_height(session_id)
     if was_cancelled:
         return jsonify({'status': 'cancelled'})
+    if invalid_reason:
+        return jsonify({'status': 'invalid_jump', 'reason': invalid_reason})
     last_airtime = airtime
     last_jump_height = height
     jump_metrics_ready = True
