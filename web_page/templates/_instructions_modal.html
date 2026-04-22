@@ -18,20 +18,12 @@
   }
 
   .pg-instructions-modal__header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
     margin-bottom: 12px;
   }
 
   .pg-instructions-modal__title {
     margin: 0;
     font-size: 1.35rem;
-  }
-
-  .pg-instructions-modal__close {
-    flex: 0 0 auto;
   }
 
   .pg-instructions-modal__body {
@@ -50,14 +42,6 @@
   <div class="modal-content pg-instructions-modal__content">
     <div class="pg-instructions-modal__header">
       <h2 class="pg-instructions-modal__title">{{ instructions_title | default('How to Play') }}</h2>
-      <button
-        type="button"
-        class="pg-manage-close pg-instructions-modal__close"
-        aria-label="Close instructions"
-        onclick="closeInstructionsModal()"
-      >
-        &times;
-      </button>
     </div>
     <p class="pg-instructions-modal__body">{{ instructions_body | default('Follow the on-screen prompts to complete this activity.') }}</p>
   </div>
