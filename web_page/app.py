@@ -1891,7 +1891,7 @@ def start_jump():
         reset_jump_state(cancel_session=True)
         return jsonify({
             'status': 'warning',
-            'message': f'Please stand on the insole before starting (pressure {standing_pressure} must be > 500).'
+            'message': 'Please stand on the insole before starting.'
         }), 400
 
     airtime, height, was_cancelled = get_airtime_and_height(session_id)
@@ -2008,7 +2008,7 @@ def button_click():
         cancel_balance_session()
         return jsonify({
             'status': 'warning',
-            'message': f'Please stand on the insole before starting (pressure {standing_pressure} must be > 500).'
+            'message': 'Please stand on the insole before starting.'
         }), 400
 
     set_balance_status("countdown")
