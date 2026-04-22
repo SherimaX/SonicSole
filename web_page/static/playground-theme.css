@@ -484,6 +484,23 @@ body > a[href]:hover {
   background: var(--primary-dark) !important;
 }
 
+.pg-info-btn {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px;
+  min-height: 48px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  line-height: 0;
+}
+
+.pg-info-btn__glyph {
+  width: 22px;
+  height: 22px;
+  display: block;
+  fill: currentColor;
+}
+
 .btn-outline,
 a.btn-outline,
 button.btn-outline,

@@ -225,6 +225,12 @@
         {% else %}
         <a href="{{ url_for('pc_scoreboard', board_key='reaction') }}">Scoreboard</a>
         {% endif %}
+        <button type="button" class="pg-info-btn" aria-label="Show reaction instructions" onclick="openInstructionsModal()">
+          <svg class="pg-info-btn__glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="5.5" r="1.7"/>
+            <rect x="10.3" y="9.2" width="3.4" height="11" rx="1.7"/>
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -260,6 +266,10 @@
   {% set group_history_modal_title = "Reaction Time Scoreboard" %}
   {% include '_group_history_modal.html' %}
   {% endif %}
+
+  {% set instructions_title = "How to Test Reaction" %}
+  {% set instructions_body = "Stand ready on the insole and wait for the go signal. As soon as the signal fires, step off (or tap down) as fast as you can. Your reaction time is measured from the signal to the pressure change." %}
+  {% include '_instructions_modal.html' %}
 
   {% include '_activity_dock.html' %}
 

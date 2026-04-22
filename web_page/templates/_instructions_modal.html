@@ -1,0 +1,70 @@
+<style>
+  .pg-instructions-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(18, 22, 20, 0.32);
+    backdrop-filter: blur(8px);
+  }
+
+  .pg-instructions-modal__content {
+    width: min(100%, 520px);
+    padding: 26px 24px 22px;
+    text-align: left;
+  }
+
+  .pg-instructions-modal__header {
+    margin-bottom: 12px;
+  }
+
+  .pg-instructions-modal__title {
+    margin: 0;
+    font-size: 1.35rem;
+  }
+
+  .pg-instructions-modal__body {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--text, #163148);
+  }
+</style>
+
+<div
+  id="instructionsModal"
+  class="modal pg-instructions-modal"
+  onclick="if (event.target === this) closeInstructionsModal();"
+>
+  <div class="modal-content pg-instructions-modal__content">
+    <div class="pg-instructions-modal__header">
+      <h2 class="pg-instructions-modal__title">{{ instructions_title | default('How to Play') }}</h2>
+    </div>
+    <p class="pg-instructions-modal__body">{{ instructions_body | default('Follow the on-screen prompts to complete this activity.') }}</p>
+  </div>
+</div>
+
+<script>
+  function openInstructionsModal() {
+    const modal = document.getElementById("instructionsModal");
+    if (modal) {
+      modal.style.display = "flex";
+    }
+  }
+
+  function closeInstructionsModal() {
+    const modal = document.getElementById("instructionsModal");
+    if (modal) {
+      modal.style.display = "none";
+    }
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeInstructionsModal();
+    }
+  });
+</script>

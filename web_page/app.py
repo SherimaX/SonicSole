@@ -5,17 +5,17 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, abort, session
 import socket
 import threading
-import time    
-import csv   
+import time
+import csv
 import random
 import struct
 import subprocess
 import sys
 import numpy as np
 import logging
-from threading import Thread 
+from threading import Thread
 
-import queue 
+import queue
 
 logging.getLogger('werkzeug').disabled = True #Suppress werkzeug logs
 
@@ -1001,7 +1001,7 @@ forefoot_elapsed_time = 0
 
 PRECISION_FORCE_MAX = 2000
 PRECISION_CAPTURE_SECONDS = 5
-PRECISION_TARGET_PERCENTS = [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]
+PRECISION_TARGET_PERCENTS = [25, 30, 35, 40, 45, 50]
 
 precision_trainer_state = {
     'status': 'idle',
@@ -1921,6 +1921,19 @@ def start_jump():
     session_id = create_activity_session("jump")
     reset_jump_state(cancel_session=False)
     start_combined_data_thread()
+
+    time.sleep(0.3)
+    try:
+        standing_pressure = int(received_heel_data) + int(received_fore_data)
+    except (TypeError, ValueError):
+        standing_pressure = 0
+    if standing_pressure <= 500:
+        reset_jump_state(cancel_session=True)
+        return jsonify({
+            'status': 'warning',
+            'message': 'Please stand on the insole before starting.'
+        }), 400
+
     airtime, height, was_cancelled, invalid_reason = get_airtime_and_height(session_id)
     if was_cancelled:
         return jsonify({'status': 'cancelled'})
@@ -2027,6 +2040,19 @@ def button_click():
 
     session_id = create_balance_session()
     start_combined_data_thread()
+
+    time.sleep(0.3)
+    try:
+        standing_pressure = int(received_heel_data) + int(received_fore_data)
+    except (TypeError, ValueError):
+        standing_pressure = 0
+    if standing_pressure <= 500:
+        cancel_balance_session()
+        return jsonify({
+            'status': 'warning',
+            'message': 'Please stand on the insole before starting.'
+        }), 400
+
     set_balance_status("countdown")
     # Visual countdown runs in the browser; audio cues are emitted by the RPi.
     time.sleep(3.12)
@@ -2377,12 +2403,61 @@ def home():
     return render_template('home.html')
 
 
+PHONE_QR_DEFAULT_HOST = "172.20.10.2:5001"
+
+
 @app.route('/phone')
 def phone_groups():
     return render_template(
         'phone_groups.html',
         phone_groups=get_group_options(),
     )
+
+
+@app.route('/phone/qr')
+def phone_group_qr_page():
+    qr_host = PHONE_QR_DEFAULT_HOST
+    qr_groups = [
+        {
+            "label": group["label"],
+            "slug": group["slug"],
+            "url": f"http://{qr_host}/phone/{group['slug']}",
+            "qr_src": url_for("static", filename=f"qr/{group['slug']}.png"),
+        }
+        for group in get_group_options()
+    ]
+    return render_template(
+        'phone_qr.html',
+        phone_qr_groups=qr_groups,
+        phone_qr_host=qr_host,
+    )
+
+
+@app.route('/phone/qr/image')
+def phone_group_qr_image():
+    import io
+    import qrcode
+
+    host = (request.args.get("host") or PHONE_QR_DEFAULT_HOST).strip()
+    slug = (request.args.get("slug") or "").strip()
+    if not slug:
+        abort(400)
+
+    url = f"http://{host}/phone/{slug}"
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=16,
+        border=2,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+    image = qr.make_image(fill_color="black", back_color="white")
+
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
+    return send_file(buffer, mimetype="image/png")
 
 
 @app.route('/phone/<group_slug>')

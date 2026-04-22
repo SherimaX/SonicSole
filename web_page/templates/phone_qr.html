@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  {% set webapp_theme_color = "#ffffff" %}
+  {% include '_ios_webapp_meta.html' %}
+  <title>SonicSole | Group QR Codes</title>
+  <style>
+    body {
+      background: #ffffff;
+      color: #111;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 32px 24px 64px;
+    }
+
+    .qr-shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      gap: 24px;
+    }
+
+    .qr-header {
+      text-align: center;
+      display: grid;
+      gap: 8px;
+    }
+
+    .qr-kicker {
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      color: #555;
+      font-weight: 700;
+    }
+
+    .qr-header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    .qr-subtitle {
+      color: #444;
+      max-width: 56ch;
+      margin: 0 auto;
+    }
+
+    .qr-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      font-size: 0.95rem;
+    }
+
+    .qr-actions .qr-host-value {
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fafafa;
+      font-family: "SF Mono", "Menlo", "Consolas", monospace;
+      font-size: inherit;
+      min-width: 180px;
+      text-align: center;
+    }
+
+    .qr-actions .qr-host-value:focus {
+      outline: none;
+      border-color: #111;
+      background: #fff;
+    }
+
+    .qr-actions button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid #111;
+      background: #fff;
+      color: #111;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .qr-card {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      background: #fff;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+
+    .qr-card__label {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .qr-card__image {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .qr-card__url {
+      font-family: "SF Mono", "Menlo", "Consolas", monospace;
+      font-size: 0.8rem;
+      color: #333;
+      word-break: break-all;
+    }
+
+    @media print {
+      body {
+        padding: 12mm;
+      }
+      .qr-actions,
+      .qr-header .qr-kicker,
+      .qr-subtitle {
+        display: none;
+      }
+      .qr-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10mm;
+      }
+      .qr-card {
+        border: 1px solid #000;
+        border-radius: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="qr-shell">
+    <header class="qr-header">
+      <p class="qr-kicker">Phone Webapp</p>
+      <h1>Scan to Join Your Group</h1>
+      <p class="qr-subtitle">
+        Each QR code opens the phone page for that group on the local Wi-Fi network. Make sure your phone is connected to the same Wi-Fi as the server.
+      </p>
+      <div class="qr-actions">
+        <label for="qr-host-input">Server:</label>
+        <input
+          id="qr-host-input"
+          class="qr-host-value"
+          type="text"
+          value="{{ phone_qr_host }}"
+          spellcheck="false"
+          autocapitalize="off"
+          autocomplete="off"
+        />
+        <button type="button" id="qr-update-btn">Update QR Codes</button>
+        <button type="button" onclick="window.print()">Print</button>
+      </div>
+    </header>
+
+    <section class="qr-grid" aria-label="Group QR codes">
+      {% for group in phone_qr_groups %}
+      <article class="qr-card" data-slug="{{ group.slug }}">
+        <div class="qr-card__label">{{ group.label }}</div>
+        <img class="qr-card__image" src="{{ group.qr_src }}" alt="QR code for {{ group.label }}" />
+        <div class="qr-card__url">{{ group.url }}</div>
+      </article>
+      {% endfor %}
+    </section>
+  </main>
+  <script>
+    (function () {
+      var input = document.getElementById('qr-host-input');
+      var button = document.getElementById('qr-update-btn');
+
+      function updateQrCodes() {
+        var host = (input.value || '').trim();
+        if (!host) {
+          input.focus();
+          return;
+        }
+        var cards = document.querySelectorAll('.qr-card');
+        cards.forEach(function (card) {
+          var slug = card.getAttribute('data-slug');
+          if (!slug) return;
+          var url = 'http://' + host + '/phone/' + slug;
+          var img = card.querySelector('.qr-card__image');
+          var urlEl = card.querySelector('.qr-card__url');
+          if (img) {
+            var params = new URLSearchParams({ host: host, slug: slug, t: Date.now().toString() });
+            img.src = '/phone/qr/image?' + params.toString();
+          }
+          if (urlEl) {
+            urlEl.textContent = url;
+          }
+        });
+      }
+
+      button.addEventListener('click', updateQrCodes);
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          updateQrCodes();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

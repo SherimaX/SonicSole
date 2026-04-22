@@ -1649,7 +1649,7 @@
 
       const axisAngle = quaternionToAxisAngle(viewerState.displayQuaternion);
       const angleDegrees = axisAngle.angle * (180 / Math.PI);
-      viewerState.card.style.transform = `rotate3d(${axisAngle.x.toFixed(5)}, ${axisAngle.y.toFixed(5)}, ${axisAngle.z.toFixed(5)}, ${angleDegrees.toFixed(2)}deg)`;
+      viewerState.card.style.transform = `rotateX(65deg) rotate3d(${axisAngle.x.toFixed(5)}, ${axisAngle.y.toFixed(5)}, ${axisAngle.z.toFixed(5)}, ${angleDegrees.toFixed(2)}deg)`;
 
       const tilt = Math.min(Math.hypot(axisAngle.x, axisAngle.y) * (axisAngle.angle / Math.PI), 1);
       const shiftX = axisAngle.y * angleDegrees * 0.18;
@@ -1678,49 +1678,13 @@
         <div class="imu-stage">
           <div class="imu-shadow" data-imu-shadow></div>
           <div class="imu-card" data-imu-card>
-            <svg class="imu-card__surface" viewBox="0 0 280 780" role="presentation" aria-hidden="true">
-              <defs>
-                <linearGradient id="imuBodyGradient" x1="15%" y1="0%" x2="78%" y2="100%">
-                  <stop offset="0%" stop-color="#fff6d6"></stop>
-                  <stop offset="42%" stop-color="#f2d37d"></stop>
-                  <stop offset="100%" stop-color="#d38238"></stop>
-                </linearGradient>
-                <linearGradient id="imuStripeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"></stop>
-                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0.08"></stop>
-                </linearGradient>
-              </defs>
+            <svg class="imu-card__surface" viewBox="0 0 38.92 96.27" role="presentation" aria-hidden="true">
               <path
-                d="M140 20 C195 18 235 50 252 102 C270 156 264 226 243 291 C222 355 204 407 201 489 C198 559 208 633 198 700 C190 752 166 780 134 780 C102 780 77 752 70 702 C61 637 71 561 67 489 C64 408 46 355 25 291 C4 228 -2 158 17 102 C33 54 75 20 140 20 Z"
-                fill="url(#imuBodyGradient)"
-                stroke="#8c551d"
-                stroke-width="8"
+                d="M16.92.25C2,.25-.08,23.27.29,29.16c.38,5.94,1.85,8.74,3.9,16.04,2.05,7.3,1.07,12.15.04,21.38-1.03,9.23-2.43,14.86-1.37,20.58,1.07,5.72,5.82,8.13,9.58,8.72.6.1,1.21.14,1.84.14,3.3,0,6.84-1.4,9.38-5.04,3.02-4.33,6.29-23.29,7.47-28.61s7.01-21.76,7.47-28.82c.47-7.05-1.06-16-6.14-23.84C27.38,1.87,20.88.34,17.3.25c-.13,0-.25,0-.38,0h0Z"
+                fill="#f4f7fa"
+                stroke="#1f1f1f"
+                stroke-width="0.7"
                 stroke-linejoin="round"
-              ></path>
-              <path
-                d="M147 86 C186 84 213 111 222 150 C231 190 222 232 208 270 C193 309 183 343 181 388"
-                fill="none"
-                opacity="0.85"
-                stroke="url(#imuStripeGradient)"
-                stroke-linecap="round"
-                stroke-width="22"
-              ></path>
-              <circle cx="140" cy="214" r="44" fill="rgba(21, 62, 92, 0.86)"></circle>
-              <circle cx="140" cy="214" r="18" fill="rgba(244, 247, 250, 0.92)"></circle>
-              <path
-                d="M138 116 L154 152"
-                fill="none"
-                stroke="rgba(16, 32, 45, 0.55)"
-                stroke-linecap="round"
-                stroke-width="10"
-              ></path>
-              <path
-                d="M111 502 C148 484 171 453 176 412"
-                fill="none"
-                opacity="0.7"
-                stroke="rgba(16, 32, 45, 0.18)"
-                stroke-linecap="round"
-                stroke-width="16"
               ></path>
             </svg>
           </div>
