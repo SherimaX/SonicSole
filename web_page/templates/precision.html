@@ -318,7 +318,10 @@
         <a href="{{ url_for('pc_scoreboard', board_key='precision') }}">Scoreboard</a>
         {% endif %}
         <button type="button" class="pg-info-btn" aria-label="Show precision instructions" onclick="openInstructionsModal()">
-          <span class="pg-info-btn__glyph">i</span>
+          <svg class="pg-info-btn__glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="5.5" r="1.7"/>
+            <rect x="10.3" y="9.2" width="3.4" height="11" rx="1.7"/>
+          </svg>
         </button>
       </div>
     </div>
