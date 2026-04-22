@@ -2599,6 +2599,29 @@ def pc_scoreboard(board_key="jump"):
     )
 
 
+@app.route('/api/scoreboard/<board_key>')
+def pc_scoreboard_data(board_key):
+    if board_key not in PC_SCOREBOARD_KEYS:
+        abort(404)
+
+    scoreboard_rows = load_group_best_performance(board_key)
+    populated_rows = [row for row in scoreboard_rows if row["has_score"]]
+    leaderboard_config = get_leaderboard_config(board_key)
+    leader_group_id = None
+
+    if populated_rows:
+        if leaderboard_config["sort_reverse"]:
+            leader_group_id = max(populated_rows, key=lambda row: row["score"])["group_id"]
+        else:
+            leader_group_id = min(populated_rows, key=lambda row: row["score"])["group_id"]
+
+    return jsonify({
+        "rows": scoreboard_rows,
+        "leader_group_id": leader_group_id,
+        "sort_reverse": leaderboard_config["sort_reverse"],
+    })
+
+
 @app.route('/bScoreboard')
 def b_scoreboard():
     return render_template(
