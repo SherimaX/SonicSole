@@ -1001,7 +1001,7 @@ forefoot_elapsed_time = 0
 
 PRECISION_FORCE_MAX = 2000
 PRECISION_CAPTURE_SECONDS = 5
-PRECISION_TARGET_PERCENTS = [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]
+PRECISION_TARGET_PERCENTS = [25, 30, 35, 40, 45, 50]
 
 precision_trainer_state = {
     'status': 'idle',
