@@ -1863,16 +1863,7 @@ def get_airtime_and_height(session_id):
             break
         time.sleep(0.01)
     airtime = end_time - start_time
-    samples = []
-    # Safely copy collected data
-    with jump_lock:
-        samples = jump_vertical_buffer[:]
-    if len(samples) < 10:
-        print("Not enough samples for jump height. Returning 0.")
-        return round(airtime, 5), 0.0, False
-    #jump_height = estimate_jump_height(samples) #calculus approach
-    jump_height = ((1/8) * 9.81) * ((airtime) ** 2) #physics formula approach
-    #print(f"Estimated height: {jump_height:.5f} m")
+    jump_height = ((1/8) * 9.81) * (airtime ** 2)
     return round(airtime, 4), jump_height, False
 
 @app.route('/start_jump')

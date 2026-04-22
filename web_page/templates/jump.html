@@ -382,7 +382,7 @@
           if (!jumpActivityToggle || !jumpActivityToggle.isActive()) {
             return;
           }
-          if (data.jump_height_meters > 0.0001) {
+          if (data.airtime_seconds > 0) {
             jumpCompleted = true;
             stopJumpWaitingAnimation();
             const jumpHeight = data.jump_height_meters.toFixed(2);
