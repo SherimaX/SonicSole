@@ -1834,13 +1834,17 @@ def get_airtime_and_height():
     #vertical_raw_data_UDP = []
     return round(airtime, 4), jump_height'''
 
+JUMP_TAKEOFF_PRESSURE = 100
+JUMP_LANDING_PRESSURE = 100
+
+
 def get_airtime_and_height(session_id):
     global received_heel_data, received_fore_data, jump_vertical_buffer, jump_collecting
     while True:
         if not is_activity_session_active("jump", session_id):
             jump_collecting = False
             return 0.0, 0.0, True
-        if int(received_heel_data) < threshold_heel and int(received_fore_data) < threshold_fore:
+        if int(received_heel_data) < JUMP_TAKEOFF_PRESSURE and int(received_fore_data) < JUMP_TAKEOFF_PRESSURE:
             start_time = time.time()
             jump_vertical_buffer = []  # Reset buffer
             jump_collecting = True
@@ -1851,7 +1855,7 @@ def get_airtime_and_height(session_id):
         if not is_activity_session_active("jump", session_id):
             jump_collecting = False
             return 0.0, 0.0, True
-        if int(received_heel_data) >= threshold_heel or int(received_fore_data) >= threshold_fore:
+        if int(received_heel_data) >= JUMP_LANDING_PRESSURE or int(received_fore_data) >= JUMP_LANDING_PRESSURE:
             end_time = time.time()
             jump_collecting = False
             stop_combined_data_thread()
