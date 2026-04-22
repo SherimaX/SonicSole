@@ -404,6 +404,9 @@
             return;
           }
           alert(error.message || "Unable to start jumping.");
+          if (jumpActivityToggle) {
+            jumpActivityToggle.deactivate();
+          }
         },
       });
     });

@@ -1881,6 +1881,19 @@ def start_jump():
     session_id = create_activity_session("jump")
     reset_jump_state(cancel_session=False)
     start_combined_data_thread()
+
+    time.sleep(0.3)
+    try:
+        standing_pressure = int(received_heel_data) + int(received_fore_data)
+    except (TypeError, ValueError):
+        standing_pressure = 0
+    if standing_pressure <= 500:
+        reset_jump_state(cancel_session=True)
+        return jsonify({
+            'status': 'warning',
+            'message': f'Please stand on the insole before starting (pressure {standing_pressure} must be > 500).'
+        }), 400
+
     airtime, height, was_cancelled = get_airtime_and_height(session_id)
     if was_cancelled:
         return jsonify({'status': 'cancelled'})
