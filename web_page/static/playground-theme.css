@@ -491,15 +491,14 @@ body > a[href]:hover {
   min-height: 48px !important;
   padding: 0 !important;
   border-radius: 50% !important;
-  font-family: "Georgia", "Times New Roman", serif !important;
-  font-style: italic;
-  font-size: 1.35rem !important;
-  line-height: 1;
+  line-height: 0;
 }
 
 .pg-info-btn__glyph {
-  display: inline-block;
-  transform: translateY(-1px);
+  width: 22px;
+  height: 22px;
+  display: block;
+  fill: currentColor;
 }
 
 .btn-outline,
