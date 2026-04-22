@@ -61,6 +61,15 @@
       border-radius: 8px;
       background: #fafafa;
       font-family: "SF Mono", "Menlo", "Consolas", monospace;
+      font-size: inherit;
+      min-width: 180px;
+      text-align: center;
+    }
+
+    .qr-actions .qr-host-value:focus {
+      outline: none;
+      border-color: #111;
+      background: #fff;
     }
 
     .qr-actions button {
@@ -139,15 +148,24 @@
         Each QR code opens the phone page for that group on the local Wi-Fi network. Make sure your phone is connected to the same Wi-Fi as the server.
       </p>
       <div class="qr-actions">
-        <span>Server:</span>
-        <span class="qr-host-value">{{ phone_qr_host }}</span>
+        <label for="qr-host-input">Server:</label>
+        <input
+          id="qr-host-input"
+          class="qr-host-value"
+          type="text"
+          value="{{ phone_qr_host }}"
+          spellcheck="false"
+          autocapitalize="off"
+          autocomplete="off"
+        />
+        <button type="button" id="qr-update-btn">Update QR Codes</button>
         <button type="button" onclick="window.print()">Print</button>
       </div>
     </header>
 
     <section class="qr-grid" aria-label="Group QR codes">
       {% for group in phone_qr_groups %}
-      <article class="qr-card">
+      <article class="qr-card" data-slug="{{ group.slug }}">
         <div class="qr-card__label">{{ group.label }}</div>
         <img class="qr-card__image" src="{{ group.qr_src }}" alt="QR code for {{ group.label }}" />
         <div class="qr-card__url">{{ group.url }}</div>
@@ -155,5 +173,42 @@
       {% endfor %}
     </section>
   </main>
+  <script>
+    (function () {
+      var input = document.getElementById('qr-host-input');
+      var button = document.getElementById('qr-update-btn');
+
+      function updateQrCodes() {
+        var host = (input.value || '').trim();
+        if (!host) {
+          input.focus();
+          return;
+        }
+        var cards = document.querySelectorAll('.qr-card');
+        cards.forEach(function (card) {
+          var slug = card.getAttribute('data-slug');
+          if (!slug) return;
+          var url = 'http://' + host + '/phone/' + slug;
+          var img = card.querySelector('.qr-card__image');
+          var urlEl = card.querySelector('.qr-card__url');
+          if (img) {
+            var params = new URLSearchParams({ host: host, slug: slug, t: Date.now().toString() });
+            img.src = '/phone/qr/image?' + params.toString();
+          }
+          if (urlEl) {
+            urlEl.textContent = url;
+          }
+        });
+      }
+
+      button.addEventListener('click', updateQrCodes);
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          updateQrCodes();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

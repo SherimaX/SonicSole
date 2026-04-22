@@ -2365,6 +2365,33 @@ def phone_group_qr_page():
     )
 
 
+@app.route('/phone/qr/image')
+def phone_group_qr_image():
+    import io
+    import qrcode
+
+    host = (request.args.get("host") or PHONE_QR_DEFAULT_HOST).strip()
+    slug = (request.args.get("slug") or "").strip()
+    if not slug:
+        abort(400)
+
+    url = f"http://{host}/phone/{slug}"
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=16,
+        border=2,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+    image = qr.make_image(fill_color="black", back_color="white")
+
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
+    return send_file(buffer, mimetype="image/png")
+
+
 @app.route('/phone/<group_slug>')
 def phone_group_home(group_slug):
     return render_phone_group_home_page(group_slug)
