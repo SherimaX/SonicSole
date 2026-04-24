@@ -39,6 +39,13 @@ GROUP_SLOTS = [
     for group_number in range(1, 6)
 ]
 GROUP_OPTIONS_BY_ID = {group["id"]: group for group in GROUP_SLOTS}
+DEFAULT_GROUP_DEVICE_IPS = {
+    1: "192.168.2.5",
+    2: "192.168.2.7",
+    3: "192.168.2.8",
+    4: "192.168.2.9",
+    5: "192.168.2.10",
+}
 HARDWARE_PING_TIMEOUT_SECONDS = 1.0
 
 PHONE_ACTIVITY_CARDS = [
@@ -989,10 +996,18 @@ active_device_ip = None
 discovery_listener_started = False
 discovered_devices = {}
 latest_sensor_payloads = {}
+
+
+def _initial_group_ip(group_number):
+    env_value = os.environ.get(f"SONICSOLE_GROUP_{group_number}_IP", "").strip()
+    if env_value:
+        return env_value
+    return DEFAULT_GROUP_DEVICE_IPS.get(group_number, "")
+
 group_device_assignments = {
-    group["id"]: os.environ.get(f"SONICSOLE_GROUP_{group['number']}_IP", "").strip()
+    group["id"]: _initial_group_ip(group["number"])
     for group in GROUP_SLOTS
-    if os.environ.get(f"SONICSOLE_GROUP_{group['number']}_IP", "").strip()
+    if _initial_group_ip(group["number"])
 }
 # Activity session counters keyed by (device_ip, activity_name).
 # Per-board so that two boards running the same activity don't share a session counter.
