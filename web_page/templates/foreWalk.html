@@ -308,7 +308,7 @@
     }
 
     resetWalkUI();
-    const response = await fetch("/start_forefoot", { method: "POST", signal });
+    const response = await fetch(window.withGroupQuery("/start_forefoot"), { method: "POST", signal });
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || "Unable to start forefoot walk.");

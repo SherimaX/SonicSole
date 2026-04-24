@@ -309,7 +309,7 @@
       }
 
       resetReactionUI();
-      const response = await fetch("/start_reaction", { signal });
+      const response = await fetch(window.withGroupQuery("/start_reaction"), { signal });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "Unable to start reaction.");
