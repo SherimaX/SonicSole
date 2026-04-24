@@ -1,18 +1,27 @@
 [Unit]
-Description=SonicSole boot: connect Wi-Fi then run combined sender
+Description=SonicSole boot: connect Wi-Fi, beep, run combined sender, keep Wi-Fi up
 After=network.target sound.target
-# Don't use network-online.target here: we WANT to run even when offline,
-# since the script itself handles the wait-for-Wi-Fi loop.
+# Don't use network-online.target: we WANT to run even when offline, because
+# the script itself owns the wait-for-Wi-Fi loop and the reconnect watchdog.
 
 [Service]
 Type=simple
-User=root
-# Edit WorkingDirectory to match where the repo lives on the Pi.
-WorkingDirectory=/root/SonicSole
-ExecStart=/root/SonicSole/boot_wifi_then_run.sh
+User=pi
+Group=pi
+# Keep environment minimal but ensure /sbin is on PATH so bare `wpa_cli` works
+# (the script also hard-codes the absolute path as a belt-and-braces).
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+WorkingDirectory=/home/pi/Desktop/SonicSole/git
+ExecStart=/home/pi/Desktop/SonicSole/git/boot_wifi_then_run.sh
+# Let the service toggle Wi-Fi power save without needing sudo.
+AmbientCapabilities=CAP_NET_ADMIN
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_SYS_NICE CAP_DAC_READ_SEARCH
 Restart=on-failure
 RestartSec=5
-StandardOutput=journal
+# Sender prints ~9 lines per cycle at several kHz. Feeding that into journald
+# creates back-pressure that can stall the sender's UDP loop. Drop stdout and
+# keep stderr on journal so real errors are still visible.
+StandardOutput=null
 StandardError=journal
 
 [Install]
