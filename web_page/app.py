@@ -2261,65 +2261,64 @@ def precision_trainer_status():
     )
 
 def run_precision_trainer(session_id, device_ip):
+    # Intentionally do NOT stop the UDP thread when this returns — other boards
+    # may still be mid-activity and need fresh sensor snapshots. The thread is
+    # stopped only by /stop_data (the global panic button).
     start_combined_data_thread()
-    try:
-        target_percent = random.choice(PRECISION_TARGET_PERCENTS)
-        target_force = round((target_percent / 100.0) * PRECISION_FORCE_MAX)
-        per_board_update(
-            precision_results,
-            precision_results_lock,
-            device_ip,
-            default_precision_entry,
-            status="measuring",
-            max_force=PRECISION_FORCE_MAX,
-            target_percent=target_percent,
-            target_force=target_force,
-            current_force=0,
-            current_percent=0,
-            measured_force=0,
-            measured_percent=0,
-            error_percent=0,
-        )
+    target_percent = random.choice(PRECISION_TARGET_PERCENTS)
+    target_force = round((target_percent / 100.0) * PRECISION_FORCE_MAX)
+    per_board_update(
+        precision_results,
+        precision_results_lock,
+        device_ip,
+        default_precision_entry,
+        status="measuring",
+        max_force=PRECISION_FORCE_MAX,
+        target_percent=target_percent,
+        target_force=target_force,
+        current_force=0,
+        current_percent=0,
+        measured_force=0,
+        measured_percent=0,
+        error_percent=0,
+    )
 
-        start_time = time.time()
-        while time.time() - start_time < PRECISION_CAPTURE_SECONDS:
-            if not is_activity_session_active(device_ip, "precision", session_id):
-                return
-            snapshot = read_sensor_for_ip(device_ip)
-            current_force = get_precision_force_value(snapshot["fore_pressure"])
-            current_percent = round((current_force / PRECISION_FORCE_MAX) * 100, 1)
-            per_board_update(
-                precision_results,
-                precision_results_lock,
-                device_ip,
-                default_precision_entry,
-                current_force=current_force,
-                current_percent=current_percent,
-            )
-            time.sleep(0.01)
-
+    start_time = time.time()
+    while time.time() - start_time < PRECISION_CAPTURE_SECONDS:
         if not is_activity_session_active(device_ip, "precision", session_id):
             return
-
         snapshot = read_sensor_for_ip(device_ip)
-        measured_force = get_precision_force_value(snapshot["fore_pressure"])
-        measured_percent = round((measured_force / PRECISION_FORCE_MAX) * 100, 1)
-        precision_error_value = abs(measured_percent - target_percent)
+        current_force = get_precision_force_value(snapshot["fore_pressure"])
+        current_percent = round((current_force / PRECISION_FORCE_MAX) * 100, 1)
         per_board_update(
             precision_results,
             precision_results_lock,
             device_ip,
             default_precision_entry,
-            current_force=measured_force,
-            current_percent=measured_percent,
-            measured_force=measured_force,
-            measured_percent=measured_percent,
-            error_percent=round(precision_error_value, 1),
-            status="done",
+            current_force=current_force,
+            current_percent=current_percent,
         )
-    # Intentionally do NOT stop the UDP thread here — other boards may still be
-    # mid-activity and need fresh sensor snapshots. The thread is stopped only
-    # by /stop_data (the global panic button).
+        time.sleep(0.01)
+
+    if not is_activity_session_active(device_ip, "precision", session_id):
+        return
+
+    snapshot = read_sensor_for_ip(device_ip)
+    measured_force = get_precision_force_value(snapshot["fore_pressure"])
+    measured_percent = round((measured_force / PRECISION_FORCE_MAX) * 100, 1)
+    precision_error_value = abs(measured_percent - target_percent)
+    per_board_update(
+        precision_results,
+        precision_results_lock,
+        device_ip,
+        default_precision_entry,
+        current_force=measured_force,
+        current_percent=measured_percent,
+        measured_force=measured_force,
+        measured_percent=measured_percent,
+        error_percent=round(precision_error_value, 1),
+        status="done",
+    )
 
 @app.route('/precision_trainer_results')
 def precision_trainer_results():
