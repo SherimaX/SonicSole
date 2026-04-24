@@ -1,3 +1,4 @@
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 import json
 import math
@@ -950,22 +951,13 @@ g = 9.81 #m/s^2
 received_vertical_raw = "0.0" 
 
 airtime=0
-jump_metrics_ready = False
-last_jump_height = 0.0
-last_airtime = 0.0
 
-jump_vertical_buffer = []
-jump_collecting = False
-jump_lock = threading.Lock()
-balance_state_lock = threading.Lock()
 activity_session_lock = threading.Lock()
 active_device_ip_lock = threading.Lock()
 discovery_listener_lock = threading.Lock()
 discovered_devices_lock = threading.Lock()
 group_assignments_lock = threading.Lock()
 sensor_payloads_lock = threading.Lock()
-balance_session_id = 0
-recording_time = False
 active_device_ip = None
 discovery_listener_started = False
 discovered_devices = {}
@@ -975,16 +967,27 @@ group_device_assignments = {
     for group in GROUP_SLOTS
     if os.environ.get(f"SONICSOLE_GROUP_{group['number']}_IP", "").strip()
 }
-activity_session_ids = {
-    "balance": 0,
-    "jump": 0,
-    "reaction": 0,
-    "precision": 0,
-    "forefoot": 0,
-}
+# Activity session counters keyed by (device_ip, activity_name).
+# Per-board so that two boards running the same activity don't share a session counter.
+activity_session_ids = defaultdict(int)
 
-# heel_list = [0 for _ in range(100)]
-totalTime = "0"
+# Per-board activity result stores. Each entry is keyed by the device IP so that
+# concurrent activities on different boards keep their state isolated. The locks
+# protect dict-mutation; readers take a shallow copy under the lock.
+jump_results_lock = threading.Lock()
+jump_results = {}  # {device_ip: {"airtime": float, "height": float, "ready": bool}}
+
+balance_results_lock = threading.Lock()
+balance_results = {}  # {device_ip: {"total_time": str, "recording": bool, "status": str, "reason": str}}
+
+reaction_results_lock = threading.Lock()
+reaction_results = {}  # {device_ip: {"status": str, "reaction_time": float, "reason": str}}
+
+precision_results_lock = threading.Lock()
+precision_results = {}  # {device_ip: {full state dict}}
+
+forefoot_results_lock = threading.Lock()
+forefoot_results = {}  # {device_ip: {"status": str, "distance_meters": float, "time": float}}
 
 R_heel = 0
 G_heel = 255
@@ -995,25 +998,9 @@ submitted_name = "User1"
 
 submitted_name2 = "User1"
 
-forefoot_status = "waiting"
-forefoot_dist = 0
-forefoot_elapsed_time = 0
-
 PRECISION_FORCE_MAX = 2000
 PRECISION_CAPTURE_SECONDS = 5
 PRECISION_TARGET_PERCENTS = [25, 30, 35, 40, 45, 50]
-
-precision_trainer_state = {
-    'status': 'idle',
-    'max_force': PRECISION_FORCE_MAX,
-    'target_percent': 0,
-    'target_force': 0,
-    'current_force': 0,
-    'current_percent': 0,
-    'measured_force': 0,
-    'measured_percent': 0,
-    'error_percent': 0
-}
 
 
 def discovery_listener():
@@ -1053,18 +1040,11 @@ def start_discovery_listener():
         discovery_listener_started = True
         thread = threading.Thread(target=discovery_listener, daemon=True)
         thread.start()
-precision_error = 0
-precision_start_time = None
+
 
 vertical_raw_data_UDP = []
 combined_data_thread = None
 combined_data_running = False
-
-reaction_data = {
-    "status": "idle",
-    "reaction_time": 0.0
-}
-reaction_time = "0"
 
 threshold_fore = 350
 threshold_heel = 350
@@ -1074,33 +1054,30 @@ dt = 0.009 #approx time (s) between samples from udp
 # in the C++ source). The webapp is headless w.r.t. sound.
 
 
-def create_balance_session():
-    return create_activity_session("balance")
+def create_balance_session(device_ip):
+    return create_activity_session(device_ip, "balance")
 
 
-def get_balance_session_id():
-    return get_activity_session_id("balance")
+def get_balance_session_id(device_ip):
+    return get_activity_session_id(device_ip, "balance")
 
 
-def cancel_balance_session():
-    global totalTime, recording_time, received_heel_data, received_fore_data
-    was_recording = recording_time
-    cancel_activity_session("balance")
-    recording_time = False
-    totalTime = "0"
-    received_heel_data = "0"
-    received_fore_data = "0"
-    stop_combined_data_thread()
-    try:
-        set_balance_status("idle")
-    except NameError:
-        pass
-    if was_recording:
-        cancel_device_ip = resolve_activity_device_ip()
-        if cancel_device_ip:
+def cancel_balance_session(device_ip=None):
+    """Cancel the balance session for device_ip (or for every known board if None).
+
+    The per-board cancel cleans up that board's balance entry without touching
+    any other board's running balance session.
+    """
+    target_ips = _resolve_cancel_targets(device_ip, balance_results, balance_results_lock)
+    for target_ip in target_ips:
+        existing = per_board_get(balance_results, balance_results_lock, target_ip, default_balance_entry)
+        was_recording = bool(existing.get("recording"))
+        cancel_activity_session(target_ip, "balance")
+        per_board_set(balance_results, balance_results_lock, target_ip, default_balance_entry())
+        if was_recording:
             threading.Thread(
                 target=_send_activity_command_fire_and_forget,
-                args=(cancel_device_ip, "CANCEL balance"),
+                args=(target_ip, "CANCEL balance"),
                 daemon=True,
             ).start()
 
@@ -1114,25 +1091,28 @@ def _send_activity_command_fire_and_forget(device_ip, command):
         pass
 
 
-def create_activity_session(activity_name):
+def create_activity_session(device_ip, activity_name):
+    key = ((device_ip or "").strip(), activity_name)
     with activity_session_lock:
-        activity_session_ids[activity_name] += 1
-        return activity_session_ids[activity_name]
+        activity_session_ids[key] += 1
+        return activity_session_ids[key]
 
 
-def get_activity_session_id(activity_name):
+def get_activity_session_id(device_ip, activity_name):
+    key = ((device_ip or "").strip(), activity_name)
     with activity_session_lock:
-        return activity_session_ids[activity_name]
+        return activity_session_ids[key]
 
 
-def cancel_activity_session(activity_name):
+def cancel_activity_session(device_ip, activity_name):
+    key = ((device_ip or "").strip(), activity_name)
     with activity_session_lock:
-        activity_session_ids[activity_name] += 1
-        return activity_session_ids[activity_name]
+        activity_session_ids[key] += 1
+        return activity_session_ids[key]
 
 
-def is_activity_session_active(activity_name, session_id):
-    return session_id == get_activity_session_id(activity_name)
+def is_activity_session_active(device_ip, activity_name, session_id):
+    return session_id == get_activity_session_id(device_ip, activity_name)
 
 
 def clear_udp_queue():
@@ -1143,55 +1123,75 @@ def clear_udp_queue():
             break
 
 
-def reset_jump_state(cancel_session=False):
-    global jump_metrics_ready, last_jump_height, last_airtime, jump_collecting, jump_vertical_buffer
-    if cancel_session:
-        cancel_activity_session("jump")
-    jump_metrics_ready = False
-    last_jump_height = 0.0
-    last_airtime = 0.0
-    jump_collecting = False
-    with jump_lock:
-        jump_vertical_buffer = []
+def default_jump_entry():
+    return {"airtime": 0.0, "height": 0.0, "ready": False}
 
 
-def reset_reaction_state(cancel_session=False):
-    global reaction_data, reaction_time
-    was_active = bool(reaction_data) and reaction_data.get("status") == "timing"
-    if cancel_session:
-        cancel_activity_session("reaction")
-    reaction_data = {
+def default_balance_entry():
+    return {"total_time": "0", "recording": False, "status": "idle", "reason": ""}
+
+
+def default_reaction_entry():
+    return {"status": "idle", "reaction_time": 0.0, "reason": ""}
+
+
+def default_precision_entry():
+    return {
         "status": "idle",
-        "reaction_time": 0.0
+        "max_force": PRECISION_FORCE_MAX,
+        "target_percent": 0,
+        "target_force": 0,
+        "current_force": 0,
+        "current_percent": 0,
+        "measured_force": 0,
+        "measured_percent": 0,
+        "error_percent": 0,
     }
-    reaction_time = "0"
-    if cancel_session and was_active:
-        device_ip = resolve_activity_device_ip()
-        if device_ip:
+
+
+def default_forefoot_entry():
+    return {"status": "waiting", "distance_meters": 0, "time": 0}
+
+
+def _resolve_cancel_targets(device_ip, store, lock):
+    """Return the list of IPs to cancel for. Specific IP if provided, else every known IP."""
+    normalized_ip = (device_ip or "").strip()
+    if normalized_ip:
+        return [normalized_ip]
+    with lock:
+        return list(store.keys())
+
+
+def reset_jump_state(device_ip=None, cancel_session=False):
+    target_ips = _resolve_cancel_targets(device_ip, jump_results, jump_results_lock)
+    for target_ip in target_ips:
+        if cancel_session:
+            cancel_activity_session(target_ip, "jump")
+        per_board_set(jump_results, jump_results_lock, target_ip, default_jump_entry())
+
+
+def reset_reaction_state(device_ip=None, cancel_session=False):
+    target_ips = _resolve_cancel_targets(device_ip, reaction_results, reaction_results_lock)
+    for target_ip in target_ips:
+        existing = per_board_get(reaction_results, reaction_results_lock, target_ip, default_reaction_entry)
+        was_active = existing.get("status") == "timing"
+        if cancel_session:
+            cancel_activity_session(target_ip, "reaction")
+        per_board_set(reaction_results, reaction_results_lock, target_ip, default_reaction_entry())
+        if cancel_session and was_active:
             threading.Thread(
                 target=_send_activity_command_fire_and_forget,
-                args=(device_ip, "CANCEL reaction"),
+                args=(target_ip, "CANCEL reaction"),
                 daemon=True,
             ).start()
 
 
-def reset_precision_trainer_state(cancel_session=False):
-    global precision_trainer_state, precision_error, precision_start_time
-    if cancel_session:
-        cancel_activity_session("precision")
-    precision_start_time = None
-    precision_trainer_state = {
-        'status': 'idle',
-        'max_force': PRECISION_FORCE_MAX,
-        'target_percent': 0,
-        'target_force': 0,
-        'current_force': 0,
-        'current_percent': 0,
-        'measured_force': 0,
-        'measured_percent': 0,
-        'error_percent': 0
-    }
-    precision_error = 0
+def reset_precision_trainer_state(device_ip=None, cancel_session=False):
+    target_ips = _resolve_cancel_targets(device_ip, precision_results, precision_results_lock)
+    for target_ip in target_ips:
+        if cancel_session:
+            cancel_activity_session(target_ip, "precision")
+        per_board_set(precision_results, precision_results_lock, target_ip, default_precision_entry())
 
 
 def get_precision_force_value(raw_value):
@@ -1202,22 +1202,27 @@ def get_precision_force_value(raw_value):
     return max(0, min(PRECISION_FORCE_MAX, pressure_value))
 
 
-def reset_forefoot_state(cancel_session=False):
-    global forefoot_status, forefoot_dist, forefoot_elapsed_time
-    if cancel_session:
-        cancel_activity_session("forefoot")
-    forefoot_status = "waiting"
-    forefoot_dist = 0
-    forefoot_elapsed_time = 0
+def reset_forefoot_state(device_ip=None, cancel_session=False):
+    target_ips = _resolve_cancel_targets(device_ip, forefoot_results, forefoot_results_lock)
+    for target_ip in target_ips:
+        if cancel_session:
+            cancel_activity_session(target_ip, "forefoot")
+        per_board_set(forefoot_results, forefoot_results_lock, target_ip, default_forefoot_entry())
 
 
 def stop_all_activities():
+    """Cancel any in-flight activity on every known board.
+
+    Used by `/stop_data` — a global panic button. Per-board flows should call
+    the activity-specific cancel with a device_ip instead.
+    """
     global R_heel, G_heel, R_fore, G_fore
     cancel_balance_session()
     reset_jump_state(cancel_session=True)
     reset_reaction_state(cancel_session=True)
     reset_precision_trainer_state(cancel_session=True)
     reset_forefoot_state(cancel_session=True)
+    stop_combined_data_thread()
     clear_udp_queue()
     R_heel = 0
     G_heel = 255
@@ -1568,19 +1573,12 @@ def read_combined_data(): #this function to read data and other function to "pro
     print("[UDP Thread] Stopped reading data") 
 
 def process_udp_data(): #this function to do the slow work and the other to read as attampt to improve how fast can read data
-    global received_heel_data, received_fore_data, ax, ay, az, jump_vertical_buffer, jump_collecting
+    global received_heel_data, received_fore_data, ax, ay, az
     while combined_data_running:
         try:
             fore, heel, ax_val, ay_val, az_val = udp_queue.get(timeout=0.1)
-            # received_fore_data = fore
-            # received_heel_data = heel
-            # ax, ay, az = ax_val, ay_val, az_val
-            if jump_collecting:  # If jump recording is active, collect ay_val
-                with jump_lock:
-                    jump_vertical_buffer.append(ay_val)
             update_fore_color(fore)
             update_heel_color(heel)
-            #print(f"Fore:{fore}, Heel:{heel}, ax:{ax_val:.2f}, ay:{ay_val:.2f}, az:{az_val:.2f}")
             print(f"Fore:{fore}, Heel:{heel}, ax:{ax:.2f}, ay:{ay:.2f}, az:{az:.2f}")
         except queue.Empty:
             continue
@@ -1705,6 +1703,70 @@ def get_sensor_snapshot_for_ip(device_ip):
         return None
 
     return snapshot_copy
+
+
+def read_sensor_for_ip(device_ip):
+    """Return the latest snapshot for device_ip, or a zero snapshot if unknown/stale.
+
+    Activities use this in place of the legacy `received_*` globals so that
+    concurrent activities on different boards each see their own sensor stream.
+    """
+    snapshot = get_sensor_snapshot_for_ip(device_ip)
+    if snapshot is None:
+        return get_default_sensor_snapshot()
+    return snapshot
+
+
+def resolve_group_id_to_device_ip(group_id):
+    """Map a group_id (or empty/None) to its assigned device IP.
+
+    Returns ("", group_or_None, error_message_or_None). When the caller passed a
+    group_id we always honor it; when blank we fall back to the active selected
+    group so legacy single-device pages still work.
+    """
+    requested = (group_id or "").strip()
+    if requested:
+        raw_group = GROUP_OPTIONS_BY_ID.get(requested)
+        if raw_group is None:
+            return "", None, "Unknown group selection."
+        group = build_group_option(raw_group)
+        return (group.get("ip") or "").strip(), group, None
+
+    selected = get_selected_group()
+    if selected is None:
+        return "", None, None
+    return (selected.get("ip") or "").strip(), selected, None
+
+
+def per_board_get(store, lock, device_ip, default_factory):
+    """Return a shallow copy of the per-board entry for device_ip, falling back to default_factory()."""
+    normalized_ip = (device_ip or "").strip()
+    if not normalized_ip:
+        return default_factory()
+    with lock:
+        entry = store.get(normalized_ip)
+    if entry is None:
+        return default_factory()
+    return dict(entry)
+
+
+def per_board_set(store, lock, device_ip, entry):
+    normalized_ip = (device_ip or "").strip()
+    if not normalized_ip:
+        return
+    with lock:
+        store[normalized_ip] = dict(entry)
+
+
+def per_board_update(store, lock, device_ip, default_factory, **changes):
+    normalized_ip = (device_ip or "").strip()
+    if not normalized_ip:
+        return default_factory()
+    with lock:
+        entry = dict(store.get(normalized_ip) or default_factory())
+        entry.update(changes)
+        store[normalized_ip] = entry
+        return dict(entry)
 
 @app.route('/color_data', methods=['GET'])
 def color_data():
@@ -1838,28 +1900,24 @@ JUMP_TAKEOFF_PRESSURE = 100
 JUMP_LANDING_PRESSURE = 100
 
 
-def get_airtime_and_height(session_id):
-    global received_heel_data, received_fore_data, jump_vertical_buffer, jump_collecting
+def get_airtime_and_height(session_id, device_ip):
+    """Wait for takeoff/landing on the given board and return (airtime, height, was_cancelled)."""
     while True:
-        if not is_activity_session_active("jump", session_id):
-            jump_collecting = False
+        if not is_activity_session_active(device_ip, "jump", session_id):
             return 0.0, 0.0, True
-        if int(received_heel_data) < JUMP_TAKEOFF_PRESSURE and int(received_fore_data) < JUMP_TAKEOFF_PRESSURE:
+        snapshot = read_sensor_for_ip(device_ip)
+        if snapshot["heel_pressure"] < JUMP_TAKEOFF_PRESSURE and snapshot["fore_pressure"] < JUMP_TAKEOFF_PRESSURE:
             start_time = time.time()
-            jump_vertical_buffer = []  # Reset buffer
-            jump_collecting = True
-            print("Takeoff detected")
+            print(f"[jump {device_ip}] Takeoff detected")
             break
         time.sleep(0.01)
     while True:
-        if not is_activity_session_active("jump", session_id):
-            jump_collecting = False
+        if not is_activity_session_active(device_ip, "jump", session_id):
             return 0.0, 0.0, True
-        if int(received_heel_data) >= JUMP_LANDING_PRESSURE or int(received_fore_data) >= JUMP_LANDING_PRESSURE:
+        snapshot = read_sensor_for_ip(device_ip)
+        if snapshot["heel_pressure"] >= JUMP_LANDING_PRESSURE or snapshot["fore_pressure"] >= JUMP_LANDING_PRESSURE:
             end_time = time.time()
-            jump_collecting = False
-            stop_combined_data_thread()
-            print("Landing detected")
+            print(f"[jump {device_ip}] Landing detected")
             break
         time.sleep(0.01)
     airtime = end_time - start_time
@@ -1869,60 +1927,60 @@ def get_airtime_and_height(session_id):
 @app.route('/start_jump')
 def start_jump():
     print("start_jump clicked")
-    global last_airtime, last_jump_height, jump_metrics_ready, submitted_name2
-    _, error_response = require_selected_group()
+    selected_group, error_response = require_selected_group()
     if error_response is not None:
         return error_response
-    session_id = create_activity_session("jump")
-    reset_jump_state(cancel_session=False)
+    device_ip = (selected_group.get("ip") or "").strip()
+    session_id = create_activity_session(device_ip, "jump")
+    reset_jump_state(device_ip=device_ip, cancel_session=False)
     start_combined_data_thread()
 
     time.sleep(0.3)
-    try:
-        standing_pressure = int(received_heel_data) + int(received_fore_data)
-    except (TypeError, ValueError):
-        standing_pressure = 0
+    snapshot = read_sensor_for_ip(device_ip)
+    standing_pressure = int(snapshot["heel_pressure"]) + int(snapshot["fore_pressure"])
     if standing_pressure <= 100:
-        reset_jump_state(cancel_session=True)
+        reset_jump_state(device_ip=device_ip, cancel_session=True)
         return jsonify({
             'status': 'warning',
             'message': 'Please stand on the insole before starting.'
         }), 400
 
-    airtime, height, was_cancelled = get_airtime_and_height(session_id)
+    airtime, height, was_cancelled = get_airtime_and_height(session_id, device_ip)
     if was_cancelled:
         return jsonify({'status': 'cancelled'})
-    last_airtime = airtime
-    last_jump_height = height
-    jump_metrics_ready = True
-
-    # with open("SonicSoleJump.txt", "a") as f:
-    #     f.write(f"{submitted_name2},{last_jump_height}\n")
+    per_board_set(jump_results, jump_results_lock, device_ip, {
+        "airtime": airtime,
+        "height": height,
+        "ready": True,
+    })
 
     return jsonify({'status': 'jump measured'})
 
 @app.route('/jump_metrics')
 def jump_metrics():
-    if not jump_metrics_ready:
-        return jsonify({
-            'airtime_seconds': 0.0,
-            'jump_height_meters': 0.0
-        })
+    device_ip, _, error = resolve_group_id_to_device_ip(request.args.get("group_id"))
+    if error:
+        return jsonify({'airtime_seconds': 0.0, 'jump_height_meters': 0.0, 'error': error}), 400
+    entry = per_board_get(jump_results, jump_results_lock, device_ip, default_jump_entry)
+    if not entry.get("ready"):
+        return jsonify({'airtime_seconds': 0.0, 'jump_height_meters': 0.0})
     return jsonify({
-        'airtime_seconds': last_airtime,
-        'jump_height_meters': last_jump_height
+        'airtime_seconds': entry["airtime"],
+        'jump_height_meters': entry["height"],
     })
 
 # balance
-balance_status = {
-    "status": "idle",
-    "reason": "",
-}
 
 
-def set_balance_status(status, reason=""):
-    global balance_status
-    balance_status = {"status": status, "reason": reason or ""}
+def set_balance_status(device_ip, status, reason=""):
+    per_board_update(
+        balance_results,
+        balance_results_lock,
+        device_ip,
+        default_balance_entry,
+        status=status,
+        reason=reason or "",
+    )
 
 
 def balancing_pressure(session_id, device_ip):
@@ -1932,88 +1990,115 @@ def balancing_pressure(session_id, device_ip):
     UDP and blocks until the RPi replies with OK/ERR. All threshold
     detection and timing happen on the RPi to avoid wireless jitter.
     """
-    global totalTime, recording_time
-
-    print(f"[balance] sending START balance to RPi at {device_ip}")
-    set_balance_status("measuring")
+    print(f"[balance {device_ip}] sending START balance to RPi")
+    set_balance_status(device_ip, "measuring")
     try:
         reply = send_rpi_activity_command(device_ip, "START balance")
     except ActivityCommandError as command_error:
-        print(f"[balance] command failed: {command_error.reason} ({command_error.detail})")
-        if session_id == get_balance_session_id():
-            recording_time = False
-            set_balance_status("error", command_error.reason)
+        print(f"[balance {device_ip}] command failed: {command_error.reason} ({command_error.detail})")
+        if session_id == get_balance_session_id(device_ip):
+            per_board_update(
+                balance_results,
+                balance_results_lock,
+                device_ip,
+                default_balance_entry,
+                recording=False,
+                status="error",
+                reason=command_error.reason,
+            )
         return
 
-    if session_id != get_balance_session_id():
-        print("[balance] session changed while waiting for RPi; discarding reply")
+    if session_id != get_balance_session_id(device_ip):
+        print(f"[balance {device_ip}] session changed while waiting for RPi; discarding reply")
         return
 
     if reply["success"] and reply.get("score") is not None:
         score_value = float(reply["score"])
-        totalTime = "{:.3f}".format(score_value)
-        recording_time = False
-        set_balance_status("done", reply.get("reason", ""))
-        print(f"[balance] score={score_value:.3f}s from RPi")
+        per_board_update(
+            balance_results,
+            balance_results_lock,
+            device_ip,
+            default_balance_entry,
+            total_time="{:.3f}".format(score_value),
+            recording=False,
+            status="done",
+            reason=reply.get("reason", ""),
+        )
+        print(f"[balance {device_ip}] score={score_value:.3f}s from RPi")
     else:
         reason = reply.get("reason") or "error"
-        print(f"[balance] RPi reported failure: {reason}")
-        recording_time = False
-        set_balance_status("error", reason)
+        print(f"[balance {device_ip}] RPi reported failure: {reason}")
+        per_board_update(
+            balance_results,
+            balance_results_lock,
+            device_ip,
+            default_balance_entry,
+            recording=False,
+            status="error",
+            reason=reason,
+        )
 
 
 @app.route('/balancing', methods=['GET'])
 def balancing():
+    device_ip, _, error = resolve_group_id_to_device_ip(request.args.get("group_id"))
+    if error:
+        return jsonify({'data': '0', 'done': False, 'status': 'idle', 'reason': '', 'error': error}), 400
+    entry = per_board_get(balance_results, balance_results_lock, device_ip, default_balance_entry)
     done = False
     try:
-        done = not recording_time and float(totalTime) != 0
-    except ValueError:
+        done = not entry["recording"] and float(entry["total_time"]) != 0
+    except (ValueError, KeyError):
         done = False
     return jsonify({
-        'data': totalTime,
+        'data': entry.get("total_time", "0"),
         'done': done,
-        'status': balance_status.get("status", "idle"),
-        'reason': balance_status.get("reason", ""),
+        'status': entry.get("status", "idle"),
+        'reason': entry.get("reason", ""),
     })
 
 
 @app.route('/button_click', methods=['POST'])
 def button_click():
-    global recording_time, totalTime
-    _, error_response = require_selected_group()
+    selected_group, error_response = require_selected_group()
     if error_response is not None:
         return error_response
 
-    device_ip = resolve_activity_device_ip()
+    device_ip = (selected_group.get("ip") or "").strip()
     if not device_ip:
         return jsonify({
             "status": "error",
             "message": "No SonicSole device is linked to the selected group yet.",
         }), 400
 
-    session_id = create_balance_session()
+    session_id = create_balance_session(device_ip)
     start_combined_data_thread()
 
     time.sleep(0.3)
-    try:
-        standing_pressure = int(received_heel_data) + int(received_fore_data)
-    except (TypeError, ValueError):
-        standing_pressure = 0
+    snapshot = read_sensor_for_ip(device_ip)
+    standing_pressure = int(snapshot["heel_pressure"]) + int(snapshot["fore_pressure"])
     if standing_pressure <= 100:
-        cancel_balance_session()
+        cancel_balance_session(device_ip)
         return jsonify({
             'status': 'warning',
             'message': 'Please stand on the insole before starting.'
         }), 400
 
-    set_balance_status("countdown")
+    set_balance_status(device_ip, "countdown")
     # Visual countdown runs in the browser; audio cues are emitted by the RPi.
     time.sleep(3.12)
-    if session_id != get_balance_session_id():
-        set_balance_status("idle")
+    if session_id != get_balance_session_id(device_ip):
+        set_balance_status(device_ip, "idle")
         return jsonify({"status": "Data transmission cancelled"})
-    recording_time = True
-    totalTime = "0"
+    per_board_update(
+        balance_results,
+        balance_results_lock,
+        device_ip,
+        default_balance_entry,
+        recording=True,
+        total_time="0",
+        status="measuring",
+    )
     thread = threading.Thread(
         target=balancing_pressure,
         args=(session_id, device_ip),
@@ -2025,21 +2110,24 @@ def button_click():
 # reaction time
 @app.route('/start_reaction')
 def start_reaction():
-    global reaction_data, threshold_heel, threshold_fore, received_fore_data, received_heel_data, submitted_name2, reaction_time
-    _, error_response = require_selected_group()
+    selected_group, error_response = require_selected_group()
     if error_response is not None:
         return error_response
-    device_ip = resolve_activity_device_ip()
+    device_ip = (selected_group.get("ip") or "").strip()
     if not device_ip:
         return jsonify({
             "status": "error",
             "message": "No SonicSole device is linked to the selected group yet.",
         }), 400
 
-    session_id = create_activity_session("reaction")
-    reset_reaction_state(cancel_session=False)
+    session_id = create_activity_session(device_ip, "reaction")
+    reset_reaction_state(device_ip=device_ip, cancel_session=False)
     start_combined_data_thread()
-    reaction_data = {"status": "timing", "reaction_time": 0.0}
+    per_board_set(reaction_results, reaction_results_lock, device_ip, {
+        "status": "timing",
+        "reaction_time": 0.0,
+        "reason": "",
+    })
 
     threading.Thread(
         target=_run_reaction_on_rpi,
@@ -2050,198 +2138,249 @@ def start_reaction():
 
 
 def _run_reaction_on_rpi(session_id, device_ip):
-    global reaction_data, reaction_time
     try:
         reply = send_rpi_activity_command(device_ip, "START reaction")
     except ActivityCommandError as command_error:
-        print(f"[reaction] command failed: {command_error.reason}")
-        if session_id == get_activity_session_id("reaction"):
-            reaction_data = {"status": "error", "reaction_time": 0.0, "reason": command_error.reason}
+        print(f"[reaction {device_ip}] command failed: {command_error.reason}")
+        if session_id == get_activity_session_id(device_ip, "reaction"):
+            per_board_set(reaction_results, reaction_results_lock, device_ip, {
+                "status": "error",
+                "reaction_time": 0.0,
+                "reason": command_error.reason,
+            })
         return
 
-    if session_id != get_activity_session_id("reaction"):
-        print("[reaction] session changed while waiting for RPi; discarding reply")
+    if session_id != get_activity_session_id(device_ip, "reaction"):
+        print(f"[reaction {device_ip}] session changed while waiting for RPi; discarding reply")
         return
 
     if reply["success"] and reply.get("score") is not None:
         score_value = round(float(reply["score"]), 4)
-        reaction_time = score_value
-        reaction_data = {"status": "success", "reaction_time": score_value}
-        print(f"[reaction] score={score_value}s from RPi")
+        per_board_set(reaction_results, reaction_results_lock, device_ip, {
+            "status": "success",
+            "reaction_time": score_value,
+            "reason": "",
+        })
+        print(f"[reaction {device_ip}] score={score_value}s from RPi")
         return
 
     reason = reply.get("reason") or "error"
     if reason == "too_early":
-        reaction_data = {"status": "invalid", "reaction_time": 0.0}
-        print("[reaction] RPi reported: too_early")
+        per_board_set(reaction_results, reaction_results_lock, device_ip, {
+            "status": "invalid",
+            "reaction_time": 0.0,
+            "reason": "",
+        })
+        print(f"[reaction {device_ip}] RPi reported: too_early")
         return
 
-    reaction_data = {"status": "error", "reaction_time": 0.0, "reason": reason}
-    print(f"[reaction] RPi reported failure: {reason}")
+    per_board_set(reaction_results, reaction_results_lock, device_ip, {
+        "status": "error",
+        "reaction_time": 0.0,
+        "reason": reason,
+    })
+    print(f"[reaction {device_ip}] RPi reported failure: {reason}")
 
 
 @app.route('/reaction_status')
 def reaction_status():
-    return jsonify(reaction_data)
+    device_ip, _, error = resolve_group_id_to_device_ip(request.args.get("group_id"))
+    if error:
+        return jsonify({**default_reaction_entry(), "error": error}), 400
+    entry = per_board_get(reaction_results, reaction_results_lock, device_ip, default_reaction_entry)
+    return jsonify(entry)
 
 # precision
 @app.route('/start_precision_trainer')
 def start_precision_trainer():
-    global precision_start_time
-    _, error_response = require_selected_group()
+    selected_group, error_response = require_selected_group()
     if error_response is not None:
         return error_response
-    session_id = create_activity_session("precision")
-    reset_precision_trainer_state(cancel_session=False)
-    precision_start_time = time.time()
-    thread = Thread(target=run_precision_trainer, args=(session_id,))
+    device_ip = (selected_group.get("ip") or "").strip()
+    if not device_ip:
+        return jsonify({
+            "status": "error",
+            "message": "No SonicSole device is linked to the selected group yet.",
+        }), 400
+    session_id = create_activity_session(device_ip, "precision")
+    reset_precision_trainer_state(device_ip=device_ip, cancel_session=False)
+    per_board_update(
+        precision_results,
+        precision_results_lock,
+        device_ip,
+        default_precision_entry,
+        start_time=time.time(),
+    )
+    thread = Thread(target=run_precision_trainer, args=(session_id, device_ip))
     thread.start()
     return '', 200
 
 @app.route('/precision_trainer_status')
 def precision_trainer_status():
-    global precision_start_time, precision_trainer_state
-    if precision_start_time is None:
-        return jsonify(
-            status="idle",
-            time=0.0,
-            target_percent=0,
-            target_force=0,
-            current_force=0,
-            current_percent=0,
-            max_force=PRECISION_FORCE_MAX
-        )
-    elapsed = time.time() - precision_start_time
+    device_ip, _, error = resolve_group_id_to_device_ip(request.args.get("group_id"))
+    if error:
+        return jsonify({**default_precision_entry(), "time": 0.0, "error": error}), 400
+    entry = per_board_get(precision_results, precision_results_lock, device_ip, default_precision_entry)
+    started_at = entry.get("start_time")
+    elapsed = (time.time() - started_at) if started_at else 0.0
     return jsonify(
-        status=precision_trainer_state['status'],
+        status=entry.get("status", "idle"),
         time=elapsed,
-        target_percent=precision_trainer_state.get('target_percent', 0),
-        target_force=precision_trainer_state.get('target_force', 0),
-        current_force=precision_trainer_state.get('current_force', 0),
-        current_percent=precision_trainer_state.get('current_percent', 0),
-        max_force=precision_trainer_state.get('max_force', PRECISION_FORCE_MAX)
+        target_percent=entry.get("target_percent", 0),
+        target_force=entry.get("target_force", 0),
+        current_force=entry.get("current_force", 0),
+        current_percent=entry.get("current_percent", 0),
+        max_force=entry.get("max_force", PRECISION_FORCE_MAX),
     )
 
-def run_precision_trainer(session_id):
-    global precision_trainer_state, received_fore_data, submitted_name2, precision_error
+def run_precision_trainer(session_id, device_ip):
     start_combined_data_thread()
     try:
-        precision_error = 0
         target_percent = random.choice(PRECISION_TARGET_PERCENTS)
         target_force = round((target_percent / 100.0) * PRECISION_FORCE_MAX)
-        precision_trainer_state['status'] = 'measuring'
-        precision_trainer_state['max_force'] = PRECISION_FORCE_MAX
-        precision_trainer_state['target_percent'] = target_percent
-        precision_trainer_state['target_force'] = target_force
-        precision_trainer_state['current_force'] = 0
-        precision_trainer_state['current_percent'] = 0
-        precision_trainer_state['measured_force'] = 0
-        precision_trainer_state['measured_percent'] = 0
-        precision_trainer_state['error_percent'] = 0
+        per_board_update(
+            precision_results,
+            precision_results_lock,
+            device_ip,
+            default_precision_entry,
+            status="measuring",
+            max_force=PRECISION_FORCE_MAX,
+            target_percent=target_percent,
+            target_force=target_force,
+            current_force=0,
+            current_percent=0,
+            measured_force=0,
+            measured_percent=0,
+            error_percent=0,
+        )
 
         start_time = time.time()
         while time.time() - start_time < PRECISION_CAPTURE_SECONDS:
-            if not is_activity_session_active("precision", session_id):
+            if not is_activity_session_active(device_ip, "precision", session_id):
                 return
-            current_force = get_precision_force_value(received_fore_data)
+            snapshot = read_sensor_for_ip(device_ip)
+            current_force = get_precision_force_value(snapshot["fore_pressure"])
             current_percent = round((current_force / PRECISION_FORCE_MAX) * 100, 1)
-            precision_trainer_state['current_force'] = current_force
-            precision_trainer_state['current_percent'] = current_percent
+            per_board_update(
+                precision_results,
+                precision_results_lock,
+                device_ip,
+                default_precision_entry,
+                current_force=current_force,
+                current_percent=current_percent,
+            )
             time.sleep(0.01)
 
-        if not is_activity_session_active("precision", session_id):
+        if not is_activity_session_active(device_ip, "precision", session_id):
             return
 
-        measured_force = get_precision_force_value(received_fore_data)
+        snapshot = read_sensor_for_ip(device_ip)
+        measured_force = get_precision_force_value(snapshot["fore_pressure"])
         measured_percent = round((measured_force / PRECISION_FORCE_MAX) * 100, 1)
-        precision_error = abs(measured_percent - target_percent)
-        precision_trainer_state['current_force'] = measured_force
-        precision_trainer_state['current_percent'] = measured_percent
-        precision_trainer_state['measured_force'] = measured_force
-        precision_trainer_state['measured_percent'] = measured_percent
-        precision_trainer_state['error_percent'] = round(precision_error, 1)
-        precision_trainer_state['status'] = 'done'
-        precision_error = round(precision_error, 3)
-
-        # with open("SonicSolePrecision.txt", "a") as f:
-        #     f.write(f"{submitted_name2},{precision_error}\n")
+        precision_error_value = abs(measured_percent - target_percent)
+        per_board_update(
+            precision_results,
+            precision_results_lock,
+            device_ip,
+            default_precision_entry,
+            current_force=measured_force,
+            current_percent=measured_percent,
+            measured_force=measured_force,
+            measured_percent=measured_percent,
+            error_percent=round(precision_error_value, 1),
+            status="done",
+        )
     finally:
         stop_combined_data_thread()
 
 @app.route('/precision_trainer_results')
 def precision_trainer_results():
+    device_ip, _, error = resolve_group_id_to_device_ip(request.args.get("group_id"))
+    if error:
+        return jsonify({**default_precision_entry(), "error": error}), 400
+    entry = per_board_get(precision_results, precision_results_lock, device_ip, default_precision_entry)
     return jsonify(
-        target_force=precision_trainer_state.get('target_force', 0),
-        measured_force=precision_trainer_state.get('measured_force', 0.0),
-        measured_percent=precision_trainer_state.get('measured_percent', 0.0),
-        error_percent=precision_trainer_state.get('error_percent', 0.0),
-        target_percent=precision_trainer_state.get('target_percent', 0),
-        max_force=precision_trainer_state.get('max_force', PRECISION_FORCE_MAX)
+        target_force=entry.get("target_force", 0),
+        measured_force=entry.get("measured_force", 0.0),
+        measured_percent=entry.get("measured_percent", 0.0),
+        error_percent=entry.get("error_percent", 0.0),
+        target_percent=entry.get("target_percent", 0),
+        max_force=entry.get("max_force", PRECISION_FORCE_MAX),
     )
 
 # fore walk
-@app.route('/start_forefoot', methods=['POST']) 
+@app.route('/start_forefoot', methods=['POST'])
 def start_forefoot():
-    global forefoot_status, forefoot_dist, threshold_heel, dt, forefoot_elapsed_time, received_heel_data, submitted_name2
-    _, error_response = require_selected_group()
+    selected_group, error_response = require_selected_group()
     if error_response is not None:
         return error_response
-    session_id = create_activity_session("forefoot")
-    reset_forefoot_state(cancel_session=False)
-    forefoot_status = "running"
-    received_heel_data = "0"
-    forefoot_dist = 0
+    device_ip = (selected_group.get("ip") or "").strip()
+    if not device_ip:
+        return jsonify({
+            "status": "error",
+            "message": "No SonicSole device is linked to the selected group yet.",
+        }), 400
+    session_id = create_activity_session(device_ip, "forefoot")
+    reset_forefoot_state(device_ip=device_ip, cancel_session=False)
+    per_board_update(
+        forefoot_results,
+        forefoot_results_lock,
+        device_ip,
+        default_forefoot_entry,
+        status="running",
+        distance_meters=0,
+        time=0,
+    )
     start_combined_data_thread()
     duration = 15.0
     start_time = time.time()
     ax_list = []
 
-    #for vector norm (fvn)
-    ay_list = []
-    az_list = []
-
     while time.time() - start_time < duration:
-        if not is_activity_session_active("forefoot", session_id):
+        if not is_activity_session_active(device_ip, "forefoot", session_id):
             return jsonify({"status": "cancelled"})
-        heel = int(received_heel_data)
+        snapshot = read_sensor_for_ip(device_ip)
+        heel = int(snapshot["heel_pressure"])
         if heel > threshold_heel:
-            forefoot_status = "invalid"
+            elapsed_time = round(time.time() - start_time, 1)
+            per_board_update(
+                forefoot_results,
+                forefoot_results_lock,
+                device_ip,
+                default_forefoot_entry,
+                status="invalid",
+                time=elapsed_time,
+            )
             stop_combined_data_thread()
-            forefoot_elapsed_time = round(time.time() - start_time, 1)
-            return jsonify({"status": "invalid", "time": forefoot_elapsed_time})
-        ax_list.append(ax)
-
-        ay_list.append(ay) #fvn
-        az_list.append(az) #fvn
-
-      #  ax_list.append(az)
+            return jsonify({"status": "invalid", "time": elapsed_time})
+        ax_list.append(snapshot["ax"])
         time.sleep(dt)
     stop_combined_data_thread()
-    print(f"Samples collected: {len(ax_list)}")
-    print(f"Samples collected: {ax_list}")
+    print(f"[forefoot {device_ip}] Samples collected: {len(ax_list)}")
 
-    # print(f"Samples collected: {len(ay_list)}") #fvn
-    # print(f"Samples collected: {ay_list}") #fvn
-    # print(f"Samples collected: {len(az_list)}") #fvn
-    # print(f"Samples collected: {az_list}") #fvn
+    distance_meters = round(estimate_distance_from_ax(ax_list,), 3)
 
-    forefoot_dist = round(estimate_distance_from_ax(ax_list,), 3)
+    per_board_update(
+        forefoot_results,
+        forefoot_results_lock,
+        device_ip,
+        default_forefoot_entry,
+        status="done",
+        distance_meters=distance_meters,
+    )
 
-    # forefoot_dist = round(estimate_distance_from_ax_vector_norm(ax_list, ay_list, az_list), 3) #fvn
-
-    forefoot_status = "done"
-                        
-    # with open("SonicSoleWalk.txt", "a") as f:
-    #     f.write(f"{submitted_name2},{forefoot_dist}\n")
-
-    return jsonify({"status": "done", "distance_meters": forefoot_dist})
+    return jsonify({"status": "done", "distance_meters": distance_meters})
 
 @app.route('/forefoot_status', methods=['GET'])
 def get_forefoot_status():
+    device_ip, _, error = resolve_group_id_to_device_ip(request.args.get("group_id"))
+    if error:
+        return jsonify({**default_forefoot_entry(), "error": error}), 400
+    entry = per_board_get(forefoot_results, forefoot_results_lock, device_ip, default_forefoot_entry)
     return jsonify({
-        'status': forefoot_status,
-        'distance_meters': forefoot_dist,
-        'time': forefoot_elapsed_time
+        'status': entry.get("status", "waiting"),
+        'distance_meters': entry.get("distance_meters", 0),
+        'time': entry.get("time", 0),
     })
 '''
 def estimate_distance_from_ax(ax_values): #later may want to add decay/kalman/low pass filter for drift
@@ -2436,7 +2575,11 @@ def phone_group_activity(group_slug, activity_slug):
         abort(404)
 
     if activity_slug == "balance":
-        cancel_balance_session()
+        # Phone is bound to one group — only cancel that board's balance, not
+        # everyone's, so other groups stay isolated.
+        phone_group = get_group_from_slug(group_slug)
+        phone_group_ip = (build_group_option(phone_group).get("ip") or "").strip() if phone_group else ""
+        cancel_balance_session(phone_group_ip or None)
 
     return render_phone_group_template(
         group_slug,
@@ -2878,59 +3021,58 @@ def disconnect_group_device():
     )
 
 
+def _resolve_submit_device_ip():
+    """Resolve the device IP whose score should be submitted from this request."""
+    payload = request.form
+    device_ip, _, _ = resolve_group_id_to_device_ip(payload.get("group_id"))
+    return device_ip
+
+
 @app.route('/submitB', methods=['POST'])
 def submitB():
-    global submitted_name, totalTime
+    global submitted_name
     submitted_name = get_group_name_from_request("group_name")
-
-    append_leaderboard_row("balance", submitted_name, totalTime)
+    device_ip = _resolve_submit_device_ip()
+    entry = per_board_get(balance_results, balance_results_lock, device_ip, default_balance_entry)
+    append_leaderboard_row("balance", submitted_name, entry.get("total_time", "0"))
     return jsonify({"status": "Group name submitted successfully"})
 
-# submit2 is unused
-# @app.route('/submit2', methods=['POST'])
-# def submit2():
-#     global submitted_name2, first_name2, last_name2
-#     first_name2 = request.form['first_name2']
-#     last_name2 = request.form['last_name2']
-#     submitted_name2 = first_name2 + " " + last_name2
-#     return jsonify({"status": "Name submitted successfully"})
-# recording_time = True
 
 @app.route('/submitR', methods=['POST'])
 def submitR():
-    global submitted_name2, reaction_time, forefoot_dist
+    global submitted_name2
     submitted_name2 = get_group_name_from_request("group_name")
-
-    append_leaderboard_row("reaction", submitted_name2, reaction_time)
-
+    device_ip = _resolve_submit_device_ip()
+    entry = per_board_get(reaction_results, reaction_results_lock, device_ip, default_reaction_entry)
+    append_leaderboard_row("reaction", submitted_name2, entry.get("reaction_time", 0))
     return jsonify({"status": "Group name submitted successfully"})
 
 @app.route('/submitW', methods=['POST'])
 def submitW():
-    global submitted_name2, reaction_time
+    global submitted_name2
     submitted_name2 = get_group_name_from_request("group_name")
-
-    append_leaderboard_row("walk", submitted_name2, forefoot_dist)
-
+    device_ip = _resolve_submit_device_ip()
+    entry = per_board_get(forefoot_results, forefoot_results_lock, device_ip, default_forefoot_entry)
+    append_leaderboard_row("walk", submitted_name2, entry.get("distance_meters", 0))
     return jsonify({"status": "Group name submitted successfully"})
 
 
 @app.route('/submitP', methods=['POST'])
 def submitP():
-    global submitted_name2, precision_error
+    global submitted_name2
     submitted_name2 = get_group_name_from_request("group_name")
-
-    append_leaderboard_row("precision", submitted_name2, precision_error)
-
+    device_ip = _resolve_submit_device_ip()
+    entry = per_board_get(precision_results, precision_results_lock, device_ip, default_precision_entry)
+    append_leaderboard_row("precision", submitted_name2, entry.get("error_percent", 0))
     return jsonify({"status": "Group name submitted successfully"})
 
 @app.route('/submitJ', methods=['POST'])
 def submitJ():
-    global submitted_name2, last_jump_height
+    global submitted_name2
     submitted_name2 = get_group_name_from_request("group_name")
-    
-    append_leaderboard_row("jump", submitted_name2, last_jump_height)
-
+    device_ip = _resolve_submit_device_ip()
+    entry = per_board_get(jump_results, jump_results_lock, device_ip, default_jump_entry)
+    append_leaderboard_row("jump", submitted_name2, entry.get("height", 0.0))
     return jsonify({"status": "Group name submitted successfully"})
 
 

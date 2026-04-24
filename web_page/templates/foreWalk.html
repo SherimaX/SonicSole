@@ -281,7 +281,7 @@
   function submitForm(event) {
     event.preventDefault();
     const form = document.getElementById("name-form");
-    const formData = new FormData(form);
+    const formData = window.appendGroupId(new FormData(form));
     fetch("/submitW", { method: "POST", body: formData }).then((res) => {
       if (res.ok) {
         form.style.display = "none";
@@ -333,7 +333,7 @@
       }
       const elapsed = ((Date.now() - startTime)/1000).toFixed(1);
       document.getElementById("timeBox").innerText = `Timer: ${elapsed}s`;
-      fetch("/forefoot_status")
+      fetch(window.withGroupQuery("/forefoot_status"))
         .then(res => res.json())
         .then(data => {
           if (!walkActivityToggle || !walkActivityToggle.isActive()) {

@@ -284,7 +284,7 @@
     function submitForm(event) {
       event.preventDefault();
       const form = document.getElementById("name-form");
-      const formData = new FormData(form);
+      const formData = window.appendGroupId(new FormData(form));
       fetch("/submitR", { method: "POST", body: formData }).then((response) => {
         if (response.ok) {
           form.style.display = "none";
@@ -326,7 +326,7 @@
       window.countdownPlayed = false;
 
       pollingInterval = setInterval(() => {
-        fetch("/reaction_status")
+        fetch(window.withGroupQuery("/reaction_status"))
           .then((res) => res.json())
           .then((data) => {
             if (!reactionActivityToggle || !reactionActivityToggle.isActive()) {

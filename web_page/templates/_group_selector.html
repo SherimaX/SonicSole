@@ -267,6 +267,23 @@
       });
   }
 
+  // Append the active group id as a `group_id` query parameter so per-board
+  // status endpoints (jump/balance/reaction/precision/forefoot) resolve to the
+  // right device. Works with both bare paths and paths that already have a query.
+  window.withGroupQuery = function (url) {
+    const groupId = window.sonicSoleSelectedGroup && window.sonicSoleSelectedGroup.id;
+    if (!groupId) return url;
+    const separator = url.indexOf("?") === -1 ? "?" : "&";
+    return url + separator + "group_id=" + encodeURIComponent(groupId);
+  };
+
+  // Same purpose as withGroupQuery but for FormData payloads (used by /submit*).
+  window.appendGroupId = function (formData) {
+    const groupId = window.sonicSoleSelectedGroup && window.sonicSoleSelectedGroup.id;
+    if (groupId) formData.append("group_id", groupId);
+    return formData;
+  };
+
   document.addEventListener("DOMContentLoaded", function () {
     updateSelectedGroupUI(window.sonicSoleSelectedGroup);
     if (!window.sonicSoleGroupLocked) {
