@@ -1237,11 +1237,26 @@ def reset_forefoot_state(device_ip=None, cancel_session=False):
         per_board_set(forefoot_results, forefoot_results_lock, target_ip, default_forefoot_entry())
 
 
+def stop_activities_for_ip(device_ip):
+    """Cancel in-flight activities for one specific board.
+
+    Used when a tab's Stop button fires with a known `group_id` — we only
+    want to kill that board's work, not every other board's concurrent
+    activity. Does NOT touch the shared UDP reader.
+    """
+    cancel_balance_session(device_ip)
+    reset_jump_state(device_ip=device_ip, cancel_session=True)
+    reset_reaction_state(device_ip=device_ip, cancel_session=True)
+    reset_precision_trainer_state(device_ip=device_ip, cancel_session=True)
+    reset_forefoot_state(device_ip=device_ip, cancel_session=True)
+
+
 def stop_all_activities():
     """Cancel any in-flight activity on every known board.
 
-    Used by `/stop_data` — a global panic button. Per-board flows should call
-    the activity-specific cancel with a device_ip instead.
+    Used by `/stop_data` as a global panic button when no group_id is
+    supplied. Per-board flows should pass `group_id` so only that board's
+    work is cancelled.
     """
     global R_heel, G_heel, R_fore, G_fore
     cancel_balance_session()
@@ -1622,8 +1637,22 @@ def fore_data():
 
 @app.route('/stop_data', methods=['GET', 'POST'])
 def stop_data():
-    print("[Flask] stop_data called")  
-    stop_all_activities()
+    # If the caller identifies a group, scope the cancel to that board only so
+    # we don't clobber other tabs' in-flight activities. Fall back to the
+    # legacy global panic stop when no group_id is supplied.
+    requested_group_id = _group_id_from_request()
+    device_ip = ""
+    if requested_group_id:
+        raw_group = GROUP_OPTIONS_BY_ID.get(requested_group_id)
+        if raw_group is not None:
+            device_ip = (build_group_option(raw_group).get("ip") or "").strip()
+
+    if device_ip:
+        print(f"[Flask] stop_data called for {device_ip}")
+        stop_activities_for_ip(device_ip)
+    else:
+        print("[Flask] stop_data called (global)")
+        stop_all_activities()
     return '', 204
 
 # color
@@ -2261,65 +2290,64 @@ def precision_trainer_status():
     )
 
 def run_precision_trainer(session_id, device_ip):
+    # Intentionally do NOT stop the UDP thread when this returns — other boards
+    # may still be mid-activity and need fresh sensor snapshots. The thread is
+    # stopped only by /stop_data (the global panic button).
     start_combined_data_thread()
-    try:
-        target_percent = random.choice(PRECISION_TARGET_PERCENTS)
-        target_force = round((target_percent / 100.0) * PRECISION_FORCE_MAX)
-        per_board_update(
-            precision_results,
-            precision_results_lock,
-            device_ip,
-            default_precision_entry,
-            status="measuring",
-            max_force=PRECISION_FORCE_MAX,
-            target_percent=target_percent,
-            target_force=target_force,
-            current_force=0,
-            current_percent=0,
-            measured_force=0,
-            measured_percent=0,
-            error_percent=0,
-        )
+    target_percent = random.choice(PRECISION_TARGET_PERCENTS)
+    target_force = round((target_percent / 100.0) * PRECISION_FORCE_MAX)
+    per_board_update(
+        precision_results,
+        precision_results_lock,
+        device_ip,
+        default_precision_entry,
+        status="measuring",
+        max_force=PRECISION_FORCE_MAX,
+        target_percent=target_percent,
+        target_force=target_force,
+        current_force=0,
+        current_percent=0,
+        measured_force=0,
+        measured_percent=0,
+        error_percent=0,
+    )
 
-        start_time = time.time()
-        while time.time() - start_time < PRECISION_CAPTURE_SECONDS:
-            if not is_activity_session_active(device_ip, "precision", session_id):
-                return
-            snapshot = read_sensor_for_ip(device_ip)
-            current_force = get_precision_force_value(snapshot["fore_pressure"])
-            current_percent = round((current_force / PRECISION_FORCE_MAX) * 100, 1)
-            per_board_update(
-                precision_results,
-                precision_results_lock,
-                device_ip,
-                default_precision_entry,
-                current_force=current_force,
-                current_percent=current_percent,
-            )
-            time.sleep(0.01)
-
+    start_time = time.time()
+    while time.time() - start_time < PRECISION_CAPTURE_SECONDS:
         if not is_activity_session_active(device_ip, "precision", session_id):
             return
-
         snapshot = read_sensor_for_ip(device_ip)
-        measured_force = get_precision_force_value(snapshot["fore_pressure"])
-        measured_percent = round((measured_force / PRECISION_FORCE_MAX) * 100, 1)
-        precision_error_value = abs(measured_percent - target_percent)
+        current_force = get_precision_force_value(snapshot["fore_pressure"])
+        current_percent = round((current_force / PRECISION_FORCE_MAX) * 100, 1)
         per_board_update(
             precision_results,
             precision_results_lock,
             device_ip,
             default_precision_entry,
-            current_force=measured_force,
-            current_percent=measured_percent,
-            measured_force=measured_force,
-            measured_percent=measured_percent,
-            error_percent=round(precision_error_value, 1),
-            status="done",
+            current_force=current_force,
+            current_percent=current_percent,
         )
-    # Intentionally do NOT stop the UDP thread here — other boards may still be
-    # mid-activity and need fresh sensor snapshots. The thread is stopped only
-    # by /stop_data (the global panic button).
+        time.sleep(0.01)
+
+    if not is_activity_session_active(device_ip, "precision", session_id):
+        return
+
+    snapshot = read_sensor_for_ip(device_ip)
+    measured_force = get_precision_force_value(snapshot["fore_pressure"])
+    measured_percent = round((measured_force / PRECISION_FORCE_MAX) * 100, 1)
+    precision_error_value = abs(measured_percent - target_percent)
+    per_board_update(
+        precision_results,
+        precision_results_lock,
+        device_ip,
+        default_precision_entry,
+        current_force=measured_force,
+        current_percent=measured_percent,
+        measured_force=measured_force,
+        measured_percent=measured_percent,
+        error_percent=round(precision_error_value, 1),
+        status="done",
+    )
 
 @app.route('/precision_trainer_results')
 def precision_trainer_results():
@@ -2664,8 +2692,11 @@ def precision():
 
 @app.route('/balance')
 def balance():
+    # Just render the page — do NOT cancel balance globally here. Other tabs
+    # (other boards) may be mid-measurement, and opening /balance in a new tab
+    # shouldn't kill their in-flight sessions. The user can always hit Stop
+    # to cancel their own board's balance.
     clear_selected_group()
-    cancel_balance_session()
     return render_template('balance.html')
 
 @app.route('/assemblyInstructions')
