@@ -306,6 +306,71 @@
       margin-bottom: 0.85rem;
     }
 
+    .materials-grid {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.9rem;
+    }
+
+    .materials-subheading {
+      margin: 1.25rem 0 0.75rem;
+    }
+
+    .material-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(127, 184, 212, 0.35);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(8, 26, 40, 0.08);
+    }
+
+    .material-card__image {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .material-card__image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 0.35rem;
+    }
+
+    .material-card__placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(21, 62, 92, 0.55);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: repeating-linear-gradient(45deg, #eef4f8, #eef4f8 8px, #f7fafc 8px, #f7fafc 16px);
+    }
+
+    .material-card__label {
+      color: var(--primary-color);
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.3;
+    }
+
     .step-note {
       display: block;
       margin-top: 0.35rem;
@@ -1966,17 +2031,59 @@
         <div class="setup-track">
           <div class="panel panel--left setup-slide">
             <h4>Materials</h4>
-            <ul class="materials-list">
-              <li>
-                The <span class="clickable" onclick="openModal('HardwareImageModal')">hardware assembly</span>,
-                3D-printed case, <span class="clickable" onclick="openModal('logicImageModal')">logic unit</span>,
-                and two foam sheets
+            <ul class="materials-grid">
+              <li class="material-card">
+                <div class="material-card__image">
+                  <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="3D Printed Case">
+                </div>
+                <span class="material-card__label">3D Printed Case</span>
               </li>
-              <li>
-                A pair of <span class="clickable" onclick="openModal('InsoleImageModal')">insoles</span>
-                sized for the user
+              <li class="material-card">
+                <div class="material-card__image">
+                  <img src="{{ url_for('static', filename='Hardware.png') }}" alt="Data Processing Board">
+                </div>
+                <span class="material-card__label">Data Processing Board</span>
+              </li>
+              <li class="material-card">
+                <div class="material-card__image">
+                  <img src="{{ url_for('static', filename='image0.jpeg') }}" alt="3D Printed Insole">
+                </div>
+                <span class="material-card__label">3D Printed Insole</span>
+              </li>
+              <li class="material-card">
+                <div class="material-card__image">
+                  <img src="{{ url_for('static', filename='foam.png') }}" alt="Foam Sheet"
+                       onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Foam Sheet'}));">
+                </div>
+                <span class="material-card__label">Foam Sheet</span>
+              </li>
+              <li class="material-card">
+                <div class="material-card__image">
+                  <img src="{{ url_for('static', filename='sensor.png') }}" alt="Pressure Sensor"
+                       onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Sensor'}));">
+                </div>
+                <span class="material-card__label">Sensor</span>
               </li>
             </ul>
+
+            <h4 class="materials-subheading">Tools</h4>
+            <ul class="materials-grid">
+              <li class="material-card">
+                <div class="material-card__image">
+                  <img src="{{ url_for('static', filename='glue.png') }}" alt="Glue"
+                       onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Glue'}));">
+                </div>
+                <span class="material-card__label">Glue</span>
+              </li>
+              <li class="material-card">
+                <div class="material-card__image">
+                  <img src="{{ url_for('static', filename='scissors.png') }}" alt="Scissors"
+                       onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Scissors'}));">
+                </div>
+                <span class="material-card__label">Scissors</span>
+              </li>
+            </ul>
+
             <div class="slide-actions">
               <button type="button" onclick="goToSlide(1)">Next</button>
             </div>
