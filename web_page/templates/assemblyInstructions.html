@@ -2034,7 +2034,8 @@
             <ul class="materials-grid">
               <li class="material-card">
                 <div class="material-card__image">
-                  <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="3D Printed Case">
+                  <img src="{{ url_for('static', filename='Case.jpeg') }}" alt="3D Printed Case"
+                       onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Case'}));">
                 </div>
                 <span class="material-card__label">3D Printed Case</span>
               </li>
@@ -2059,30 +2060,30 @@
                 </div>
                 <span class="material-card__label">Sensor</span>
               </li>
+              <li class="material-card">
+                <div class="material-card__image">
+                  <img src="{{ url_for('static', filename='battery.jpeg') }}" alt="Battery"
+                       onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Battery'}));">
+                </div>
+                <span class="material-card__label">Battery</span>
+              </li>
             </ul>
 
             <h4 class="materials-subheading">Tools</h4>
             <ul class="materials-grid">
               <li class="material-card">
                 <div class="material-card__image">
-                  <img src="{{ url_for('static', filename='glue.png') }}" alt="Glue"
+                  <img src="{{ url_for('static', filename='glue.jpeg') }}" alt="Glue"
                        onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Glue'}));">
                 </div>
                 <span class="material-card__label">Glue</span>
               </li>
               <li class="material-card">
                 <div class="material-card__image">
-                  <img src="{{ url_for('static', filename='scissors.png') }}" alt="Scissors"
+                  <img src="{{ url_for('static', filename='scissors.jpeg') }}" alt="Scissors"
                        onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Scissors'}));">
                 </div>
                 <span class="material-card__label">Scissors</span>
-              </li>
-              <li class="material-card">
-                <div class="material-card__image">
-                  <img src="{{ url_for('static', filename='tape.jpeg') }}" alt="Tape"
-                       onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Tape'}));">
-                </div>
-                <span class="material-card__label">Tape</span>
               </li>
             </ul>
 
@@ -2099,20 +2100,17 @@
                 size that best fits your shoe.
               </li>
               <li>
-                Trim the <span class="clickable" onclick="openModal('FoamImageModal')">foam sheet</span>
-                to match the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>
-                outline.
+                <span class="clickable" onclick="openModal('TrimFoamImageModal')">Trim the foam sheet to match the insole outline.</span>
               </li>
               <li>
-                Place the <span class="clickable" onclick="openModal('SensorImageModal')">sensors</span>
-                onto the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>
-                and secure them with <span class="clickable" onclick="openModal('TapeImageModal')">tape</span>.
+                <span class="clickable" onclick="openModal('PlaceSensorsImageModal')">Place the sensors onto the insole and secure them with tape.</span>
               </li>
               <li>
-                Apply glue and press the trimmed <span class="clickable" onclick="openModal('FoamImageModal')">foam</span>
-                onto the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>.
+                <span class="clickable" onclick="openModal('AddGlueImageModal')">Apply glue and press the trimmed foam onto the insole.</span>
               </li>
-              <li>Let the glue dry before moving on.</li>
+              <li>
+                <span class="clickable" onclick="openModal('GlueInsoleImageModal')">Let the glue dry before moving on.</span>
+              </li>
             </ol>
             <div class="slide-actions">
               <button type="button" onclick="goToSlide(0)">Previous</button>
@@ -2127,7 +2125,7 @@
                 Open the <span class="clickable" onclick="openModal('CaseImageModal')">3D printed case</span>.
               </li>
               <li>
-                Connect the battery.
+                Connect the <span class="clickable" onclick="openModal('BatteryImageModal')">battery</span>.
                 <span class="step-note">
                   Wait 3 to 5 minutes for the board to boot up before continuing.
                 </span>
@@ -2138,7 +2136,7 @@
               </li>
               <li>Close the lid.</li>
               <li>
-                Plug in the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>.
+                Plug in the <span class="clickable" onclick="openModal('GlueInsoleImageModal')">insole</span>.
               </li>
             </ol>
             <div class="slide-actions">
@@ -2239,7 +2237,7 @@
     <div class="modal-content">
       <span class="close" onclick="closeModal('CaseImageModal')">&times;</span>
       <h2>3D Printed Case</h2>
-      <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="3D Printed Case">
+      <img src="{{ url_for('static', filename='Case.jpeg') }}" alt="3D Printed Case">
     </div>
   </div>
 
@@ -2248,6 +2246,46 @@
       <span class="close" onclick="closeModal('PCBImageModal')">&times;</span>
       <h2>Data Processing Board (PCB)</h2>
       <img src="{{ url_for('static', filename='PCB.jpeg') }}" alt="Data Processing Board">
+    </div>
+  </div>
+
+  <div id="BatteryImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('BatteryImageModal')">&times;</span>
+      <h2>Battery</h2>
+      <img src="{{ url_for('static', filename='battery.jpeg') }}" alt="Battery">
+    </div>
+  </div>
+
+  <div id="TrimFoamImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('TrimFoamImageModal')">&times;</span>
+      <h2>Trim the Foam</h2>
+      <img src="{{ url_for('static', filename='trim_foam.jpeg') }}" alt="Trim foam to match insole">
+    </div>
+  </div>
+
+  <div id="PlaceSensorsImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('PlaceSensorsImageModal')">&times;</span>
+      <h2>Place the Sensors</h2>
+      <img src="{{ url_for('static', filename='place_sensors.jpeg') }}" alt="Sensors taped to insole">
+    </div>
+  </div>
+
+  <div id="AddGlueImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('AddGlueImageModal')">&times;</span>
+      <h2>Apply Glue</h2>
+      <img src="{{ url_for('static', filename='add_glue.jpeg') }}" alt="Applying glue to insole">
+    </div>
+  </div>
+
+  <div id="GlueInsoleImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('GlueInsoleImageModal')">&times;</span>
+      <h2>Let the Glue Dry</h2>
+      <img src="{{ url_for('static', filename='glue_insole.jpeg') }}" alt="Glued insole drying">
     </div>
   </div>
 
