@@ -1,0 +1,19 @@
+[Unit]
+Description=SonicSole boot: connect Wi-Fi then run combined sender
+After=network.target sound.target
+# Don't use network-online.target here: we WANT to run even when offline,
+# since the script itself handles the wait-for-Wi-Fi loop.
+
+[Service]
+Type=simple
+User=root
+# Edit WorkingDirectory to match where the repo lives on the Pi.
+WorkingDirectory=/root/SonicSole
+ExecStart=/root/SonicSole/boot_wifi_then_run.sh
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
