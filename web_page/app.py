@@ -2954,4 +2954,21 @@ def button():
 if __name__ == '__main__':
     start_discovery_listener()
     flask_port = int(os.environ.get("SONICSOLE_PORT", os.environ.get("PORT", "5001")))
+
+    lan_ips = []
+    try:
+        probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        probe.settimeout(0.2)
+        probe.connect(("192.168.1.1", 1))
+        lan_ips.append(probe.getsockname()[0])
+        probe.close()
+    except OSError:
+        pass
+
+    print(f" * SonicSole server starting on port {flask_port}", flush=True)
+    print(f" * Local:   http://127.0.0.1:{flask_port}", flush=True)
+    for ip in lan_ips:
+        print(f" * Network: http://{ip}:{flask_port}", flush=True)
+    print(" * (werkzeug request logs are silenced; press Ctrl+C to stop)", flush=True)
+
     app.run(host='0.0.0.0', port=flask_port, debug=False)
