@@ -376,7 +376,7 @@
       resetBalanceUI();
       startCountdown();
 
-      const response = await fetch("/button_click", { method: "POST", signal });
+      const response = await fetch(window.withGroupQuery("/button_click"), { method: "POST", signal });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "Unable to start balancing.");

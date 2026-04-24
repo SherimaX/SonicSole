@@ -513,8 +513,47 @@ def activate_selected_group():
     return selected_group
 
 
+def _group_id_from_request():
+    """Pick up an explicit group_id from the request (query first, then form/JSON).
+
+    Activity-start endpoints accept this so concurrent tabs in the same browser
+    don't collide on the shared Flask session cookie — each tab passes its own
+    `group_id` instead of relying on whichever group was last selected globally.
+    """
+    requested = (request.args.get("group_id") or "").strip()
+    if requested:
+        return requested
+    requested = (request.form.get("group_id") or "").strip()
+    if requested:
+        return requested
+    payload = request.get_json(silent=True) or {}
+    if isinstance(payload, dict):
+        requested = (payload.get("group_id") or "").strip()
+        if requested:
+            return requested
+    return ""
+
+
 def require_selected_group():
-    selected_group = get_selected_group()
+    """Resolve the group an activity should target.
+
+    Prefers an explicit `group_id` from the request — that lets per-tab JS
+    pin the start to the tab's own group. Falls back to the session-bound
+    selection for legacy callers and the desktop single-board flow.
+    """
+    requested_group_id = _group_id_from_request()
+    selected_group = None
+    if requested_group_id:
+        raw_group = GROUP_OPTIONS_BY_ID.get(requested_group_id)
+        if raw_group is None:
+            return None, (
+                jsonify({"status": "error", "message": "Unknown group selection."}),
+                400,
+            )
+        selected_group = build_group_option(raw_group)
+    else:
+        selected_group = get_selected_group()
+
     if selected_group is None:
         return None, (
             jsonify(
@@ -540,19 +579,7 @@ def require_selected_group():
             400,
         )
 
-    selected_group = activate_selected_group()
-    if selected_group is not None:
-        return selected_group, None
-
-    return None, (
-        jsonify(
-            {
-                "status": "error",
-                "message": "Unable to activate the selected group.",
-            }
-        ),
-        400,
-    )
+    return selected_group, None
 
 
 def get_group_name_from_request(*preferred_fields):
@@ -2290,8 +2317,9 @@ def run_precision_trainer(session_id, device_ip):
             error_percent=round(precision_error_value, 1),
             status="done",
         )
-    finally:
-        stop_combined_data_thread()
+    # Intentionally do NOT stop the UDP thread here — other boards may still be
+    # mid-activity and need fresh sensor snapshots. The thread is stopped only
+    # by /stop_data (the global panic button).
 
 @app.route('/precision_trainer_results')
 def precision_trainer_results():
@@ -2351,11 +2379,9 @@ def start_forefoot():
                 status="invalid",
                 time=elapsed_time,
             )
-            stop_combined_data_thread()
             return jsonify({"status": "invalid", "time": elapsed_time})
         ax_list.append(snapshot["ax"])
         time.sleep(dt)
-    stop_combined_data_thread()
     print(f"[forefoot {device_ip}] Samples collected: {len(ax_list)}")
 
     distance_meters = round(estimate_distance_from_ax(ax_list,), 3)
