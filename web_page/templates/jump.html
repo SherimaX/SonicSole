@@ -345,7 +345,7 @@
     function submitForm(event) {
       event.preventDefault();
       const form = document.getElementById("name-form");
-      const formData = new FormData(form);
+      const formData = window.appendGroupId(new FormData(form));
       fetch("/submitJ", { method: "POST", body: formData }).then((response) => {
         if (response.ok) {
           form.style.display = "none";
@@ -376,7 +376,7 @@
     function pollJumpData() {
       if (jumpCompleted || !jumpActivityToggle || !jumpActivityToggle.isActive()) return;
 
-      fetch("/jump_metrics")
+      fetch(window.withGroupQuery("/jump_metrics"))
         .then(res => res.json())
         .then(data => {
           if (!jumpActivityToggle || !jumpActivityToggle.isActive()) {

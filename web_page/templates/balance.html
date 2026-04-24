@@ -312,7 +312,7 @@
         return;
       }
 
-      fetch("/balancing")
+      fetch(window.withGroupQuery("/balancing"))
         .then((response) => response.json())
         .then((data) => {
           const toggleActive = balanceActivityToggle && balanceActivityToggle.isActive();
@@ -346,7 +346,7 @@
       }
 
       const form = document.getElementById("name-form");
-      const formData = new FormData(form);
+      const formData = window.appendGroupId(new FormData(form));
       fetch("/submitB", { method: "POST", body: formData })
         .then((response) => {
           if (response.ok) {

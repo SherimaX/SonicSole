@@ -390,7 +390,7 @@
     function submitForm(event) {
       event.preventDefault();
       const form = document.getElementById("name-form");
-      const formData = new FormData(form);
+      const formData = window.appendGroupId(new FormData(form));
       fetch("/submitP", { method: "POST", body: formData }).then((response) => {
         if (response.ok) {
           form.style.display = "none";
@@ -457,7 +457,7 @@
     }
 
     function fetchTrainerStatus() {
-      fetch("/precision_trainer_status")
+      fetch(window.withGroupQuery("/precision_trainer_status"))
         .then(res => res.json())
         .then(data => {
           if (!precisionActivityToggle || !precisionActivityToggle.isActive()) {
@@ -497,7 +497,7 @@
     }
 
     function showFinalResults() {
-      fetch("/precision_trainer_results")
+      fetch(window.withGroupQuery("/precision_trainer_results"))
         .then(res => res.json())
         .then(data => {
           if (!precisionActivityToggle) {
