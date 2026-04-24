@@ -6,7 +6,14 @@ function createHandledActivityError(message) {
 
 async function stopActivitySession() {
   try {
-    await fetch("/stop_data", { method: "POST" });
+    // Scope the stop to the tab's own group so other tabs/boards in flight
+    // aren't cancelled along with this one. Falls back to a bare /stop_data
+    // (global panic) when no group is selected.
+    const url =
+      typeof window.withGroupQuery === "function"
+        ? window.withGroupQuery("/stop_data")
+        : "/stop_data";
+    await fetch(url, { method: "POST" });
   } catch (error) {
     console.error("Unable to stop activity session.", error);
   }
