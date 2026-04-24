@@ -2040,26 +2040,21 @@
               </li>
               <li class="material-card">
                 <div class="material-card__image">
-                  <img src="{{ url_for('static', filename='Hardware.png') }}" alt="Data Processing Board">
-                </div>
-                <span class="material-card__label">Data Processing Board</span>
-              </li>
-              <li class="material-card">
-                <div class="material-card__image">
-                  <img src="{{ url_for('static', filename='image0.jpeg') }}" alt="3D Printed Insole">
+                  <img src="{{ url_for('static', filename='insole.jpeg') }}" alt="3D Printed Insole"
+                       onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Insole'}));">
                 </div>
                 <span class="material-card__label">3D Printed Insole</span>
               </li>
               <li class="material-card">
                 <div class="material-card__image">
-                  <img src="{{ url_for('static', filename='foam.png') }}" alt="Foam Sheet"
+                  <img src="{{ url_for('static', filename='foam.jpeg') }}" alt="Foam Sheet"
                        onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Foam Sheet'}));">
                 </div>
                 <span class="material-card__label">Foam Sheet</span>
               </li>
               <li class="material-card">
                 <div class="material-card__image">
-                  <img src="{{ url_for('static', filename='sensor.png') }}" alt="Pressure Sensor"
+                  <img src="{{ url_for('static', filename='sensor.jpeg') }}" alt="Pressure Sensor"
                        onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Sensor'}));">
                 </div>
                 <span class="material-card__label">Sensor</span>
@@ -2082,6 +2077,13 @@
                 </div>
                 <span class="material-card__label">Scissors</span>
               </li>
+              <li class="material-card">
+                <div class="material-card__image">
+                  <img src="{{ url_for('static', filename='tape.jpeg') }}" alt="Tape"
+                       onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'material-card__placeholder',textContent:'Tape'}));">
+                </div>
+                <span class="material-card__label">Tape</span>
+              </li>
             </ul>
 
             <div class="slide-actions">
@@ -2090,21 +2092,27 @@
           </div>
 
           <div class="panel panel--left setup-slide">
-            <h4>Prepare the Case</h4>
+            <h4>Prepare the Insole</h4>
             <ol class="assembly-steps">
               <li>
-                Insert the <span class="clickable" onclick="openModal('logicImageModal')">logic unit</span>
-                into the 3D-printed case and close it.
-                <span class="step-note">
-                  Place the battery at the bottom of the case, the cable connector
-                  at the top, and the speaker in the lower indent.
-                </span>
+                Pick the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>
+                size that best fits your shoe.
               </li>
               <li>
-                Place both <span class="clickable" onclick="openModal('InsoleImageModal')">insoles</span>
-                face down on a foam sheet and trace their outlines with a marker.
+                Trim the <span class="clickable" onclick="openModal('FoamImageModal')">foam sheet</span>
+                to match the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>
+                outline.
               </li>
-              <li>Cut the foam along the outlines you traced.</li>
+              <li>
+                Place the <span class="clickable" onclick="openModal('SensorImageModal')">sensors</span>
+                onto the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>
+                and secure them with <span class="clickable" onclick="openModal('TapeImageModal')">tape</span>.
+              </li>
+              <li>
+                Apply glue and press the trimmed <span class="clickable" onclick="openModal('FoamImageModal')">foam</span>
+                onto the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>.
+              </li>
+              <li>Let the glue dry before moving on.</li>
             </ol>
             <div class="slide-actions">
               <button type="button" onclick="goToSlide(0)">Previous</button>
@@ -2113,23 +2121,19 @@
           </div>
 
           <div class="panel panel--left setup-slide">
-            <h4>Attach the Hardware</h4>
+            <h4>Install the Hardware</h4>
             <ol class="assembly-steps">
               <li>
-                Attach the <span class="clickable" onclick="openModal('HardwareImageModal')">hardware assembly</span>
-                to the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>
-                for the dominant foot.
-                <span class="step-note">
-                  Remove the backing paper from both pressure sensors and place them
-                  on the marked heel and forefoot locations.
-                </span>
-                <span class="step-note">
-                  Fold the large white wire along the insole, tape it down, and
-                  route the connector out near the heel.
-                </span>
-                <span class="step-note">
-                  Secure any loose wires or hardware with tape before moving on.
-                </span>
+                Open the <span class="clickable" onclick="openModal('CaseImageModal')">3D printed case</span>.
+              </li>
+              <li>Connect the battery.</li>
+              <li>
+                Place the <span class="clickable" onclick="openModal('PCBImageModal')">PCB board</span>
+                back into the <span class="clickable" onclick="openModal('CaseImageModal')">case</span>.
+              </li>
+              <li>Close the lid.</li>
+              <li>
+                Plug in the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>.
               </li>
             </ol>
             <div class="slide-actions">
@@ -2139,39 +2143,19 @@
           </div>
 
           <div class="panel panel--left setup-slide">
-            <h4>Finish the Insole</h4>
+            <h4>Wear the Insole</h4>
             <ol class="assembly-steps">
               <li>
-                Glue the foam onto both insoles with tacky glue and let it dry for
-                5 to 10 minutes.
-                <span class="step-note">
-                  On the instrumented insole, keep the glue on the edges so the
-                  wiring is not compressed.
-                </span>
+                Put the <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>
+                into the shoe.
               </li>
               <li>
-                Plug the large white cable from the instrumented
-                <span class="clickable" onclick="openModal('InsoleImageModal')">insole</span>
-                into the <span class="clickable" onclick="openModal('logicImageModal')">logic unit</span>
-                through the slot in the 3D-printed case.
+                Attach the <span class="clickable" onclick="openModal('CaseImageModal')">box</span>
+                to the shoe.
               </li>
             </ol>
             <div class="slide-actions">
               <button type="button" onclick="goToSlide(2)">Previous</button>
-              <button type="button" onclick="goToSlide(4)">Next</button>
-            </div>
-          </div>
-
-          <div class="panel panel--left setup-slide">
-            <h4>Wear the System</h4>
-            <ol class="assembly-steps">
-              <li>
-                Place both insoles inside the shoes, then clip the case securely to
-                the shoe.
-              </li>
-            </ol>
-            <div class="slide-actions">
-              <button type="button" onclick="goToSlide(3)">Previous</button>
               <button type="button" onclick="openModal('sensorCheckModal')">Sensor Check</button>
             </div>
           </div>
@@ -2182,7 +2166,6 @@
         <button type="button" class="slide-dot" aria-label="Go to slide 2" aria-current="false" onclick="goToSlide(1)"></button>
         <button type="button" class="slide-dot" aria-label="Go to slide 3" aria-current="false" onclick="goToSlide(2)"></button>
         <button type="button" class="slide-dot" aria-label="Go to slide 4" aria-current="false" onclick="goToSlide(3)"></button>
-        <button type="button" class="slide-dot" aria-label="Go to slide 5" aria-current="false" onclick="goToSlide(4)"></button>
       </div>
     </div>
   </main>
@@ -2218,7 +2201,48 @@
     <div class="modal-content">
       <span class="close" onclick="closeModal('InsoleImageModal')">&times;</span>
       <h2>Custom 3D Printed (TPU) Insole</h2>
-      <img src="{{ url_for('static', filename='image0.jpeg') }}" alt="Custom Insole">
+      <img src="{{ url_for('static', filename='insole.jpeg') }}" alt="Custom Insole"
+           onerror="this.onerror=null;this.src='{{ url_for('static', filename='image0.jpeg') }}';">
+    </div>
+  </div>
+
+  <div id="FoamImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('FoamImageModal')">&times;</span>
+      <h2>Foam Sheet</h2>
+      <img src="{{ url_for('static', filename='foam.jpeg') }}" alt="Foam Sheet">
+    </div>
+  </div>
+
+  <div id="SensorImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('SensorImageModal')">&times;</span>
+      <h2>Pressure Sensor</h2>
+      <img src="{{ url_for('static', filename='sensor.jpeg') }}" alt="Pressure Sensor">
+    </div>
+  </div>
+
+  <div id="TapeImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('TapeImageModal')">&times;</span>
+      <h2>Tape</h2>
+      <img src="{{ url_for('static', filename='tape.jpeg') }}" alt="Tape">
+    </div>
+  </div>
+
+  <div id="CaseImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('CaseImageModal')">&times;</span>
+      <h2>3D Printed Case</h2>
+      <img src="{{ url_for('static', filename='logicBoard.png') }}" alt="3D Printed Case">
+    </div>
+  </div>
+
+  <div id="PCBImageModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('PCBImageModal')">&times;</span>
+      <h2>Data Processing Board (PCB)</h2>
+      <img src="{{ url_for('static', filename='PCB.jpeg') }}" alt="Data Processing Board">
     </div>
   </div>
 
