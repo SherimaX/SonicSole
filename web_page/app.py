@@ -16,8 +16,6 @@ import numpy as np
 import logging
 from threading import Thread
 
-import queue
-
 logging.getLogger('werkzeug').disabled = True #Suppress werkzeug logs
 
 app = Flask(__name__)
@@ -476,48 +474,24 @@ def get_selected_group():
     return build_group_option(group)
 
 
-def set_selected_group(group_id, activate_device=False):
+def set_selected_group(group_id):
+    """Persist which group this browser session is currently viewing.
+
+    Used for template rendering (so page loads know which group's label to
+    display) and for legacy non-activity fallbacks. Activity endpoints
+    never read the session — they require an explicit `group_id` param.
+    """
     group = GROUP_OPTIONS_BY_ID.get(group_id)
     if group is None:
         session.pop("selected_group_id", None)
-        if activate_device:
-            set_active_device_ip(None)
         return None
 
     session["selected_group_id"] = group_id
-    selected_group = build_group_option(group)
-    if activate_device:
-        set_active_device_ip((selected_group or {}).get("ip"))
-    return selected_group
+    return build_group_option(group)
 
 
 def clear_selected_group():
     session.pop("selected_group_id", None)
-    set_active_device_ip(None)
-
-
-def set_active_device_ip(device_ip):
-    global active_device_ip
-    with active_device_ip_lock:
-        active_device_ip = device_ip.strip() if device_ip else None
-
-
-def get_active_device_ip():
-    with active_device_ip_lock:
-        return active_device_ip
-
-
-def activate_selected_group():
-    selected_group = get_selected_group()
-    if selected_group is None:
-        return None
-
-    device_ip = (selected_group.get("ip") or "").strip()
-    if not device_ip:
-        return None
-
-    set_active_device_ip(device_ip)
-    return selected_group
 
 
 def _group_id_from_request():
@@ -544,9 +518,10 @@ def _group_id_from_request():
 def require_selected_group():
     """Resolve the group an activity should target.
 
-    Prefers an explicit `group_id` from the request — that lets per-tab JS
-    pin the start to the tab's own group. Falls back to the session-bound
-    selection for legacy callers and the desktop single-board flow.
+    Prefers an explicit `group_id` from the request — the per-tab JS sets that
+    via `withGroupQuery` / `appendGroupId`, so two tabs can't alias to the
+    same board. Falls back to the session-bound selection when the request
+    didn't carry an explicit group_id (single-board legacy flow).
     """
     requested_group_id = _group_id_from_request()
     selected_group = None
@@ -969,30 +944,13 @@ ACTIVITY_COMMAND_PORT = int(os.environ.get("SONICSOLE_ACTIVITY_PORT", "21010"))
 ACTIVITY_COMMAND_TIMEOUT_SECONDS = float(os.environ.get("SONICSOLE_ACTIVITY_TIMEOUT", "180.0"))
 ACTIVITY_RESPONSE_BUFFER_SIZE = 1024
 
-udp_queue = queue.Queue(maxsize=1) #hold latest packet only
-
-received_heel_data = "0"
-received_fore_data = "0"
-ax = 0.0 #m/s^2
-ay = 0.0
-az = 0.0
-qx = 0.0
-qy = 0.0
-qz = 0.0
-qw = 1.0
-imu_orientation_mode = "identity"
-g = 9.81 #m/s^2
-received_vertical_raw = "0.0" 
-
-airtime=0
+g = 9.81  # m/s^2, used to scale IMU acceleration readings
 
 activity_session_lock = threading.Lock()
-active_device_ip_lock = threading.Lock()
 discovery_listener_lock = threading.Lock()
 discovered_devices_lock = threading.Lock()
 group_assignments_lock = threading.Lock()
 sensor_payloads_lock = threading.Lock()
-active_device_ip = None
 discovery_listener_started = False
 discovered_devices = {}
 latest_sensor_payloads = {}
@@ -1030,15 +988,6 @@ precision_results = {}  # {device_ip: {full state dict}}
 
 forefoot_results_lock = threading.Lock()
 forefoot_results = {}  # {device_ip: {"status": str, "distance_meters": float, "time": float}}
-
-R_heel = 0
-G_heel = 255
-R_fore = 0
-G_fore = 255
-
-submitted_name = "User1"
-
-submitted_name2 = "User1"
 
 PRECISION_FORCE_MAX = 2000
 PRECISION_CAPTURE_SECONDS = 5
@@ -1084,13 +1033,34 @@ def start_discovery_listener():
         thread.start()
 
 
-vertical_raw_data_UDP = []
 combined_data_thread = None
 combined_data_running = False
 
 threshold_fore = 350
 threshold_heel = 350
-dt = 0.009 #approx time (s) between samples from udp 
+dt = 0.009 #approx time (s) between samples from udp
+
+# Single source of truth for "is the foot resting on the insole?" Used by the
+# Balance activity for all three transitions: standing check before start,
+# foot-lift detection (start stopwatch), foot-down detection (stop stopwatch).
+# Compares the SUM of heel and fore pressure against the threshold.
+BALANCE_PRESSURE_THRESHOLD = int(
+    os.environ.get("SONICSOLE_BALANCE_THRESHOLD", "200")
+)
+
+
+def get_pressure_sum(snapshot):
+    """Heel + fore pressure as a single scalar."""
+    return int(snapshot.get("heel_pressure", 0)) + int(snapshot.get("fore_pressure", 0))
+
+
+def is_foot_on_insole(snapshot, threshold=BALANCE_PRESSURE_THRESHOLD):
+    return get_pressure_sum(snapshot) >= threshold
+
+
+def is_foot_lifted(snapshot, threshold=BALANCE_PRESSURE_THRESHOLD):
+    return get_pressure_sum(snapshot) < threshold
+
 
 # Audio cues are produced on the RPi (see SonicSole_Audio / ReactionActivity
 # in the C++ source). The webapp is headless w.r.t. sound.
@@ -1155,14 +1125,6 @@ def cancel_activity_session(device_ip, activity_name):
 
 def is_activity_session_active(device_ip, activity_name, session_id):
     return session_id == get_activity_session_id(device_ip, activity_name)
-
-
-def clear_udp_queue():
-    while True:
-        try:
-            udp_queue.get_nowait()
-        except queue.Empty:
-            break
 
 
 def default_jump_entry():
@@ -1273,18 +1235,12 @@ def stop_all_activities():
     supplied. Per-board flows should pass `group_id` so only that board's
     work is cancelled.
     """
-    global R_heel, G_heel, R_fore, G_fore
     cancel_balance_session()
     reset_jump_state(cancel_session=True)
     reset_reaction_state(cancel_session=True)
     reset_precision_trainer_state(cancel_session=True)
     reset_forefoot_state(cancel_session=True)
     stop_combined_data_thread()
-    clear_udp_queue()
-    R_heel = 0
-    G_heel = 255
-    R_fore = 0
-    G_fore = 255
 
 
 class ActivityCommandError(Exception):
@@ -1308,18 +1264,33 @@ def send_rpi_activity_command(device_ip, command, timeout_seconds=ACTIVITY_COMMA
         raise ActivityCommandError("no_device", "no RPi device ip available")
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    deadline = time.monotonic() + max(0.5, timeout_seconds)
     try:
-        sock.settimeout(max(0.5, timeout_seconds))
         try:
             sock.sendto(command.encode("utf-8"), (device_ip, ACTIVITY_COMMAND_PORT))
         except OSError as send_error:
             raise ActivityCommandError("send_failed", str(send_error)) from send_error
-        try:
-            payload, _ = sock.recvfrom(ACTIVITY_RESPONSE_BUFFER_SIZE)
-        except socket.timeout as timeout_error:
-            raise ActivityCommandError("timeout", "no reply from RPi") from timeout_error
-        except OSError as recv_error:
-            raise ActivityCommandError("recv_failed", str(recv_error)) from recv_error
+        # Loop until a reply arrives from the target board or we run out of time.
+        # The ephemeral source port already isolates replies in practice, but
+        # checking addr[0] guarantees no packet from another board can skew
+        # this board's score.
+        payload = None
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise ActivityCommandError("timeout", "no reply from RPi")
+            sock.settimeout(remaining)
+            try:
+                payload, sender_addr = sock.recvfrom(ACTIVITY_RESPONSE_BUFFER_SIZE)
+            except socket.timeout as timeout_error:
+                raise ActivityCommandError("timeout", "no reply from RPi") from timeout_error
+            except OSError as recv_error:
+                raise ActivityCommandError("recv_failed", str(recv_error)) from recv_error
+            if sender_addr[0] == device_ip:
+                break
+            print(
+                f"[activity] dropping reply from {sender_addr[0]}, expected {device_ip}"
+            )
     finally:
         sock.close()
 
@@ -1356,16 +1327,6 @@ def send_rpi_activity_command(device_ip, command, timeout_seconds=ACTIVITY_COMMA
         }
 
     raise ActivityCommandError("bad_response", response_text)
-
-
-def resolve_activity_device_ip():
-    device_ip = get_active_device_ip()
-    if device_ip:
-        return device_ip
-    selected_group = get_selected_group()
-    if selected_group and selected_group.get("ip"):
-        return selected_group["ip"]
-    return None
 
 
 def normalize_quaternion(x_value, y_value, z_value, w_value):
@@ -1543,17 +1504,21 @@ def start_combined_data_thread():
         combined_data_thread.daemon = True
         combined_data_thread.start()
 
-        threading.Thread(target=process_udp_data, daemon=True).start()
-
 def stop_combined_data_thread():
     global combined_data_running
     print("Stopped")
     combined_data_running = False
     print("combined_data_running in stop thread: {}".format(combined_data_running))
 
-def read_combined_data(): #this function to read data and other function to "process" data
-    global received_heel_data, received_fore_data, received_vertical_raw, ax, ay, az, qx, qy, qz, qw, imu_orientation_mode, g, combined_data_running, R_heel, G_heel, R_fore, G_fore
-    
+def read_combined_data():
+    """Single UDP ingress: every packet is attributed to its sender IP.
+
+    The only side effect is `store_sensor_snapshot(addr[0], snapshot)`. Each
+    activity worker reads its board's snapshot via `read_sensor_for_ip(device_ip)`.
+    Nothing else touches global state, so no cross-board leakage is possible.
+    """
+    global combined_data_running
+
     print("[UDP Thread] Started reading data")
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -1581,10 +1546,6 @@ def read_combined_data(): #this function to read data and other function to "pro
                 qx_value, qy_value, qz_value, qw_value = estimate_quaternion_from_acceleration(ax_val, ay_val, az_val)
                 orientation_mode = "acceleration"
 
-            ax_meters_per_second_squared = ax_val * g
-            ay_meters_per_second_squared = ay_val * g
-            az_meters_per_second_squared = az_val * g
-
             sensor_snapshot = build_sensor_snapshot(
                 fore_pressure,
                 heel_pressure,
@@ -1593,62 +1554,19 @@ def read_combined_data(): #this function to read data and other function to "pro
                 qz_value,
                 qw_value,
                 orientation_mode,
-                ax_meters_per_second_squared,
-                ay_meters_per_second_squared,
-                az_meters_per_second_squared,
+                ax_val * g,
+                ay_val * g,
+                az_val * g,
             )
             store_sensor_snapshot(addr[0], sensor_snapshot)
-
-            active_ip = get_active_device_ip()
-            if active_ip and addr[0] != active_ip:
-                continue
-            # fast updates only
-            R_heel = sensor_snapshot["R_heel"]
-            G_heel = sensor_snapshot["G_heel"]
-            R_fore = sensor_snapshot["R_fore"]
-            G_fore = sensor_snapshot["G_fore"]
-            received_fore_data = sensor_snapshot["fore_pressure"]
-            received_heel_data = sensor_snapshot["heel_pressure"]
-            qx = sensor_snapshot["qx"]
-            qy = sensor_snapshot["qy"]
-            qz = sensor_snapshot["qz"]
-            qw = sensor_snapshot["qw"]
-            imu_orientation_mode = sensor_snapshot["imu_orientation_mode"]
-            ax = sensor_snapshot["ax"]
-            ay = sensor_snapshot["ay"]
-            az = sensor_snapshot["az"]
-            received_vertical_raw = ay_val
-            # push to queue (drop old if full)
-            if not udp_queue.full():
-                udp_queue.put_nowait((received_fore_data, received_heel_data, ax, ay, az))
         except (socket.timeout, BlockingIOError):
             continue
         except Exception as e:
             print(f"[UDP Thread] Error: {e}")
             continue
     sock.close()
-    print("[UDP Thread] Stopped reading data") 
+    print("[UDP Thread] Stopped reading data")
 
-def process_udp_data(): #this function to do the slow work and the other to read as attampt to improve how fast can read data
-    global received_heel_data, received_fore_data, ax, ay, az
-    while combined_data_running:
-        try:
-            fore, heel, ax_val, ay_val, az_val = udp_queue.get(timeout=0.1)
-            update_fore_color(fore)
-            update_heel_color(heel)
-            print(f"Fore:{fore}, Heel:{heel}, ax:{ax:.2f}, ay:{ay:.2f}, az:{az:.2f}")
-        except queue.Empty:
-            continue
-
-@app.route('/heel_data', methods=['GET'])
-def heel_data():
-    global received_heel_data
-    return jsonify({'data': received_heel_data})
-
-@app.route('/fore_data', methods=['GET'])
-def fore_data():
-    global received_fore_data
-    return jsonify({'data': received_fore_data})
 
 @app.route('/stop_data', methods=['GET', 'POST'])
 def stop_data():
@@ -1670,26 +1588,7 @@ def stop_data():
         stop_all_activities()
     return '', 204
 
-# color
-def update_heel_color(pressure):
-    global R_heel, G_heel
-    if pressure < 1500:
-        G_heel = 255
-        R_heel = int((pressure / 1000) * 255)
-    elif pressure < 3000:
-        R_heel = 255
-        G_heel = int(255 - ((pressure - 1000) / 1000) * 255)
-
-def update_fore_color(pressure):
-    global R_fore, G_fore
-    if pressure < 1000:
-        G_fore = 255
-        R_fore = int((pressure / 1000) * 255)
-    elif pressure < 2000:
-        R_fore = 255
-        G_fore = int(255 - ((pressure - 100) / 1000) * 255)
-
-
+# color channels embedded into each per-board sensor snapshot
 def get_heel_color_channels(pressure):
     pressure_value = max(0.0, float(pressure or 0))
     if pressure_value < 1500:
@@ -1791,9 +1690,10 @@ def read_sensor_for_ip(device_ip):
 def resolve_group_id_to_device_ip(group_id):
     """Map a group_id (or empty/None) to its assigned device IP.
 
-    Returns ("", group_or_None, error_message_or_None). When the caller passed a
-    group_id we always honor it; when blank we fall back to the active selected
-    group so legacy single-device pages still work.
+    Returns ("", group_or_None, error_message_or_None). Honors an explicit
+    group_id when present; otherwise falls back to the session selection so
+    polling endpoints stay responsive on initial page load before the user
+    has clicked into the group modal.
     """
     requested = (group_id or "").strip()
     if requested:
@@ -1838,12 +1738,6 @@ def per_board_update(store, lock, device_ip, default_factory, **changes):
         entry.update(changes)
         store[normalized_ip] = entry
         return dict(entry)
-
-@app.route('/color_data', methods=['GET'])
-def color_data():
-    global R_heel, G_heel, R_fore, G_fore
-    return jsonify({'R_heel': R_heel, 'G_heel': G_heel, 'R_fore': R_fore, 'G_fore': G_fore})
-
 
 @app.route('/sensor_check_data', methods=['GET'])
 def sensor_check_data():
@@ -2055,67 +1949,69 @@ def set_balance_status(device_ip, status, reason=""):
 
 
 def balancing_pressure(session_id, device_ip):
-    """Run the balance activity on the RPi and wait for the score.
+    """Flask-side balance stopwatch — pure Python, no RPi round-trip.
 
-    Framework contract: the webapp sends START <activity> to the RPi over
-    UDP and blocks until the RPi replies with OK/ERR. All threshold
-    detection and timing happen on the RPi to avoid wireless jitter.
+    Step 1: wait for the foot to leave the insole (both heel and fore drop
+            below BALANCE_PRESSURE_THRESHOLD). When that happens, mark the
+            start time.
+    Step 2: keep watching the snapshot. As soon as either heel or fore
+            crosses back over the threshold, stop the clock and record
+            elapsed seconds as the score.
     """
-    print(f"[balance {device_ip}] sending START balance to RPi")
     set_balance_status(device_ip, "measuring")
-    try:
-        reply = send_rpi_activity_command(device_ip, "START balance")
-    except ActivityCommandError as command_error:
-        print(f"[balance {device_ip}] command failed: {command_error.reason} ({command_error.detail})")
-        if session_id == get_balance_session_id(device_ip):
+
+    # Wait for foot lift.
+    while True:
+        if session_id != get_balance_session_id(device_ip):
+            return
+        snapshot = read_sensor_for_ip(device_ip)
+        if is_foot_lifted(snapshot):
+            start_time = time.time()
+            print(
+                f"[balance {device_ip}] foot lifted "
+                f"(sum={get_pressure_sum(snapshot)} < {BALANCE_PRESSURE_THRESHOLD}); "
+                f"timing started"
+            )
+            break
+        time.sleep(dt)
+
+    # Wait for foot to land back on the insole.
+    while True:
+        if session_id != get_balance_session_id(device_ip):
+            return
+        snapshot = read_sensor_for_ip(device_ip)
+        if is_foot_on_insole(snapshot):
+            elapsed = time.time() - start_time
             per_board_update(
                 balance_results,
                 balance_results_lock,
                 device_ip,
                 default_balance_entry,
+                total_time="{:.3f}".format(elapsed),
                 recording=False,
-                status="error",
-                reason=command_error.reason,
+                status="done",
+                reason="",
             )
-        return
-
-    if session_id != get_balance_session_id(device_ip):
-        print(f"[balance {device_ip}] session changed while waiting for RPi; discarding reply")
-        return
-
-    if reply["success"] and reply.get("score") is not None:
-        score_value = float(reply["score"])
-        per_board_update(
-            balance_results,
-            balance_results_lock,
-            device_ip,
-            default_balance_entry,
-            total_time="{:.3f}".format(score_value),
-            recording=False,
-            status="done",
-            reason=reply.get("reason", ""),
-        )
-        print(f"[balance {device_ip}] score={score_value:.3f}s from RPi")
-    else:
-        reason = reply.get("reason") or "error"
-        print(f"[balance {device_ip}] RPi reported failure: {reason}")
-        per_board_update(
-            balance_results,
-            balance_results_lock,
-            device_ip,
-            default_balance_entry,
-            recording=False,
-            status="error",
-            reason=reason,
-        )
+            print(
+                f"[balance {device_ip}] foot down "
+                f"(sum={get_pressure_sum(snapshot)} >= {BALANCE_PRESSURE_THRESHOLD}); "
+                f"score={elapsed:.3f}s"
+            )
+            return
+        time.sleep(dt)
 
 
 @app.route('/balancing', methods=['GET'])
 def balancing():
     device_ip, _, error = resolve_group_id_to_device_ip(request.args.get("group_id"))
     if error:
-        return jsonify({'data': '0', 'done': False, 'status': 'idle', 'reason': '', 'error': error}), 400
+        return jsonify({
+            'data': '0', 'done': False, 'status': 'idle', 'reason': '',
+            'pressure_sum': 0, 'threshold': BALANCE_PRESSURE_THRESHOLD,
+            'error': error,
+        }), 400
     entry = per_board_get(balance_results, balance_results_lock, device_ip, default_balance_entry)
+    snapshot = read_sensor_for_ip(device_ip)
     done = False
     try:
         done = not entry["recording"] and float(entry["total_time"]) != 0
@@ -2126,6 +2022,8 @@ def balancing():
         'done': done,
         'status': entry.get("status", "idle"),
         'reason': entry.get("reason", ""),
+        'pressure_sum': get_pressure_sum(snapshot),
+        'threshold': BALANCE_PRESSURE_THRESHOLD,
     })
 
 
@@ -2147,20 +2045,14 @@ def button_click():
 
     time.sleep(0.3)
     snapshot = read_sensor_for_ip(device_ip)
-    standing_pressure = int(snapshot["heel_pressure"]) + int(snapshot["fore_pressure"])
-    if standing_pressure <= 100:
+    if not is_foot_on_insole(snapshot):
         cancel_balance_session(device_ip)
         return jsonify({
             'status': 'warning',
             'message': 'Please stand on the insole before starting.'
         }), 400
 
-    set_balance_status(device_ip, "countdown")
-    # Visual countdown runs in the browser; audio cues are emitted by the RPi.
-    time.sleep(3.12)
-    if session_id != get_balance_session_id(device_ip):
-        set_balance_status(device_ip, "idle")
-        return jsonify({"status": "Data transmission cancelled"})
+    # No countdown — the stopwatch starts the moment the foot leaves the insole.
     per_board_update(
         balance_results,
         balance_results_lock,
@@ -3014,7 +2906,7 @@ def select_group():
     if group is None:
         return jsonify({"status": "error", "message": "Unknown group selection."}), 400
 
-    selected_group = set_selected_group(group_id, activate_device=True)
+    selected_group = set_selected_group(group_id)
     return jsonify({"status": "ok", "group": selected_group})
 
 @app.route('/assign_group_device', methods=['POST'])
@@ -3057,10 +2949,6 @@ def assign_group_device():
             }
         ), 409
 
-    selected_group = get_selected_group()
-    if selected_group is not None and selected_group["id"] == group_id:
-        set_active_device_ip(assigned_group["ip"])
-
     return jsonify(
         {
             "status": "ok",
@@ -3080,9 +2968,6 @@ def disconnect_group_device():
         return jsonify({"status": "error", "message": "Unknown group selection."}), 400
 
     disconnected_group, _ = assign_group_device_ip(group_id, "")
-    selected_group = get_selected_group()
-    if selected_group is not None and selected_group["id"] == group_id:
-        set_active_device_ip(None)
 
     return jsonify(
         {
@@ -3102,7 +2987,6 @@ def _resolve_submit_device_ip():
 
 @app.route('/submitB', methods=['POST'])
 def submitB():
-    global submitted_name
     submitted_name = get_group_name_from_request("group_name")
     device_ip = _resolve_submit_device_ip()
     entry = per_board_get(balance_results, balance_results_lock, device_ip, default_balance_entry)
@@ -3112,72 +2996,64 @@ def submitB():
 
 @app.route('/submitR', methods=['POST'])
 def submitR():
-    global submitted_name2
-    submitted_name2 = get_group_name_from_request("group_name")
+    submitted_name = get_group_name_from_request("group_name")
     device_ip = _resolve_submit_device_ip()
     entry = per_board_get(reaction_results, reaction_results_lock, device_ip, default_reaction_entry)
-    append_leaderboard_row("reaction", submitted_name2, entry.get("reaction_time", 0))
+    append_leaderboard_row("reaction", submitted_name, entry.get("reaction_time", 0))
     return jsonify({"status": "Group name submitted successfully"})
 
 @app.route('/submitW', methods=['POST'])
 def submitW():
-    global submitted_name2
-    submitted_name2 = get_group_name_from_request("group_name")
+    submitted_name = get_group_name_from_request("group_name")
     device_ip = _resolve_submit_device_ip()
     entry = per_board_get(forefoot_results, forefoot_results_lock, device_ip, default_forefoot_entry)
-    append_leaderboard_row("walk", submitted_name2, entry.get("distance_meters", 0))
+    append_leaderboard_row("walk", submitted_name, entry.get("distance_meters", 0))
     return jsonify({"status": "Group name submitted successfully"})
 
 
 @app.route('/submitP', methods=['POST'])
 def submitP():
-    global submitted_name2
-    submitted_name2 = get_group_name_from_request("group_name")
+    submitted_name = get_group_name_from_request("group_name")
     device_ip = _resolve_submit_device_ip()
     entry = per_board_get(precision_results, precision_results_lock, device_ip, default_precision_entry)
-    append_leaderboard_row("precision", submitted_name2, entry.get("error_percent", 0))
+    append_leaderboard_row("precision", submitted_name, entry.get("error_percent", 0))
     return jsonify({"status": "Group name submitted successfully"})
 
 @app.route('/submitJ', methods=['POST'])
 def submitJ():
-    global submitted_name2
-    submitted_name2 = get_group_name_from_request("group_name")
+    submitted_name = get_group_name_from_request("group_name")
     device_ip = _resolve_submit_device_ip()
     entry = per_board_get(jump_results, jump_results_lock, device_ip, default_jump_entry)
-    append_leaderboard_row("jump", submitted_name2, entry.get("height", 0.0))
+    append_leaderboard_row("jump", submitted_name, entry.get("height", 0.0))
     return jsonify({"status": "Group name submitted successfully"})
 
-
-# misc (not sure what these are for)
-def send_udp_data(): 
-    target_ip = get_active_device_ip()
-    if not target_ip:
-        return False
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    n = 1
-    sock.sendto(n.to_bytes(1, byteorder='big'), (target_ip, UDP_PORT))
-    sock.close()
-    return True
-
-@app.route('/button', methods=['POST'])
-def button():
-    send_udp_data()
-    return redirect(url_for('jump'))
 
 # main
 if __name__ == '__main__':
     start_discovery_listener()
     flask_port = int(os.environ.get("SONICSOLE_PORT", os.environ.get("PORT", "5001")))
 
+    # Discover every local IPv4 address that could reach a board. A single
+    # probe only reveals the source IP for one routing target, so we hit a
+    # spread of common gateways: an internet target (default route), the
+    # typical home LAN, and the AP-mode bridge (192.168.2.1) the boards
+    # connect through. Dedup and skip loopback.
     lan_ips = []
-    try:
-        probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        probe.settimeout(0.2)
-        probe.connect(("192.168.1.1", 1))
-        lan_ips.append(probe.getsockname()[0])
-        probe.close()
-    except OSError:
-        pass
+    seen_ips = set()
+    probe_targets = ["8.8.8.8", "192.168.1.1", "192.168.2.1", "10.0.0.1", "172.16.0.1"]
+    for target in probe_targets:
+        try:
+            probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            probe.settimeout(0.2)
+            probe.connect((target, 1))
+            local_ip = probe.getsockname()[0]
+            probe.close()
+        except OSError:
+            continue
+        if local_ip.startswith("127.") or local_ip in seen_ips:
+            continue
+        seen_ips.add(local_ip)
+        lan_ips.append(local_ip)
 
     print(f" * SonicSole server starting on port {flask_port}", flush=True)
     print(f" * Local:   http://127.0.0.1:{flask_port}", flush=True)

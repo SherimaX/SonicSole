@@ -290,8 +290,6 @@
 
   <script>
     let formShown = false;
-    let countdownInterval = null;
-    let isBalanceCountingDown = false;
     let balanceActivityToggle = null;
     const balanceStatusBox = document.getElementById("statusBox");
 
@@ -307,11 +305,18 @@
       setBalanceStatusHTML("<strong>Getting Ready</strong>");
     }
 
-    function fetchData() {
-      if (isBalanceCountingDown) {
-        return;
-      }
+    function renderPressureLive(pressureSum, threshold) {
+      const sumDisplay = Number.isFinite(pressureSum) ? pressureSum : 0;
+      const thresholdDisplay = Number.isFinite(threshold) ? threshold : 0;
+      setBalanceStatusHTML(
+        `<div class="pg-status-stacked">` +
+        `<strong>Pressure: ${sumDisplay}</strong>` +
+        `<span class="pg-status-sub">Threshold: ${thresholdDisplay}</span>` +
+        `</div>`
+      );
+    }
 
+    function fetchData() {
       fetch(window.withGroupQuery("/balancing"))
         .then((response) => response.json())
         .then((data) => {
@@ -321,9 +326,7 @@
               `<div class="pg-status-stacked"><strong>Try again</strong><span class="pg-status-sub">${data.reason || "Measurement failed"}</span></div>`
             );
           } else if (data.status === "measuring") {
-            setBalanceStatusHTML(
-              `<div class="pg-status-stacked"><strong>Lift your leg!</strong><span class="pg-status-sub">Timing on the SonicSole...</span></div>`
-            );
+            renderPressureLive(data.pressure_sum, data.threshold);
           } else if (!toggleActive && !data.done && String(data.data) === "0") {
             setBalanceReadyState();
           } else {
@@ -358,14 +361,9 @@
 
     function resetBalanceUI() {
       formShown = false;
-      isBalanceCountingDown = false;
       setBalanceReadyState();
       document.getElementById("name-form").style.display = "none";
       document.getElementById("thankYouMessage").style.display = "none";
-      if (countdownInterval !== null) {
-        clearInterval(countdownInterval);
-        countdownInterval = null;
-      }
     }
 
     async function startBalance({ signal }) {
@@ -374,7 +372,6 @@
       }
 
       resetBalanceUI();
-      startCountdown();
 
       const response = await fetch(window.withGroupQuery("/button_click"), { method: "POST", signal });
       const data = await response.json();
@@ -411,26 +408,6 @@
         },
       });
     });
-
-    function startCountdown() {
-      isBalanceCountingDown = true;
-      let countdownValue = 3;
-      setBalanceStatusHTML(`<strong>${countdownValue}</strong>`);
-
-      countdownInterval = setInterval(() => {
-        countdownValue -= 1;
-        if (countdownValue > 0) {
-          setBalanceStatusHTML(`<strong>${countdownValue}</strong>`);
-        } else if (countdownValue === 0) {
-          setBalanceStatusHTML("<strong>Go!</strong>");
-        } else {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-          isBalanceCountingDown = false;
-          fetchData();
-        }
-      }, 1000);
-    }
 
     function stopDataAndNavigate(url) {
       stopActivitySession().then(() => {
