@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>SonicSole · Settings</title>
+  <style>
+    :root {
+      --main-bg:
+        radial-gradient(circle at 15% 15%, rgba(201, 139, 46, 0.22), transparent 20%),
+        radial-gradient(circle at 85% 18%, rgba(122, 28, 28, 0.18), transparent 18%),
+        radial-gradient(circle at 50% 110%, rgba(82, 44, 26, 0.12), transparent 28%),
+        linear-gradient(135deg, #f7f1e8 0%, #efe1c9 52%, #f4ead9 100%);
+      --accent: #7a1c1c;
+      --accent-dark: #341010;
+      --highlight: #c98b2e;
+      --card-bg: rgba(255, 248, 238, 0.92);
+      --text-dark: #2d261d;
+      --text-subtle: #675748;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+      background: var(--main-bg);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 80px;
+    }
+
+    header {
+      width: 100%;
+      max-width: 760px;
+      padding: 50px 24px 16px;
+      text-align: center;
+    }
+
+    h1 {
+      font-family: "Palatino Linotype", "Book Antiqua", serif;
+      font-size: 2.8rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--text-subtle);
+      font-size: 1.05rem;
+    }
+
+    .nav-row {
+      width: 100%;
+      max-width: 720px;
+      padding: 0 24px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-link {
+      color: var(--accent-dark);
+      text-decoration: none;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(52, 16, 16, 0.18);
+      background: rgba(255, 255, 255, 0.7);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 241, 231, 0.96);
+      border-color: rgba(122, 28, 28, 0.3);
+    }
+
+    .activities {
+      width: 100%;
+      max-width: 720px;
+      padding: 0 24px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .activity-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(52, 16, 16, 0.12);
+      border-radius: 22px;
+      box-shadow: 0 18px 36px rgba(65, 43, 26, 0.12);
+      padding: 22px 24px;
+    }
+
+    .activity-card h2 {
+      font-size: 1.4rem;
+      color: var(--accent-dark);
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .activity-help {
+      color: var(--text-subtle);
+      font-size: 0.95rem;
+      margin-bottom: 18px;
+      line-height: 1.45;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 540px) {
+      .field-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(52, 16, 16, 0.1);
+      border-radius: 14px;
+    }
+
+    .field label {
+      font-weight: 700;
+      color: var(--text-dark);
+      font-size: 0.95rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .field-default {
+      font-weight: 500;
+      font-size: 0.78rem;
+      color: var(--text-subtle);
+    }
+
+    .field input[type="number"] {
+      font: inherit;
+      font-size: 1rem;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(52, 16, 16, 0.2);
+      background: #fff;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .field input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(122, 28, 28, 0.18);
+    }
+
+    .field-help {
+      font-size: 0.82rem;
+      color: var(--text-subtle);
+      line-height: 1.4;
+    }
+
+    .field-error {
+      font-size: 0.82rem;
+      color: #b44141;
+      font-weight: 600;
+    }
+
+    .empty-fields {
+      color: var(--text-subtle);
+      font-style: italic;
+      padding: 8px 4px;
+    }
+
+    .actions {
+      width: 100%;
+      max-width: 720px;
+      padding: 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font: inherit;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 12px 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(52, 16, 16, 0.18);
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #a12727);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 16px 28px rgba(122, 28, 28, 0.18);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #8d2222, var(--accent-dark));
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.85);
+      color: var(--accent-dark);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 241, 231, 0.96);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(45, 38, 29, 0.92);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      box-shadow: 0 18px 32px rgba(45, 38, 29, 0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 40;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.is-error {
+      background: rgba(122, 28, 28, 0.95);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Settings</h1>
+    <p class="subtitle">Tune activity thresholds. Changes apply immediately to the next measurement.</p>
+  </header>
+
+  <div class="nav-row">
+    <a class="nav-link" href="{{ url_for('home') }}">← Home</a>
+  </div>
+
+  <form id="thresholdsForm" class="activities" autocomplete="off">
+    {% for activity in threshold_activities %}
+    <section class="activity-card" data-activity="{{ activity.slug }}">
+      <h2>{{ activity.label }}</h2>
+      {% if activity.help %}<p class="activity-help">{{ activity.help }}</p>{% endif %}
+
+      {% if activity.fields %}
+      <div class="field-grid">
+        {% for field in activity.fields %}
+        <div class="field" data-field="{{ field.slug }}">
+          <label>
+            <span>{{ field.label }}</span>
+            <span class="field-default">default: {{ field.default }}</span>
+          </label>
+          <input
+            type="number"
+            name="{{ activity.slug }}__{{ field.slug }}"
+            value="{{ field.value }}"
+            min="{{ field.min }}"
+            max="{{ field.max }}"
+            step="{{ field.step }}"
+            data-default="{{ field.default }}"
+            required
+          />
+          {% if field.help %}<p class="field-help">{{ field.help }}</p>{% endif %}
+          <p class="field-error" hidden></p>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="empty-fields">No tunable thresholds for this activity.</p>
+      {% endif %}
+    </section>
+    {% endfor %}
+
+    <div class="actions">
+      <button type="button" class="btn-secondary" id="resetDefaultsButton">Reset to defaults</button>
+      <button type="submit" class="btn-primary">Save</button>
+    </div>
+  </form>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const form = document.getElementById("thresholdsForm");
+    const toast = document.getElementById("toast");
+    const resetButton = document.getElementById("resetDefaultsButton");
+    let toastTimer = null;
+
+    function showToast(message, variant) {
+      toast.textContent = message;
+      toast.classList.toggle("is-error", variant === "error");
+      toast.classList.add("is-visible");
+      if (toastTimer) {
+        window.clearTimeout(toastTimer);
+      }
+      toastTimer = window.setTimeout(() => {
+        toast.classList.remove("is-visible");
+      }, 2400);
+    }
+
+    function clearFieldErrors() {
+      form.querySelectorAll(".field-error").forEach((node) => {
+        node.textContent = "";
+        node.hidden = true;
+      });
+    }
+
+    function applyFieldErrors(errors) {
+      Object.entries(errors).forEach(([activitySlug, fieldErrors]) => {
+        Object.entries(fieldErrors).forEach(([fieldSlug, message]) => {
+          const field = form.querySelector(
+            `.activity-card[data-activity="${activitySlug}"] .field[data-field="${fieldSlug}"] .field-error`
+          );
+          if (field) {
+            field.textContent = message;
+            field.hidden = false;
+          }
+        });
+      });
+    }
+
+    function collectThresholds() {
+      const thresholds = {};
+      form.querySelectorAll(".activity-card").forEach((card) => {
+        const activitySlug = card.dataset.activity;
+        const fieldsForActivity = {};
+        card.querySelectorAll(".field").forEach((fieldEl) => {
+          const input = fieldEl.querySelector("input[type='number']");
+          if (!input) return;
+          fieldsForActivity[fieldEl.dataset.field] = input.value;
+        });
+        if (Object.keys(fieldsForActivity).length > 0) {
+          thresholds[activitySlug] = fieldsForActivity;
+        }
+      });
+      return thresholds;
+    }
+
+    function applyValues(activities) {
+      activities.forEach((activity) => {
+        activity.fields.forEach((field) => {
+          const input = form.querySelector(
+            `.activity-card[data-activity="${activity.slug}"] .field[data-field="${field.slug}"] input`
+          );
+          if (input) {
+            input.value = field.value;
+          }
+        });
+      });
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearFieldErrors();
+
+      try {
+        const response = await fetch("{{ url_for('update_thresholds_api') }}", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ thresholds: collectThresholds() }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          if (data.errors) {
+            applyFieldErrors(data.errors);
+            showToast("Fix the highlighted fields and try again.", "error");
+          } else {
+            showToast(data.message || "Could not save settings.", "error");
+          }
+          return;
+        }
+        if (Array.isArray(data.activities)) {
+          applyValues(data.activities);
+        }
+        showToast("Settings saved.");
+      } catch (error) {
+        showToast("Network error: could not save settings.", "error");
+      }
+    });
+
+    resetButton.addEventListener("click", () => {
+      clearFieldErrors();
+      form.querySelectorAll("input[type='number'][data-default]").forEach((input) => {
+        input.value = input.dataset.default;
+      });
+      showToast("Defaults loaded — press Save to apply.");
+    });
+  </script>
+</body>
+</html>
