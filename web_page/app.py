@@ -752,7 +752,16 @@ def history_has_attempts(history_sections):
     return any((section.get("attempt_count") or 0) > 0 for section in history_sections)
 
 
+SAMPLE_HISTORY_SUPPRESS_MARKER = os.path.join(PROJECT_ROOT, ".scoreboard_no_sample")
+
+
+def sample_history_fallback_suppressed():
+    return os.path.exists(SAMPLE_HISTORY_SUPPRESS_MARKER)
+
+
 def load_sample_group_history(group):
+    if sample_history_fallback_suppressed():
+        return None
     sample_path = get_sample_group_history_path(group)
     if not sample_path or not os.path.exists(sample_path):
         return None
@@ -2785,6 +2794,10 @@ def scoreboard_load_example_data():
     for board_key in LEADERBOARD_CONFIG:
         write_leaderboard_rows(board_key, DUMMY_LEADERBOARD_ROWS[board_key])
     _clear_all_activity_results()
+    try:
+        os.remove(SAMPLE_HISTORY_SUPPRESS_MARKER)
+    except FileNotFoundError:
+        pass
     return jsonify({"status": "ok"})
 
 
@@ -2793,6 +2806,8 @@ def scoreboard_reset_all_data():
     for board_key in LEADERBOARD_CONFIG:
         write_leaderboard_rows(board_key, [])
     _clear_all_activity_results()
+    with open(SAMPLE_HISTORY_SUPPRESS_MARKER, "w") as marker:
+        marker.write("")
     return jsonify({"status": "ok"})
 
 
