@@ -1101,8 +1101,41 @@ ACTIVITY_THRESHOLD_SPEC = {
     },
     "reaction": {
         "label": "Reaction",
-        "help": "Reaction timing runs entirely on the Raspberry Pi firmware, so there are no Python-side thresholds to tune here.",
-        "fields": {},
+        "help": "Reaction timing runs entirely in the browser: the visual cue is shown after a random delay and the press is detected from the live pressure stream.",
+        "fields": {
+            "press_threshold": {
+                "label": "Press threshold (counts)",
+                "help": "Peak pressure that counts as the user reacting to the visual cue.",
+                "default": 350,
+                "min": 1,
+                "max": 8190,
+                "step": 1,
+            },
+            "min_delay_sec": {
+                "label": "Min cue delay (s)",
+                "help": "Earliest moment the pink cue box can light up after Start.",
+                "default": 3.0,
+                "min": 0.5,
+                "max": 30.0,
+                "step": 0.1,
+            },
+            "max_delay_sec": {
+                "label": "Max cue delay (s)",
+                "help": "Latest moment the pink cue box can light up after Start.",
+                "default": 6.0,
+                "min": 0.5,
+                "max": 30.0,
+                "step": 0.1,
+            },
+            "max_react_sec": {
+                "label": "Max react window (s)",
+                "help": "Give up if the user has not pressed within this window after the cue.",
+                "default": 5.0,
+                "min": 0.5,
+                "max": 30.0,
+                "step": 0.1,
+            },
+        },
     },
     "precision": {
         "label": "Precision",
@@ -1275,19 +1308,13 @@ def reset_jump_state(device_ip=None, cancel_session=False):
 
 
 def reset_reaction_state(device_ip=None, cancel_session=False):
+    # Reaction is browser-driven, so there is no firmware activity to cancel —
+    # we only clear the per-board entry and (optionally) drop the session id.
     target_ips = _resolve_cancel_targets(device_ip, reaction_results, reaction_results_lock)
     for target_ip in target_ips:
-        existing = per_board_get(reaction_results, reaction_results_lock, target_ip, default_reaction_entry)
-        was_active = existing.get("status") == "timing"
         if cancel_session:
             cancel_activity_session(target_ip, "reaction")
         per_board_set(reaction_results, reaction_results_lock, target_ip, default_reaction_entry())
-        if cancel_session and was_active:
-            threading.Thread(
-                target=_send_activity_command_fire_and_forget,
-                args=(target_ip, "CANCEL reaction"),
-                daemon=True,
-            ).start()
 
 
 def reset_precision_trainer_state(device_ip=None, cancel_session=False):
@@ -2211,6 +2238,12 @@ def button_click():
     return jsonify({"status": "Data transmission started"})
 
 # reaction time
+#
+# Reaction is driven entirely from the browser: it shows a visual pink cue at a
+# random delay, polls /live_pressure to detect the press, and POSTs the
+# resulting reaction time to /reaction_record. The Raspberry Pi just keeps
+# streaming pressure samples — no firmware-side activity command is sent for
+# reaction.
 @app.route('/start_reaction')
 def start_reaction():
     selected_group, error_response = require_selected_group()
@@ -2223,7 +2256,7 @@ def start_reaction():
             "message": "No SonicSole device is linked to the selected group yet.",
         }), 400
 
-    session_id = create_activity_session(device_ip, "reaction")
+    create_activity_session(device_ip, "reaction")
     reset_reaction_state(device_ip=device_ip, cancel_session=False)
     start_combined_data_thread()
     per_board_set(reaction_results, reaction_results_lock, device_ip, {
@@ -2232,57 +2265,61 @@ def start_reaction():
         "reason": "",
     })
 
-    threading.Thread(
-        target=_run_reaction_on_rpi,
-        args=(session_id, device_ip),
-        daemon=True,
-    ).start()
-    return jsonify({"status": "timing"})
+    return jsonify({
+        "status": "timing",
+        "press_threshold": get_threshold("reaction", "press_threshold"),
+        "min_delay_sec": get_threshold("reaction", "min_delay_sec"),
+        "max_delay_sec": get_threshold("reaction", "max_delay_sec"),
+        "max_react_sec": get_threshold("reaction", "max_react_sec"),
+    })
 
 
-def _run_reaction_on_rpi(session_id, device_ip):
-    try:
-        reply = send_rpi_activity_command(device_ip, "START reaction")
-    except ActivityCommandError as command_error:
-        print(f"[reaction {device_ip}] command failed: {command_error.reason}")
-        if session_id == get_activity_session_id(device_ip, "reaction"):
-            per_board_set(reaction_results, reaction_results_lock, device_ip, {
-                "status": "error",
-                "reaction_time": 0.0,
-                "reason": command_error.reason,
-            })
-        return
+@app.route('/reaction_record', methods=['POST'])
+def reaction_record():
+    selected_group, error_response = require_selected_group()
+    if error_response is not None:
+        return error_response
+    device_ip = (selected_group.get("ip") or "").strip()
+    if not device_ip:
+        return jsonify({
+            "status": "error",
+            "message": "No SonicSole device is linked to the selected group yet.",
+        }), 400
 
-    if session_id != get_activity_session_id(device_ip, "reaction"):
-        print(f"[reaction {device_ip}] session changed while waiting for RPi; discarding reply")
-        return
+    outcome = (request.form.get("outcome") or request.values.get("outcome") or "").strip()
 
-    if reply["success"] and reply.get("score") is not None:
-        score_value = round(float(reply["score"]), 4)
+    if outcome == "success":
+        try:
+            reaction_time = round(max(0.0, float(request.form.get("reaction_time"))), 4)
+        except (TypeError, ValueError):
+            return jsonify({"status": "error", "message": "Invalid reaction_time."}), 400
         per_board_set(reaction_results, reaction_results_lock, device_ip, {
             "status": "success",
-            "reaction_time": score_value,
+            "reaction_time": reaction_time,
             "reason": "",
         })
-        print(f"[reaction {device_ip}] score={score_value}s from RPi")
-        return
+        print(f"[reaction {device_ip}] browser reported success: {reaction_time}s")
+        return jsonify({"status": "success", "reaction_time": reaction_time})
 
-    reason = reply.get("reason") or "error"
-    if reason == "too_early":
+    if outcome == "too_early":
         per_board_set(reaction_results, reaction_results_lock, device_ip, {
             "status": "invalid",
             "reaction_time": 0.0,
-            "reason": "",
+            "reason": "too_early",
         })
-        print(f"[reaction {device_ip}] RPi reported: too_early")
-        return
+        print(f"[reaction {device_ip}] browser reported: too_early")
+        return jsonify({"status": "invalid", "reason": "too_early"})
 
-    per_board_set(reaction_results, reaction_results_lock, device_ip, {
-        "status": "error",
-        "reaction_time": 0.0,
-        "reason": reason,
-    })
-    print(f"[reaction {device_ip}] RPi reported failure: {reason}")
+    if outcome == "timeout":
+        per_board_set(reaction_results, reaction_results_lock, device_ip, {
+            "status": "invalid",
+            "reaction_time": 0.0,
+            "reason": "react_timeout",
+        })
+        print(f"[reaction {device_ip}] browser reported: react_timeout")
+        return jsonify({"status": "invalid", "reason": "react_timeout"})
+
+    return jsonify({"status": "error", "message": "Unknown outcome."}), 400
 
 
 @app.route('/reaction_status')

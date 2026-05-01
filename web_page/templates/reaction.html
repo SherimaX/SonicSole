@@ -160,6 +160,52 @@
       animation: glow 1s infinite alternate;
     }
 
+    /* Reaction visual cue box */
+    .reaction-cue {
+      width: min(72%, 360px);
+      aspect-ratio: 1 / 1;
+      margin: 18px auto 4px;
+      border-radius: 24px;
+      border: 4px solid rgba(216, 134, 175, 0.85);
+      background: transparent;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 14px 28px rgba(0, 0, 0, 0.35);
+      transition: background-color 80ms linear, box-shadow 80ms linear, border-color 120ms ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(216, 134, 175, 0.85);
+      font-family: "Impact", "Arial Black", sans-serif;
+      letter-spacing: 0.12em;
+      font-size: 1.6em;
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    .reaction-cue.is-armed {
+      border-color: rgba(216, 134, 175, 0.6);
+      color: rgba(216, 134, 175, 0.55);
+    }
+
+    .reaction-cue.is-fired {
+      background: rgba(216, 134, 175, 0.92);
+      border-color: rgba(216, 134, 175, 1);
+      color: #1a0a14;
+      box-shadow:
+        0 0 0 6px rgba(216, 134, 175, 0.18),
+        0 18px 38px rgba(216, 134, 175, 0.35);
+    }
+
+    .reaction-cue.is-error {
+      border-color: rgba(255, 92, 92, 0.85);
+      color: rgba(255, 92, 92, 0.85);
+    }
+
+    .reaction-cue__label {
+      pointer-events: none;
+    }
+
     /* Modal styling */
     .modal {
       display: none;
@@ -242,6 +288,10 @@
         {% include '_activity_status_box.html' %}
       </div>
 
+      <div id="reactionCue" class="reaction-cue" aria-live="polite">
+        <span class="reaction-cue__label" id="reactionCueLabel">Press Start</span>
+      </div>
+
       {% include '_live_pressure_debug.html' %}
 
       <div class="buttons pg-actions">
@@ -270,17 +320,67 @@
   {% endif %}
 
   {% set instructions_title = "How to Test Reaction" %}
-  {% set instructions_body = "Stand ready on the insole and wait for the go signal. As soon as the signal fires, step off (or tap down) as fast as you can. Your reaction time is measured from the signal to the pressure change." %}
+  {% set instructions_body = "Stand ready on the insole and watch the box on screen. As soon as it lights up pink, press down hard. Pressing before the box lights up counts as a false start." %}
   {% include '_instructions_modal.html' %}
 
   {% include '_activity_dock.html' %}
 
   <script>
+    // Reaction is browser-driven: schedule the cue locally, poll /live_pressure
+    // for the press, time the gap with performance.now(), then POST the result
+    // to /reaction_record so the scoreboard pulls a real number on /submitR.
+
+    const POLL_INTERVAL_MS = 50;
+    // Fallbacks if /start_reaction reply omits a knob (older server, etc.).
+    const FALLBACK_PRESS_THRESHOLD = 350;
+    const FALLBACK_MIN_DELAY_SEC = 3.0;
+    const FALLBACK_MAX_DELAY_SEC = 6.0;
+    const FALLBACK_MAX_REACT_SEC = 5.0;
+
     let pollingInterval = null;
+    let cueTimeoutId = null;
+    let reactionTimeoutId = null;
     let reactionActivityToggle = null;
 
+    let pressThreshold = FALLBACK_PRESS_THRESHOLD;
+    let maxReactSec = FALLBACK_MAX_REACT_SEC;
+    let cuePerfMs = 0;
+    let phase = "idle";
+
+    function setStatus(text) {
+      document.getElementById("statusBox").innerText = text;
+    }
+
+    function setCueState(state, label) {
+      const cue = document.getElementById("reactionCue");
+      cue.classList.remove("is-armed", "is-fired", "is-error");
+      if (state) {
+        cue.classList.add(state);
+      }
+      if (label !== undefined) {
+        document.getElementById("reactionCueLabel").innerText = label;
+      }
+    }
+
     function setReactionReadyState() {
-      document.getElementById("statusBox").innerHTML = "<strong>Getting Ready</strong>";
+      setStatus("Getting Ready");
+      setCueState(null, "Press Start");
+      phase = "idle";
+    }
+
+    function clearReactionTimers() {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      }
+      if (cueTimeoutId) {
+        clearTimeout(cueTimeoutId);
+        cueTimeoutId = null;
+      }
+      if (reactionTimeoutId) {
+        clearTimeout(reactionTimeoutId);
+        reactionTimeoutId = null;
+      }
     }
 
     function submitForm(event) {
@@ -296,13 +396,107 @@
     }
 
     function resetReactionUI() {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
-      }
+      clearReactionTimers();
       setReactionReadyState();
       document.getElementById("name-form").style.display = "none";
       document.getElementById("thankYouMessage").style.display = "none";
+    }
+
+    function pickInRange(minSec, maxSec) {
+      const lo = Math.min(minSec, maxSec);
+      const hi = Math.max(minSec, maxSec);
+      return lo + Math.random() * (hi - lo);
+    }
+
+    function reportOutcome(outcome, reactionTimeSec) {
+      const formData = new FormData();
+      formData.append("outcome", outcome);
+      if (typeof reactionTimeSec === "number") {
+        formData.append("reaction_time", reactionTimeSec.toFixed(4));
+      }
+      window.appendGroupId(formData);
+      return fetch("/reaction_record", { method: "POST", body: formData });
+    }
+
+    function fireCue() {
+      cueTimeoutId = null;
+      if (phase !== "waiting") {
+        return;
+      }
+      phase = "reacting";
+      cuePerfMs = performance.now();
+      setCueState("is-fired", "GO!");
+      setStatus("Press now!");
+
+      reactionTimeoutId = setTimeout(() => {
+        reactionTimeoutId = null;
+        if (phase !== "reacting") {
+          return;
+        }
+        phase = "timeout";
+        clearReactionTimers();
+        setCueState("is-error", "Too slow");
+        setStatus("No press detected. Try again.");
+        reportOutcome("timeout").catch(() => {});
+        if (reactionActivityToggle) {
+          reactionActivityToggle.setActive(false);
+        }
+      }, maxReactSec * 1000);
+    }
+
+    function handlePressDuringWait() {
+      phase = "tooEarly";
+      clearReactionTimers();
+      setCueState("is-error", "False start");
+      setStatus("Invalid attempt. You moved too early.");
+      reportOutcome("too_early").catch(() => {});
+      if (reactionActivityToggle) {
+        reactionActivityToggle.setActive(false);
+      }
+    }
+
+    function handlePressDuringReact() {
+      const reactionMs = performance.now() - cuePerfMs;
+      const reactionSec = Math.max(0, reactionMs / 1000);
+      phase = "success";
+      clearReactionTimers();
+      setStatus(`Reaction Time: ${reactionSec.toFixed(3)} sec`);
+      reportOutcome("success", reactionSec).catch(() => {});
+      document.getElementById("name-form").style.display = "block";
+      if (reactionActivityToggle) {
+        reactionActivityToggle.setActive(false);
+      }
+    }
+
+    function startPressurePolling() {
+      if (pollingInterval) clearInterval(pollingInterval);
+      pollingInterval = setInterval(() => {
+        if (!reactionActivityToggle || !reactionActivityToggle.isActive()) {
+          return;
+        }
+        if (phase !== "waiting" && phase !== "reacting") {
+          return;
+        }
+        fetch(window.withGroupQuery("/live_pressure"))
+          .then((res) => res.json())
+          .then((data) => {
+            if (phase !== "waiting" && phase !== "reacting") {
+              return;
+            }
+            const heel = Number(data.heel_pressure) || 0;
+            const fore = Number(data.fore_pressure) || 0;
+            const peak = Math.max(heel, fore);
+            if (peak < pressThreshold) {
+              return;
+            }
+            if (phase === "waiting") {
+              handlePressDuringWait();
+            } else if (phase === "reacting") {
+              handlePressDuringReact();
+            }
+          })
+          .catch(() => { /* transient errors are fine — keep polling */ });
+      }, POLL_INTERVAL_MS);
     }
 
     async function startReaction({ signal }) {
@@ -319,48 +513,19 @@
       if (data.status === "cancelled") {
         return;
       }
-      document.getElementById("statusBox").innerText = "Wait for the sound";
-      startPolling();
-    }
 
-    function startPolling() {
-      if (pollingInterval) clearInterval(pollingInterval);
-      window.countdownPlayed = false;
+      pressThreshold = Number(data.press_threshold) || FALLBACK_PRESS_THRESHOLD;
+      maxReactSec = Number(data.max_react_sec) || FALLBACK_MAX_REACT_SEC;
+      const minDelaySec = Number(data.min_delay_sec) || FALLBACK_MIN_DELAY_SEC;
+      const maxDelaySec = Number(data.max_delay_sec) || FALLBACK_MAX_DELAY_SEC;
 
-      pollingInterval = setInterval(() => {
-        fetch(window.withGroupQuery("/reaction_status"))
-          .then((res) => res.json())
-          .then((data) => {
-            if (!reactionActivityToggle || !reactionActivityToggle.isActive()) {
-              return;
-            }
-            const status = data.status;
+      phase = "waiting";
+      setCueState("is-armed", "Wait…");
+      setStatus("Wait for the pink cue");
 
-            if (status === "timing") {
-              document.getElementById("statusBox").innerText = "Wait for the sound";
-
-              if (!window.countdownPlayed) {
-                new Audio("/static/countdown.mp3").play();
-                window.countdownPlayed = true;
-              }
-
-            } else if (status === "success") {
-              document.getElementById("statusBox").innerText = `Reaction Time: ${data.reaction_time} sec`;
-              clearInterval(pollingInterval);
-              pollingInterval = null;
-              new Audio("/static/success.mp3").play();
-              document.getElementById("name-form").style.display = "block";
-              reactionActivityToggle.setActive(false);
-
-            } else if (status === "invalid") {
-              document.getElementById("statusBox").innerText = "Invalid attempt. You moved too early.";
-              clearInterval(pollingInterval);
-              pollingInterval = null;
-              new Audio("/static/fail.mp3").play();
-              reactionActivityToggle.setActive(false);
-            }
-          });
-      }, 200);
+      const delayMs = pickInRange(minDelaySec, maxDelaySec) * 1000;
+      cueTimeoutId = setTimeout(fireCue, delayMs);
+      startPressurePolling();
     }
 
     function stopDataAndNavigate(url) {
