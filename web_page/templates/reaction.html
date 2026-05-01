@@ -160,50 +160,19 @@
       animation: glow 1s infinite alternate;
     }
 
-    /* Reaction visual cue box */
-    .reaction-cue {
-      width: min(72%, 360px);
-      aspect-ratio: 1 / 1;
-      margin: 18px auto 4px;
-      border-radius: 24px;
-      border: 4px solid rgba(216, 134, 175, 0.85);
-      background: transparent;
-      box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-        0 14px 28px rgba(0, 0, 0, 0.35);
+    /* Status box reused as the reaction cue: at the GO moment we flip it from
+       the default pink-tinted transparent panel to a solid pink fill. */
+    #statusBox {
       transition: background-color 80ms linear, box-shadow 80ms linear, border-color 120ms ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: rgba(216, 134, 175, 0.85);
-      font-family: "Impact", "Arial Black", sans-serif;
-      letter-spacing: 0.12em;
-      font-size: 1.6em;
-      text-transform: uppercase;
-      user-select: none;
     }
 
-    .reaction-cue.is-armed {
-      border-color: rgba(216, 134, 175, 0.6);
-      color: rgba(216, 134, 175, 0.55);
-    }
-
-    .reaction-cue.is-fired {
-      background: rgba(216, 134, 175, 0.92);
-      border-color: rgba(216, 134, 175, 1);
-      color: #1a0a14;
+    #statusBox.is-fired {
+      background: rgba(var(--activity-rgb), 0.92) !important;
+      border-color: rgba(var(--activity-rgb), 1) !important;
+      color: #1a0a14 !important;
       box-shadow:
-        0 0 0 6px rgba(216, 134, 175, 0.18),
-        0 18px 38px rgba(216, 134, 175, 0.35);
-    }
-
-    .reaction-cue.is-error {
-      border-color: rgba(255, 92, 92, 0.85);
-      color: rgba(255, 92, 92, 0.85);
-    }
-
-    .reaction-cue__label {
-      pointer-events: none;
+        0 0 0 6px rgba(var(--activity-rgb), 0.18),
+        0 18px 38px rgba(var(--activity-rgb), 0.35) !important;
     }
 
     /* Modal styling */
@@ -288,10 +257,6 @@
         {% include '_activity_status_box.html' %}
       </div>
 
-      <div id="reactionCue" class="reaction-cue" aria-live="polite">
-        <span class="reaction-cue__label" id="reactionCueLabel">Press Start</span>
-      </div>
-
       {% include '_live_pressure_debug.html' %}
 
       <div class="buttons pg-actions">
@@ -347,24 +312,14 @@
     let cuePerfMs = 0;
     let phase = "idle";
 
-    function setStatus(text) {
-      document.getElementById("statusBox").innerText = text;
-    }
-
-    function setCueState(state, label) {
-      const cue = document.getElementById("reactionCue");
-      cue.classList.remove("is-armed", "is-fired", "is-error");
-      if (state) {
-        cue.classList.add(state);
-      }
-      if (label !== undefined) {
-        document.getElementById("reactionCueLabel").innerText = label;
-      }
+    function setStatus(text, { fired = false } = {}) {
+      const box = document.getElementById("statusBox");
+      box.innerText = text;
+      box.classList.toggle("is-fired", fired);
     }
 
     function setReactionReadyState() {
       setStatus("Getting Ready");
-      setCueState(null, "Press Start");
       phase = "idle";
     }
 
@@ -425,8 +380,7 @@
       }
       phase = "reacting";
       cuePerfMs = performance.now();
-      setCueState("is-fired", "GO!");
-      setStatus("Press now!");
+      setStatus("Press now!", { fired: true });
 
       reactionTimeoutId = setTimeout(() => {
         reactionTimeoutId = null;
@@ -435,7 +389,6 @@
         }
         phase = "timeout";
         clearReactionTimers();
-        setCueState("is-error", "Too slow");
         setStatus("No press detected. Try again.");
         reportOutcome("timeout").catch(() => {});
         if (reactionActivityToggle) {
@@ -447,7 +400,6 @@
     function handlePressDuringWait() {
       phase = "tooEarly";
       clearReactionTimers();
-      setCueState("is-error", "False start");
       setStatus("Invalid attempt. You moved too early.");
       reportOutcome("too_early").catch(() => {});
       if (reactionActivityToggle) {
@@ -520,7 +472,6 @@
       const maxDelaySec = Number(data.max_delay_sec) || FALLBACK_MAX_DELAY_SEC;
 
       phase = "waiting";
-      setCueState("is-armed", "Wait…");
       setStatus("Wait for the pink cue");
 
       const delayMs = pickInRange(minDelaySec, maxDelaySec) * 1000;
