@@ -1,7 +1,7 @@
 CXX := g++
 CPPFLAGS := -MMD -MP
 CXXFLAGS := -std=c++17
-LDLIBS := -lwiringPi
+LDLIBS := -lwiringPi -lpthread
 
 TARGET := SonicSole_RPi
 BUILD_DIR := build/sonicsole_rpi
