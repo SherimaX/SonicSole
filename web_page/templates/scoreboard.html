@@ -32,6 +32,39 @@
 
     .pg-scoreboard-titlebar .pg-header-nav {
       width: auto;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .pg-scoreboard-admin-btn {
+      appearance: none;
+      border: 1px solid rgba(0, 0, 0, 0.16);
+      background: rgba(255, 255, 255, 0.7);
+      color: inherit;
+      font: inherit;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .pg-scoreboard-admin-btn:hover {
+      background: rgba(var(--activity-rgb), 0.16);
+    }
+
+    .pg-scoreboard-admin-btn--danger {
+      border-color: rgba(180, 30, 30, 0.4);
+      color: #8a1f1f;
+    }
+
+    .pg-scoreboard-admin-btn--danger:hover {
+      background: rgba(180, 30, 30, 0.1);
+    }
+
+    .pg-scoreboard-admin-btn[disabled] {
+      opacity: 0.55;
+      cursor: progress;
     }
 
     .pg-scoreboard-table {
@@ -89,6 +122,16 @@
     <div class="pg-scoreboard-titlebar">
       <h1>{{ scoreboard_activity.title }}</h1>
       <div class="pg-header-nav">
+        <button
+          type="button"
+          class="pg-scoreboard-admin-btn"
+          id="loadExampleDataBtn"
+        >Load example data</button>
+        <button
+          type="button"
+          class="pg-scoreboard-admin-btn pg-scoreboard-admin-btn--danger"
+          id="resetAllDataBtn"
+        >Reset all data</button>
         <a class="pg-ghost-link" href="{{ url_for('home') }}">Home</a>
       </div>
     </div>
@@ -325,6 +368,41 @@
       if (document.visibilityState === "visible") {
         pollScoreboard();
       }
+    });
+
+    async function postAdminAction(url, button, originalLabel, busyLabel) {
+      button.disabled = true;
+      const previousLabel = button.textContent;
+      button.textContent = busyLabel;
+      try {
+        const response = await fetch(url, { method: "POST", cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Server returned " + response.status);
+        }
+        await pollScoreboard();
+      } catch (error) {
+        alert((originalLabel || "Action") + " failed: " + (error.message || error));
+      } finally {
+        button.disabled = false;
+        button.textContent = previousLabel;
+      }
+    }
+
+    const loadExampleDataBtn = document.getElementById("loadExampleDataBtn");
+    const resetAllDataBtn = document.getElementById("resetAllDataBtn");
+
+    loadExampleDataBtn.addEventListener("click", () => {
+      if (!confirm("Replace every scoreboard with example data? This overwrites all current scores.")) {
+        return;
+      }
+      postAdminAction("/scoreboard/load_example_data", loadExampleDataBtn, "Load example data", "Loading…");
+    });
+
+    resetAllDataBtn.addEventListener("click", () => {
+      if (!confirm("Reset every scoreboard to empty? This deletes all current scores and cannot be undone.")) {
+        return;
+      }
+      postAdminAction("/scoreboard/reset_all_data", resetAllDataBtn, "Reset all data", "Resetting…");
     });
   </script>
 </body>
