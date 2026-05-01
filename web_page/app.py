@@ -1075,6 +1075,14 @@ ACTIVITY_THRESHOLD_SPEC = {
                 "max": 4095,
                 "step": 1,
             },
+            "max_airtime_seconds": {
+                "label": "Maximum airtime (s)",
+                "help": "Jumps with airtime above this are rejected as unrealistic (likely a foot lift, not a real jump). 0.4s ≈ 20 cm jump height.",
+                "default": 0.4,
+                "min": 0.0,
+                "max": 5.0,
+                "step": 0.05,
+            },
         },
     },
     "balance": {
@@ -2032,6 +2040,18 @@ def start_jump():
     airtime, height, was_cancelled = get_airtime_and_height(session_id, device_ip)
     if was_cancelled:
         return jsonify({'status': 'cancelled'})
+
+    max_airtime = get_threshold("jump", "max_airtime_seconds")
+    if airtime > max_airtime:
+        print(f"[jump {device_ip}] Airtime {airtime:.3f}s above max {max_airtime}s — try again")
+        reset_jump_state(device_ip=device_ip, cancel_session=True)
+        return jsonify({
+            'status': 'too_long',
+            'message': 'Try again — airtime too long to be a real jump.',
+            'airtime': airtime,
+            'max_airtime': max_airtime,
+        })
+
     per_board_set(jump_results, jump_results_lock, device_ip, {
         "airtime": airtime,
         "height": height,
