@@ -998,8 +998,6 @@ precision_results = {}  # {device_ip: {full state dict}}
 forefoot_results_lock = threading.Lock()
 forefoot_results = {}  # {device_ip: {"status": str, "distance_meters": float, "time": float}}
 
-PRECISION_FORCE_MAX = 2000
-PRECISION_CAPTURE_SECONDS = 5
 PRECISION_TARGET_PERCENTS = [25, 30, 35, 40, 45, 50]
 
 
@@ -1049,13 +1047,94 @@ threshold_fore = 350
 threshold_heel = 350
 dt = 0.009 #approx time (s) between samples from udp
 
-# Single source of truth for "is the foot resting on the insole?" Used by the
-# Balance activity for all three transitions: standing check before start,
-# foot-lift detection (start stopwatch), foot-down detection (stop stopwatch).
-# Compares the SUM of heel and fore pressure against the threshold.
-BALANCE_PRESSURE_THRESHOLD = int(
-    os.environ.get("SONICSOLE_BALANCE_THRESHOLD", "200")
-)
+# Runtime-mutable activity thresholds, exposed via the /settings page so an
+# operator can tune them without restarting the server. Spec for each entry:
+#   value: current value
+#   default: factory value (used by the Reset button)
+#   min/max: validation bounds for the settings UI
+#   step: input increment (also signals integer vs decimal)
+#   label/help: copy shown in the UI
+ACTIVITY_THRESHOLD_SPEC = {
+    "jump": {
+        "label": "Jumping",
+        "help": "Pressure cutoffs that detect takeoff and landing during a jump.",
+        "fields": {
+            "takeoff_pressure": {
+                "label": "Takeoff pressure",
+                "help": "Both heel and fore must drop below this value to register takeoff.",
+                "default": 100,
+                "min": 0,
+                "max": 4095,
+                "step": 1,
+            },
+            "landing_pressure": {
+                "label": "Landing pressure",
+                "help": "Either heel or fore crossing this value ends the airtime measurement.",
+                "default": 100,
+                "min": 0,
+                "max": 4095,
+                "step": 1,
+            },
+        },
+    },
+    "balance": {
+        "label": "Balancing",
+        "help": "Pressure threshold used to decide whether the foot is on or off the insole.",
+        "fields": {
+            "pressure_threshold": {
+                "label": "Foot-on-insole threshold",
+                "help": "heel + fore pressure must reach this sum to count as foot-down.",
+                "default": int(os.environ.get("SONICSOLE_BALANCE_THRESHOLD", "200")),
+                "min": 0,
+                "max": 8190,
+                "step": 1,
+            },
+        },
+    },
+    "reaction": {
+        "label": "Reaction",
+        "help": "Reaction timing runs entirely on the Raspberry Pi firmware, so there are no Python-side thresholds to tune here.",
+        "fields": {},
+    },
+    "precision": {
+        "label": "Precision",
+        "help": "Force range and capture window for the precision trainer.",
+        "fields": {
+            "force_max": {
+                "label": "Max force (counts)",
+                "help": "Pressure value that maps to 100% on the precision dial.",
+                "default": 2000,
+                "min": 1,
+                "max": 4095,
+                "step": 1,
+            },
+            "capture_seconds": {
+                "label": "Capture window (s)",
+                "help": "How long the trainer samples before locking in the score.",
+                "default": 5,
+                "min": 1,
+                "max": 60,
+                "step": 1,
+            },
+        },
+    },
+}
+
+activity_thresholds_lock = threading.Lock()
+ACTIVITY_THRESHOLDS = {
+    activity: {field: spec["default"] for field, spec in details["fields"].items()}
+    for activity, details in ACTIVITY_THRESHOLD_SPEC.items()
+}
+
+
+def get_threshold(activity, field):
+    with activity_thresholds_lock:
+        return ACTIVITY_THRESHOLDS[activity][field]
+
+
+def set_threshold(activity, field, value):
+    with activity_thresholds_lock:
+        ACTIVITY_THRESHOLDS[activity][field] = value
 
 
 def get_pressure_sum(snapshot):
@@ -1063,11 +1142,15 @@ def get_pressure_sum(snapshot):
     return int(snapshot.get("heel_pressure", 0)) + int(snapshot.get("fore_pressure", 0))
 
 
-def is_foot_on_insole(snapshot, threshold=BALANCE_PRESSURE_THRESHOLD):
+def is_foot_on_insole(snapshot, threshold=None):
+    if threshold is None:
+        threshold = get_threshold("balance", "pressure_threshold")
     return get_pressure_sum(snapshot) >= threshold
 
 
-def is_foot_lifted(snapshot, threshold=BALANCE_PRESSURE_THRESHOLD):
+def is_foot_lifted(snapshot, threshold=None):
+    if threshold is None:
+        threshold = get_threshold("balance", "pressure_threshold")
     return get_pressure_sum(snapshot) < threshold
 
 
@@ -1151,7 +1234,7 @@ def default_reaction_entry():
 def default_precision_entry():
     return {
         "status": "idle",
-        "max_force": PRECISION_FORCE_MAX,
+        "max_force": get_threshold("precision", "force_max"),
         "target_percent": 0,
         "target_force": 0,
         "current_force": 0,
@@ -1212,7 +1295,7 @@ def get_precision_force_value(raw_value):
         pressure_value = int(float(raw_value))
     except (TypeError, ValueError):
         pressure_value = 0
-    return max(0, min(PRECISION_FORCE_MAX, pressure_value))
+    return max(0, min(get_threshold("precision", "force_max"), pressure_value))
 
 
 def reset_forefoot_state(device_ip=None, cancel_session=False):
@@ -1899,17 +1982,15 @@ def get_airtime_and_height():
     #vertical_raw_data_UDP = []
     return round(airtime, 4), jump_height'''
 
-JUMP_TAKEOFF_PRESSURE = 100
-JUMP_LANDING_PRESSURE = 100
-
-
 def get_airtime_and_height(session_id, device_ip):
     """Wait for takeoff/landing on the given board and return (airtime, height, was_cancelled)."""
+    takeoff_threshold = get_threshold("jump", "takeoff_pressure")
+    landing_threshold = get_threshold("jump", "landing_pressure")
     while True:
         if not is_activity_session_active(device_ip, "jump", session_id):
             return 0.0, 0.0, True
         snapshot = read_sensor_for_ip(device_ip)
-        if snapshot["heel_pressure"] < JUMP_TAKEOFF_PRESSURE and snapshot["fore_pressure"] < JUMP_TAKEOFF_PRESSURE:
+        if snapshot["heel_pressure"] < takeoff_threshold and snapshot["fore_pressure"] < takeoff_threshold:
             start_time = time.time()
             print(f"[jump {device_ip}] Takeoff detected")
             break
@@ -1918,7 +1999,7 @@ def get_airtime_and_height(session_id, device_ip):
         if not is_activity_session_active(device_ip, "jump", session_id):
             return 0.0, 0.0, True
         snapshot = read_sensor_for_ip(device_ip)
-        if snapshot["heel_pressure"] >= JUMP_LANDING_PRESSURE or snapshot["fore_pressure"] >= JUMP_LANDING_PRESSURE:
+        if snapshot["heel_pressure"] >= landing_threshold or snapshot["fore_pressure"] >= landing_threshold:
             end_time = time.time()
             print(f"[jump {device_ip}] Landing detected")
             break
@@ -1990,8 +2071,8 @@ def balancing_pressure(session_id, device_ip):
     """Flask-side balance stopwatch — pure Python, no RPi round-trip.
 
     Step 1: wait for the foot to leave the insole (both heel and fore drop
-            below BALANCE_PRESSURE_THRESHOLD). When that happens, mark the
-            start time.
+            below the configured balance pressure threshold). When that
+            happens, mark the start time.
     Step 2: keep watching the snapshot. As soon as either heel or fore
             crosses back over the threshold, stop the clock and record
             elapsed seconds as the score.
@@ -2007,7 +2088,7 @@ def balancing_pressure(session_id, device_ip):
             start_time = time.time()
             print(
                 f"[balance {device_ip}] foot lifted "
-                f"(sum={get_pressure_sum(snapshot)} < {BALANCE_PRESSURE_THRESHOLD}); "
+                f"(sum={get_pressure_sum(snapshot)} < {get_threshold('balance', 'pressure_threshold')}); "
                 f"timing started"
             )
             break
@@ -2032,7 +2113,7 @@ def balancing_pressure(session_id, device_ip):
             )
             print(
                 f"[balance {device_ip}] foot down "
-                f"(sum={get_pressure_sum(snapshot)} >= {BALANCE_PRESSURE_THRESHOLD}); "
+                f"(sum={get_pressure_sum(snapshot)} >= {get_threshold('balance', 'pressure_threshold')}); "
                 f"score={elapsed:.3f}s"
             )
             return
@@ -2041,11 +2122,12 @@ def balancing_pressure(session_id, device_ip):
 
 @app.route('/balancing', methods=['GET'])
 def balancing():
+    balance_threshold = get_threshold("balance", "pressure_threshold")
     device_ip, _, error = resolve_group_id_to_device_ip(request.args.get("group_id"))
     if error:
         return jsonify({
             'data': '0', 'done': False, 'status': 'idle', 'reason': '',
-            'pressure_sum': 0, 'threshold': BALANCE_PRESSURE_THRESHOLD,
+            'pressure_sum': 0, 'threshold': balance_threshold,
             'error': error,
         }), 400
     entry = per_board_get(balance_results, balance_results_lock, device_ip, default_balance_entry)
@@ -2061,7 +2143,7 @@ def balancing():
         'status': entry.get("status", "idle"),
         'reason': entry.get("reason", ""),
         'pressure_sum': get_pressure_sum(snapshot),
-        'threshold': BALANCE_PRESSURE_THRESHOLD,
+        'threshold': balance_threshold,
     })
 
 
@@ -2218,6 +2300,7 @@ def start_precision_trainer():
 
 @app.route('/precision_trainer_status')
 def precision_trainer_status():
+    precision_force_max = get_threshold("precision", "force_max")
     device_ip, _, error = resolve_group_id_to_device_ip(request.args.get("group_id"))
     if error:
         return jsonify({**default_precision_entry(), "time": 0.0, "error": error}), 400
@@ -2231,7 +2314,7 @@ def precision_trainer_status():
         target_force=entry.get("target_force", 0),
         current_force=entry.get("current_force", 0),
         current_percent=entry.get("current_percent", 0),
-        max_force=entry.get("max_force", PRECISION_FORCE_MAX),
+        max_force=entry.get("max_force", precision_force_max),
     )
 
 def run_precision_trainer(session_id, device_ip):
@@ -2239,15 +2322,17 @@ def run_precision_trainer(session_id, device_ip):
     # may still be mid-activity and need fresh sensor snapshots. The thread is
     # stopped only by /stop_data (the global panic button).
     start_combined_data_thread()
+    precision_force_max = get_threshold("precision", "force_max")
+    capture_seconds = get_threshold("precision", "capture_seconds")
     target_percent = random.choice(PRECISION_TARGET_PERCENTS)
-    target_force = round((target_percent / 100.0) * PRECISION_FORCE_MAX)
+    target_force = round((target_percent / 100.0) * precision_force_max)
     per_board_update(
         precision_results,
         precision_results_lock,
         device_ip,
         default_precision_entry,
         status="measuring",
-        max_force=PRECISION_FORCE_MAX,
+        max_force=precision_force_max,
         target_percent=target_percent,
         target_force=target_force,
         current_force=0,
@@ -2258,12 +2343,12 @@ def run_precision_trainer(session_id, device_ip):
     )
 
     start_time = time.time()
-    while time.time() - start_time < PRECISION_CAPTURE_SECONDS:
+    while time.time() - start_time < capture_seconds:
         if not is_activity_session_active(device_ip, "precision", session_id):
             return
         snapshot = read_sensor_for_ip(device_ip)
         current_force = get_precision_force_value(snapshot["fore_pressure"])
-        current_percent = round((current_force / PRECISION_FORCE_MAX) * 100, 1)
+        current_percent = round((current_force / precision_force_max) * 100, 1)
         per_board_update(
             precision_results,
             precision_results_lock,
@@ -2279,7 +2364,7 @@ def run_precision_trainer(session_id, device_ip):
 
     snapshot = read_sensor_for_ip(device_ip)
     measured_force = get_precision_force_value(snapshot["fore_pressure"])
-    measured_percent = round((measured_force / PRECISION_FORCE_MAX) * 100, 1)
+    measured_percent = round((measured_force / precision_force_max) * 100, 1)
     precision_error_value = abs(measured_percent - target_percent)
     per_board_update(
         precision_results,
@@ -2296,6 +2381,7 @@ def run_precision_trainer(session_id, device_ip):
 
 @app.route('/precision_trainer_results')
 def precision_trainer_results():
+    precision_force_max = get_threshold("precision", "force_max")
     device_ip, _, error = resolve_group_id_to_device_ip(request.args.get("group_id"))
     if error:
         return jsonify({**default_precision_entry(), "error": error}), 400
@@ -2306,7 +2392,7 @@ def precision_trainer_results():
         measured_percent=entry.get("measured_percent", 0.0),
         error_percent=entry.get("error_percent", 0.0),
         target_percent=entry.get("target_percent", 0),
-        max_force=entry.get("max_force", PRECISION_FORCE_MAX),
+        max_force=entry.get("max_force", precision_force_max),
     )
 
 # fore walk
@@ -2492,6 +2578,86 @@ def estimate_distance_from_ax_vector_norm(ax_values, ay_values, az_values): #fvn
 @app.route('/')
 def home():
     return render_template('home.html')
+
+
+def _build_threshold_view():
+    """Snapshot of the threshold spec + current values for the settings UI."""
+    activities = []
+    for activity_slug, details in ACTIVITY_THRESHOLD_SPEC.items():
+        fields = []
+        for field_slug, field_spec in details["fields"].items():
+            fields.append({
+                "slug": field_slug,
+                "label": field_spec["label"],
+                "help": field_spec.get("help", ""),
+                "default": field_spec["default"],
+                "min": field_spec["min"],
+                "max": field_spec["max"],
+                "step": field_spec["step"],
+                "value": get_threshold(activity_slug, field_slug),
+            })
+        activities.append({
+            "slug": activity_slug,
+            "label": details["label"],
+            "help": details.get("help", ""),
+            "fields": fields,
+        })
+    return activities
+
+
+@app.route('/settings')
+def settings_page():
+    return render_template(
+        'settings.html',
+        threshold_activities=_build_threshold_view(),
+    )
+
+
+@app.route('/api/settings/thresholds', methods=['GET'])
+def get_thresholds_api():
+    return jsonify({"activities": _build_threshold_view()})
+
+
+@app.route('/api/settings/thresholds', methods=['POST'])
+def update_thresholds_api():
+    payload = request.get_json(silent=True) or {}
+    updates = payload.get("thresholds")
+    if not isinstance(updates, dict):
+        return jsonify({"status": "error", "message": "Expected JSON body with a 'thresholds' object."}), 400
+
+    errors = {}
+    parsed = {}
+    for activity_slug, fields in updates.items():
+        spec = ACTIVITY_THRESHOLD_SPEC.get(activity_slug)
+        if spec is None or not isinstance(fields, dict):
+            continue
+        for field_slug, raw_value in fields.items():
+            field_spec = spec["fields"].get(field_slug)
+            if field_spec is None:
+                continue
+            try:
+                if isinstance(field_spec["step"], int):
+                    value = int(float(raw_value))
+                else:
+                    value = float(raw_value)
+            except (TypeError, ValueError):
+                errors.setdefault(activity_slug, {})[field_slug] = "Must be a number."
+                continue
+            if value < field_spec["min"] or value > field_spec["max"]:
+                errors.setdefault(activity_slug, {})[field_slug] = (
+                    f"Must be between {field_spec['min']} and {field_spec['max']}."
+                )
+                continue
+            parsed.setdefault(activity_slug, {})[field_slug] = value
+
+    if errors:
+        return jsonify({"status": "error", "errors": errors}), 400
+
+    for activity_slug, fields in parsed.items():
+        for field_slug, value in fields.items():
+            set_threshold(activity_slug, field_slug, value)
+
+    return jsonify({"status": "ok", "activities": _build_threshold_view()})
 
 
 PHONE_QR_DEFAULT_HOST = "172.20.10.2:5001"
