@@ -248,6 +248,12 @@ body.pg-screen.pg-activity.pg-phone-app .pg-activity-card .pg-actions {
   padding-top: 0;
 }
 
+body.pg-screen.pg-activity.pg-phone-app .pg-status-grid > .pg-activity-status-box--square:only-child {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 360px) !important;
+}
+
 body.pg-screen.pg-activity.pg-phone-app .pg-activity-stage.pg-overflows-y {
   padding-bottom: calc(138px + var(--pg-phone-bottom-safe-space));
 }
