@@ -307,17 +307,6 @@
       setBalanceStatusHTML("<strong>Getting Ready</strong>");
     }
 
-    function renderPressureLive(pressureSum, threshold) {
-      const sumDisplay = Number.isFinite(pressureSum) ? pressureSum : 0;
-      const thresholdDisplay = Number.isFinite(threshold) ? threshold : 0;
-      setBalanceStatusHTML(
-        `<div class="pg-status-stacked">` +
-        `<strong>Pressure: ${sumDisplay}</strong>` +
-        `<span class="pg-status-sub">Threshold: ${thresholdDisplay}</span>` +
-        `</div>`
-      );
-    }
-
     function fetchData() {
       fetch(window.withGroupQuery("/balancing"))
         .then((response) => response.json())
@@ -328,7 +317,7 @@
               `<div class="pg-status-stacked"><strong>Try again</strong><span class="pg-status-sub">${data.reason || "Measurement failed"}</span></div>`
             );
           } else if (data.status === "measuring") {
-            renderPressureLive(data.pressure_sum, data.threshold);
+            setBalanceStatusHTML("<strong>Measuring</strong>");
           } else if (!toggleActive && !data.done && String(data.data) === "0") {
             setBalanceReadyState();
           } else {
