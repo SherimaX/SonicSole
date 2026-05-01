@@ -38,11 +38,11 @@ GROUP_SLOTS = [
 ]
 GROUP_OPTIONS_BY_ID = {group["id"]: group for group in GROUP_SLOTS}
 DEFAULT_GROUP_DEVICE_IPS = {
-    1: "192.168.2.5",
-    2: "192.168.2.7",
-    3: "192.168.2.8",
-    4: "192.168.2.9",
-    5: "192.168.2.10",
+    1: "192.168.0.101",
+    2: "192.168.0.102",
+    3: "192.168.0.103",
+    4: "192.168.0.104",
+    5: "192.168.0.105",
 }
 HARDWARE_PING_TIMEOUT_SECONDS = 1.0
 
