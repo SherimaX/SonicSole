@@ -2768,6 +2768,34 @@ def pc_scoreboard_data(board_key):
     })
 
 
+def _clear_all_activity_results():
+    for store, lock in (
+        (jump_results, jump_results_lock),
+        (balance_results, balance_results_lock),
+        (reaction_results, reaction_results_lock),
+        (precision_results, precision_results_lock),
+        (forefoot_results, forefoot_results_lock),
+    ):
+        with lock:
+            store.clear()
+
+
+@app.route('/scoreboard/load_example_data', methods=['POST'])
+def scoreboard_load_example_data():
+    for board_key in LEADERBOARD_CONFIG:
+        write_leaderboard_rows(board_key, DUMMY_LEADERBOARD_ROWS[board_key])
+    _clear_all_activity_results()
+    return jsonify({"status": "ok"})
+
+
+@app.route('/scoreboard/reset_all_data', methods=['POST'])
+def scoreboard_reset_all_data():
+    for board_key in LEADERBOARD_CONFIG:
+        write_leaderboard_rows(board_key, [])
+    _clear_all_activity_results()
+    return jsonify({"status": "ok"})
+
+
 @app.route('/bScoreboard')
 def b_scoreboard():
     return render_template(
@@ -3026,17 +3054,31 @@ def disconnect_group_device():
     )
 
 
-def _resolve_submit_device_ip():
-    """Resolve the device IP whose score should be submitted from this request."""
-    payload = request.form
-    device_ip, _, _ = resolve_group_id_to_device_ip(payload.get("group_id"))
-    return device_ip
+def _resolve_submit_target():
+    """Resolve which group's score should be persisted from this request.
+
+    Returns (device_ip, group_label, error_response_or_None). Both the IP and
+    the label come from the form's `group_id` so the row that gets appended is
+    bound to the same group the page was rendered for. Falling back to the
+    session label here would let a second tab's group selection silently
+    relabel scores submitted from this tab.
+    """
+    device_ip, group, error_message = resolve_group_id_to_device_ip(request.form.get("group_id"))
+    if error_message:
+        return "", "", (jsonify({"status": "error", "message": error_message}), 400)
+    if group is None:
+        return "", "", (
+            jsonify({"status": "error", "message": "Please select a group before submitting the score."}),
+            400,
+        )
+    return device_ip, group["label"], None
 
 
 @app.route('/submitB', methods=['POST'])
 def submitB():
-    submitted_name = get_group_name_from_request("group_name")
-    device_ip = _resolve_submit_device_ip()
+    device_ip, submitted_name, error = _resolve_submit_target()
+    if error:
+        return error
     entry = per_board_get(balance_results, balance_results_lock, device_ip, default_balance_entry)
     append_leaderboard_row("balance", submitted_name, entry.get("total_time", "0"))
     return jsonify({"status": "Group name submitted successfully"})
@@ -3044,16 +3086,18 @@ def submitB():
 
 @app.route('/submitR', methods=['POST'])
 def submitR():
-    submitted_name = get_group_name_from_request("group_name")
-    device_ip = _resolve_submit_device_ip()
+    device_ip, submitted_name, error = _resolve_submit_target()
+    if error:
+        return error
     entry = per_board_get(reaction_results, reaction_results_lock, device_ip, default_reaction_entry)
     append_leaderboard_row("reaction", submitted_name, entry.get("reaction_time", 0))
     return jsonify({"status": "Group name submitted successfully"})
 
 @app.route('/submitW', methods=['POST'])
 def submitW():
-    submitted_name = get_group_name_from_request("group_name")
-    device_ip = _resolve_submit_device_ip()
+    device_ip, submitted_name, error = _resolve_submit_target()
+    if error:
+        return error
     entry = per_board_get(forefoot_results, forefoot_results_lock, device_ip, default_forefoot_entry)
     append_leaderboard_row("walk", submitted_name, entry.get("distance_meters", 0))
     return jsonify({"status": "Group name submitted successfully"})
@@ -3061,16 +3105,18 @@ def submitW():
 
 @app.route('/submitP', methods=['POST'])
 def submitP():
-    submitted_name = get_group_name_from_request("group_name")
-    device_ip = _resolve_submit_device_ip()
+    device_ip, submitted_name, error = _resolve_submit_target()
+    if error:
+        return error
     entry = per_board_get(precision_results, precision_results_lock, device_ip, default_precision_entry)
     append_leaderboard_row("precision", submitted_name, entry.get("error_percent", 0))
     return jsonify({"status": "Group name submitted successfully"})
 
 @app.route('/submitJ', methods=['POST'])
 def submitJ():
-    submitted_name = get_group_name_from_request("group_name")
-    device_ip = _resolve_submit_device_ip()
+    device_ip, submitted_name, error = _resolve_submit_target()
+    if error:
+        return error
     entry = per_board_get(jump_results, jump_results_lock, device_ip, default_jump_entry)
     append_leaderboard_row("jump", submitted_name, entry.get("height", 0.0))
     return jsonify({"status": "Group name submitted successfully"})
