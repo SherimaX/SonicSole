@@ -17,6 +17,9 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 
+#include "RPi_combined_Header.h"
+#include "RPi_Raj_Header.h"
+
 std::uint64_t getMicrosTimeStamp()
 {
     struct timeval tv;
@@ -81,6 +84,9 @@ SonicSole::SonicSole()
 
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
+    IMU = -1;
+    printf("IMU serial will be initialized on first read.\n\n");
+
     printf("Initializing GPIO...\n\n");
     if (wiringPiSetupGpio() == -1) {
         fprintf(stderr, "Unable to start wiringPi: %s\n", strerror(errno));
@@ -93,6 +99,11 @@ SonicSole::SonicSole()
 
 SonicSole::~SonicSole()
 {
+    stopIMUThread();
+    if (IMU >= 0) {
+        close(IMU);
+        IMU = -1;
+    }
     closeCSVFile();
 }
 
@@ -108,7 +119,10 @@ void SonicSole::openCSVFile()
     if (outFile.tellp() == 0) {
         outFile << "time, "
                 << "heel pressure, "
-                << "forefoot pressure" << std::endl;
+                << "forefoot pressure, "
+                << "ax, "
+                << "ay, "
+                << "az" << std::endl;
     }
 }
 
@@ -122,7 +136,10 @@ void SonicSole::closeCSVFile()
 void SonicSole::toCSV(
     double time,
     double heelPressure,
-    double forePressure)
+    double forePressure,
+    float ax,
+    float ay,
+    float az)
 {
     if (!outFile.is_open()) {
         std::cerr << "File stream is not open" << std::endl;
@@ -131,7 +148,10 @@ void SonicSole::toCSV(
 
     outFile << time << ", "
             << heelPressure << ", "
-            << forePressure << std::endl;
+            << forePressure << ", "
+            << ax << ", "
+            << ay << ", "
+            << az << std::endl;
 }
 
 double SonicSole::getRunningTime()

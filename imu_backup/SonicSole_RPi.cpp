@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <sys/time.h>
+#include <vector>
 
 namespace {
 
@@ -41,14 +42,21 @@ std::string envOrDefault(const char* name, const std::string& fallback)
     return std::string(raw);
 }
 
-void sendCurrentSensorPacket(SonicSole& sole)
+void sendCurrentSensorPacket(SonicSole& sole, const IMUSnapshot& imu)
 {
     float sensorData[] = {
         static_cast<float>(sole.currForePressure),
-        static_cast<float>(sole.currHeelPressure)
+        static_cast<float>(sole.currHeelPressure),
+        static_cast<float>(imu.ax),
+        static_cast<float>(imu.ay),
+        static_cast<float>(imu.az),
+        static_cast<float>(imu.qx),
+        static_cast<float>(imu.qy),
+        static_cast<float>(imu.qz),
+        static_cast<float>(imu.qw)
     };
 
-    sole.sendSensorData(sensorData, 21000, 2);
+    sole.sendSensorData(sensorData, 21000, 9);
 }
 
 } // namespace
@@ -69,19 +77,24 @@ int main(int /*argc*/, char* /*argv*/[])
     ActivityManager activityManager;
     activityManager.registerActivity(std::make_unique<BalanceActivity>());
     activityManager.registerActivity(std::make_unique<ReactionActivity>(&beepPlayer));
+    // Add jump and precision the same way: subclass ActivityBase and register.
     if (!activityManager.start(resolveActivityPort())) {
         std::cerr << "Activity control listener disabled; sensor streaming only."
                   << std::endl;
     }
 
     sole.openCSVFile();
+    sole.startIMUThread();
 
     int cycle = 0;
+    std::vector<float> azData;
     auto previousIterationTime = std::chrono::steady_clock::now();
 
     while (true) {
         sole.updateCurrentTime();
         sole.updatePressure();
+
+        const IMUSnapshot imu = sole.snapshotIMU();
 
         const auto nowSteady = std::chrono::steady_clock::now();
         const double elapsedSeconds =
@@ -95,13 +108,34 @@ int main(int /*argc*/, char* /*argv*/[])
         std::cout << "Cycle: " << cycle << std::endl;
         ++cycle;
 
+        sole.getAccelVectorData(static_cast<float>(imu.az), azData);
         sole.toCSV(
             time,
             sole.currHeelPressure,
-            sole.currForePressure);
+            sole.currForePressure,
+            static_cast<float>(imu.ax),
+            static_cast<float>(imu.ay),
+            static_cast<float>(imu.az));
 
-        std::cout << "Pressure (heel, fore): "
-                  << sole.currHeelPressure << ", " << sole.currForePressure << std::endl;
+        std::cout << "IMU Debug: state=" << imu.imuState
+                  << ", configured=" << (imu.imuConfigured ? "yes" : "no")
+                  << ", port=" << (imu.imuPort.empty() ? "<unset>" : imu.imuPort)
+                  << ", baud=" << imu.imuBaudRate
+                  << ", pending=" << imu.imuPendingBytes
+                  << ", failures=" << imu.imuConsecutiveFailures
+                  << std::endl;
+        std::cout << "IMU Event: " << imu.imuLastEvent << std::endl;
+        std::cout << "IMU Read: request=" << imu.imuLastRequest
+                  << ", requested=" << imu.imuRequestedBytes
+                  << ", read=" << imu.imuBytesRead
+                  << ", chunks=" << imu.imuReadChunks
+                  << ", complete=" << (imu.imuReadComplete ? "yes" : "no")
+                  << ", pending_before=" << imu.imuPendingBeforeRequest
+                  << ", pending_after=" << imu.imuPendingAfterRead
+                  << std::endl;
+        std::cout << "IMU Data (g) (ax, ay, az): "
+                  << imu.ax << ", " << imu.ay << ", " << imu.az << std::endl;
+        std::cout << "IMU Packet Preview: " << imu.imuPacketPreview << std::endl;
 
         if (activityManager.hasActiveActivity()) {
             std::cout << "Activity: " << activityManager.activeActivityName()
@@ -110,7 +144,7 @@ int main(int /*argc*/, char* /*argv*/[])
 
         activityManager.tick(sole);
 
-        sendCurrentSensorPacket(sole);
+        sendCurrentSensorPacket(sole, imu);
     }
 
     return 0;

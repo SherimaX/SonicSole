@@ -18,9 +18,10 @@ AmbientCapabilities=CAP_NET_ADMIN
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_SYS_NICE CAP_DAC_READ_SEARCH
 Restart=on-failure
 RestartSec=5
-# Sender prints ~9 lines per cycle at several kHz. Feeding that into journald
-# creates back-pressure that can stall the sender's UDP loop. Drop stdout and
-# keep stderr on journal so real errors are still visible.
+# Sender prints a handful of debug lines per loop iteration at high frequency.
+# Feeding that into journald creates back-pressure that can stall the sender's
+# UDP loop. Drop stdout and keep stderr on journal so real errors are still
+# visible.
 StandardOutput=null
 StandardError=journal
 

@@ -154,8 +154,10 @@ void beginReadStats(int serial, const char* requestName, std::size_t requestedBy
 
 void syncImuDebugToSole(SonicSole& sole)
 {
+    const int pendingBytes = IMU >= 0 ? availableBytes(IMU) : 0;
+    std::lock_guard<std::mutex> lock(sole.imuMutex);
     sole.imuConfigured = gImuConfigured && IMU >= 0;
-    sole.imuPendingBytes = IMU >= 0 ? availableBytes(IMU) : 0;
+    sole.imuPendingBytes = pendingBytes;
     sole.imuBaudRate = gImuActiveBaud;
     sole.imuConsecutiveFailures = gConsecutiveReadFailures;
     sole.imuRequestedBytes = gLastRequestedBytes;
@@ -371,6 +373,7 @@ void updateSoleFromStreamingPacket(SonicSole& sole, const uint8_t* packet)
     structComponentRawAcceleration dataRAcc {};
     reconstructIMUPacket(const_cast<uint8_t*>(packet), dataQuat, dataAcce, dataGyro, dataRAcc);
 
+    std::lock_guard<std::mutex> lock(sole.imuMutex);
     sole.ax = dataAcce.ax;
     sole.ay = dataAcce.ay;
     sole.az = dataAcce.az;
@@ -574,6 +577,64 @@ void SonicSole::readIMU()
     gImuPacketPreview = formatPacketPreview(dataIMUPacket);
     setImuDebugState("streaming", "Received valid IMU streaming batch");
     syncDebug();
+}
+
+void SonicSole::startIMUThread()
+{
+    if (imuThreadRunning_.exchange(true)) {
+        return;
+    }
+    imuThread_ = std::thread([this]() {
+        using clock = std::chrono::steady_clock;
+        constexpr auto minLoopPeriod = std::chrono::microseconds(500);
+        while (imuThreadRunning_.load(std::memory_order_relaxed)) {
+            const auto loopStart = clock::now();
+            this->readIMU();
+            const auto elapsed = clock::now() - loopStart;
+            if (elapsed < minLoopPeriod) {
+                std::this_thread::sleep_for(minLoopPeriod - elapsed);
+            }
+        }
+    });
+}
+
+void SonicSole::stopIMUThread()
+{
+    if (!imuThreadRunning_.exchange(false)) {
+        return;
+    }
+    if (imuThread_.joinable()) {
+        imuThread_.join();
+    }
+}
+
+IMUSnapshot SonicSole::snapshotIMU() const
+{
+    std::lock_guard<std::mutex> lock(imuMutex);
+    IMUSnapshot snap;
+    snap.ax = ax;
+    snap.ay = ay;
+    snap.az = az;
+    snap.qx = qx;
+    snap.qy = qy;
+    snap.qz = qz;
+    snap.qw = qw;
+    snap.imuConfigured = imuConfigured;
+    snap.imuPendingBytes = imuPendingBytes;
+    snap.imuBaudRate = imuBaudRate;
+    snap.imuConsecutiveFailures = imuConsecutiveFailures;
+    snap.imuRequestedBytes = imuRequestedBytes;
+    snap.imuBytesRead = imuBytesRead;
+    snap.imuReadChunks = imuReadChunks;
+    snap.imuPendingBeforeRequest = imuPendingBeforeRequest;
+    snap.imuPendingAfterRead = imuPendingAfterRead;
+    snap.imuReadComplete = imuReadComplete;
+    snap.imuPort = imuPort;
+    snap.imuState = imuState;
+    snap.imuLastEvent = imuLastEvent;
+    snap.imuLastRequest = imuLastRequest;
+    snap.imuPacketPreview = imuPacketPreview;
+    return snap;
 }
 
 void SonicSole::getAccelVectorData(float az, std::vector<float>& azVector)
