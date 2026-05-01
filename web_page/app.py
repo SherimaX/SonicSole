@@ -1535,16 +1535,21 @@ def read_combined_data():
         try:
             data, addr = sock.recvfrom(1024)
             record_discovered_device(addr[0])
-            if len(data) < 20:
+            if len(data) < 8:
                 continue
             if len(data) >= 36:
                 fore_pressure, heel_pressure, ax_val, ay_val, az_val, qx_val, qy_val, qz_val, qw_val = struct.unpack('9f', data[:36])
                 qx_value, qy_value, qz_value, qw_value = normalize_quaternion(qx_val, qy_val, qz_val, qw_val)
                 orientation_mode = "quaternion"
-            else:
+            elif len(data) >= 20:
                 fore_pressure, heel_pressure, ax_val, ay_val, az_val = struct.unpack('5f', data[:20])
                 qx_value, qy_value, qz_value, qw_value = estimate_quaternion_from_acceleration(ax_val, ay_val, az_val)
                 orientation_mode = "acceleration"
+            else:
+                fore_pressure, heel_pressure = struct.unpack('2f', data[:8])
+                ax_val = ay_val = az_val = 0.0
+                qx_value, qy_value, qz_value, qw_value = 0.0, 0.0, 0.0, 1.0
+                orientation_mode = "pressure_only"
 
             sensor_snapshot = build_sensor_snapshot(
                 fore_pressure,
@@ -1738,6 +1743,30 @@ def per_board_update(store, lock, device_ip, default_factory, **changes):
         entry.update(changes)
         store[normalized_ip] = entry
         return dict(entry)
+
+@app.route('/live_pressure', methods=['GET'])
+def live_pressure():
+    """Lightweight per-group pressure readout for in-page debug overlays.
+
+    Returns the latest heel/fore pressure for the requested (or session-selected)
+    group. Distinct from /sensor_check_data so the activity pages can poll for
+    debug values without paying for the full sensor-check payload.
+    """
+    start_combined_data_thread()
+    device_ip, _group, _err = resolve_group_id_to_device_ip(request.args.get("group_id"))
+    if not device_ip:
+        return jsonify({
+            "heel_pressure": None,
+            "fore_pressure": None,
+            "device_ip": "",
+        })
+    snapshot = read_sensor_for_ip(device_ip)
+    return jsonify({
+        "heel_pressure": int(snapshot.get("heel_pressure", 0) or 0),
+        "fore_pressure": int(snapshot.get("fore_pressure", 0) or 0),
+        "device_ip": device_ip,
+    })
+
 
 @app.route('/sensor_check_data', methods=['GET'])
 def sensor_check_data():
@@ -2587,24 +2616,44 @@ def hardware_status():
 
     return jsonify({"devices": devices, "checked_at": checked_at, "live_device": live_device})
 
+def _redirect_to_phone_activity(activity_slug):
+    """Redirect legacy /<activity> URLs into the phone-flow rendering path.
+
+    The phone route renders the same template but with the modern phone-app
+    chrome (group-locked header, dock, theming) — going forward all activity
+    launches happen via /phone/<group_slug>/<activity_slug>, so the legacy
+    URLs forward there using the session-selected group or a sensible default.
+    """
+    selected = get_selected_group()
+    target_group = selected if selected else get_default_sensor_check_group()
+    if target_group is None:
+        # No groups configured at all — fall back to the phone-home picker so
+        # the user can configure one first.
+        return redirect(url_for("phone_groups"))
+    group_slug = target_group.get("slug") or get_group_phone_slug(target_group)
+    if not group_slug:
+        return redirect(url_for("phone_groups"))
+    return redirect(url_for(
+        "phone_group_activity",
+        group_slug=group_slug,
+        activity_slug=activity_slug,
+    ))
+
+
 @app.route('/jump')
 def jump():
-    clear_selected_group()
-    return render_template('jump.html')
+    return _redirect_to_phone_activity("jump")
 
 @app.route("/precision")
 def precision():
-    clear_selected_group()
-    return render_template("precision.html")
+    return _redirect_to_phone_activity("precision")
 
 @app.route('/balance')
 def balance():
-    # Just render the page — do NOT cancel balance globally here. Other tabs
-    # (other boards) may be mid-measurement, and opening /balance in a new tab
-    # shouldn't kill their in-flight sessions. The user can always hit Stop
-    # to cancel their own board's balance.
-    clear_selected_group()
-    return render_template('balance.html')
+    # Defer to the phone-flow route. We deliberately do NOT cancel any in-
+    # flight balance session here: other tabs (other boards) may be mid-
+    # measurement, and opening /balance in a new tab shouldn't kill them.
+    return _redirect_to_phone_activity("balance")
 
 @app.route('/assemblyInstructions')
 def assembly_instructions():
@@ -2619,8 +2668,7 @@ def assembly_instructions():
 
 @app.route('/reaction')
 def reaction():
-    clear_selected_group()
-    return render_template('reaction.html')
+    return _redirect_to_phone_activity("reaction")
 
 @app.route('/foreWalk')
 def foreWalk():
@@ -3033,18 +3081,19 @@ if __name__ == '__main__':
     start_discovery_listener()
     flask_port = int(os.environ.get("SONICSOLE_PORT", os.environ.get("PORT", "5001")))
 
-    # Discover every local IPv4 address that could reach a board. A single
-    # probe only reveals the source IP for one routing target, so we hit a
-    # spread of common gateways: an internet target (default route), the
-    # typical home LAN, and the AP-mode bridge (192.168.2.1) the boards
-    # connect through. Dedup and skip loopback.
+    # Discover every local IPv4 address that could reach a board. UDP
+    # `connect()` is purely a routing-table lookup — no packets are sent and
+    # no DNS is consulted (every probe target is an IP literal in a private
+    # range), so this is safe on a LAN with no internet route. If a target's
+    # subnet has no matching route the kernel raises OSError immediately and
+    # we move on. All targets here are RFC1918 private addresses.
     lan_ips = []
     seen_ips = set()
-    probe_targets = ["8.8.8.8", "192.168.1.1", "192.168.2.1", "10.0.0.1", "172.16.0.1"]
+    probe_targets = ["192.168.1.1", "192.168.2.1", "10.0.0.1", "172.16.0.1"]
     for target in probe_targets:
         try:
             probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            probe.settimeout(0.2)
+            probe.settimeout(0.05)
             probe.connect((target, 1))
             local_ip = probe.getsockname()[0]
             probe.close()

@@ -237,24 +237,35 @@ void sendUdpArray(
 
     if (sent == -1) {
         std::cerr << "UDPSend error: Failed to send data" << std::endl;
-    } else {
-        std::cout << "UDPSend: Sent " << sent << " bytes" << std::endl;
     }
+}
+
+int getPersistentSendSocket()
+{
+    static int cachedSockfd = -1;
+    if (cachedSockfd >= 0) {
+        return cachedSockfd;
+    }
+
+    cachedSockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (cachedSockfd == -1) {
+        std::cerr << "Error creating persistent UDP send socket" << std::endl;
+        return -1;
+    }
+    return cachedSockfd;
 }
 
 } // namespace
 
 void SonicSole::sendSensorData(float flexSensorData[], int port, std::size_t numElements)
 {
-    int sockfd;
-    struct sockaddr_in serverAddr;
-
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-        std::cerr << "Error creating socket" << std::endl;
+    const int sockfd = getPersistentSendSocket();
+    if (sockfd < 0) {
         return;
     }
+
+    struct sockaddr_in serverAddr;
     if (!configureServerAddress(serverAddr, port)) {
-        close(sockfd);
         return;
     }
 
@@ -263,23 +274,17 @@ void SonicSole::sendSensorData(float flexSensorData[], int port, std::size_t num
     } catch (...) {
         std::cout << "Error: UDPSend cannot send data" << std::endl;
     }
-
-    std::cout << "Data sent to UDP" << std::endl;
-    close(sockfd);
 }
 
 void SonicSole::sendFlexSensorData(int flexSensorData, int port)
 {
-    int sockfd;
-    struct sockaddr_in serverAddr;
-
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-        std::cerr << "Error creating socket" << std::endl;
+    const int sockfd = getPersistentSendSocket();
+    if (sockfd < 0) {
         return;
     }
 
+    struct sockaddr_in serverAddr;
     if (!configureServerAddress(serverAddr, port)) {
-        close(sockfd);
         return;
     }
 
@@ -289,7 +294,4 @@ void SonicSole::sendFlexSensorData(int flexSensorData, int port)
     } catch (...) {
         std::cout << "Error: UDPSend cannot send data" << std::endl;
     }
-
-    std::cout << "Data sent to UDP" << std::endl;
-    close(sockfd);
 }
