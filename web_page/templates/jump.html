@@ -371,6 +371,14 @@
       if (data.status === "cancelled") {
         return;
       }
+      if (data.status === "too_long") {
+        stopJumpWaitingAnimation();
+        jumpStatus.innerHTML = `<strong>Try Again</strong>`;
+        if (jumpActivityToggle) {
+          jumpActivityToggle.setActive(false);
+        }
+        return;
+      }
       startJumpWaitingAnimation();
       pollJumpData();
     }
