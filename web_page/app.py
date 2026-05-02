@@ -1139,8 +1139,18 @@ ACTIVITY_THRESHOLD_SPEC = {
     },
     "precision": {
         "label": "Precision",
-        "help": "Force range and capture window for the precision trainer.",
+        "help": "Force range, capture window, and sensor used by the precision trainer.",
         "fields": {
+            "sensor": {
+                "label": "Sensor",
+                "help": "Which pressure sensor the trainer reads. Heel gives the most precise signal for most users.",
+                "type": "choice",
+                "default": "heel",
+                "options": [
+                    {"value": "heel", "label": "Heel"},
+                    {"value": "forefoot", "label": "Forefoot"},
+                ],
+            },
             "force_max": {
                 "label": "Max force (counts)",
                 "help": "Pressure value that maps to 100% on the precision dial.",
@@ -1159,6 +1169,11 @@ ACTIVITY_THRESHOLD_SPEC = {
             },
         },
     },
+}
+
+PRECISION_SENSOR_KEYS = {
+    "heel": "heel_pressure",
+    "forefoot": "fore_pressure",
 }
 
 activity_thresholds_lock = threading.Lock()
@@ -1276,6 +1291,7 @@ def default_precision_entry():
     return {
         "status": "idle",
         "max_force": get_threshold("precision", "force_max"),
+        "sensor": get_threshold("precision", "sensor"),
         "target_percent": 0,
         "target_force": 0,
         "current_force": 0,
@@ -2372,6 +2388,7 @@ def precision_trainer_status():
         current_force=entry.get("current_force", 0),
         current_percent=entry.get("current_percent", 0),
         max_force=entry.get("max_force", precision_force_max),
+        sensor=entry.get("sensor", get_threshold("precision", "sensor")),
     )
 
 def run_precision_trainer(session_id, device_ip):
@@ -2381,6 +2398,8 @@ def run_precision_trainer(session_id, device_ip):
     start_combined_data_thread()
     precision_force_max = get_threshold("precision", "force_max")
     capture_seconds = get_threshold("precision", "capture_seconds")
+    sensor = get_threshold("precision", "sensor")
+    sensor_key = PRECISION_SENSOR_KEYS.get(sensor, PRECISION_SENSOR_KEYS["heel"])
     target_percent = random.choice(PRECISION_TARGET_PERCENTS)
     target_force = round((target_percent / 100.0) * precision_force_max)
     per_board_update(
@@ -2390,6 +2409,7 @@ def run_precision_trainer(session_id, device_ip):
         default_precision_entry,
         status="measuring",
         max_force=precision_force_max,
+        sensor=sensor,
         target_percent=target_percent,
         target_force=target_force,
         current_force=0,
@@ -2404,7 +2424,7 @@ def run_precision_trainer(session_id, device_ip):
         if not is_activity_session_active(device_ip, "precision", session_id):
             return
         snapshot = read_sensor_for_ip(device_ip)
-        current_force = get_precision_force_value(snapshot["fore_pressure"])
+        current_force = get_precision_force_value(snapshot[sensor_key])
         current_percent = round((current_force / precision_force_max) * 100, 1)
         per_board_update(
             precision_results,
@@ -2420,7 +2440,7 @@ def run_precision_trainer(session_id, device_ip):
         return
 
     snapshot = read_sensor_for_ip(device_ip)
-    measured_force = get_precision_force_value(snapshot["fore_pressure"])
+    measured_force = get_precision_force_value(snapshot[sensor_key])
     measured_percent = round((measured_force / precision_force_max) * 100, 1)
     precision_error_value = abs(measured_percent - target_percent)
     per_board_update(
@@ -2450,6 +2470,7 @@ def precision_trainer_results():
         error_percent=entry.get("error_percent", 0.0),
         target_percent=entry.get("target_percent", 0),
         max_force=entry.get("max_force", precision_force_max),
+        sensor=entry.get("sensor", get_threshold("precision", "sensor")),
     )
 
 # fore walk
@@ -2643,16 +2664,22 @@ def _build_threshold_view():
     for activity_slug, details in ACTIVITY_THRESHOLD_SPEC.items():
         fields = []
         for field_slug, field_spec in details["fields"].items():
-            fields.append({
+            field_type = field_spec.get("type", "number")
+            entry = {
                 "slug": field_slug,
                 "label": field_spec["label"],
                 "help": field_spec.get("help", ""),
+                "type": field_type,
                 "default": field_spec["default"],
-                "min": field_spec["min"],
-                "max": field_spec["max"],
-                "step": field_spec["step"],
                 "value": get_threshold(activity_slug, field_slug),
-            })
+            }
+            if field_type == "choice":
+                entry["options"] = list(field_spec.get("options", []))
+            else:
+                entry["min"] = field_spec["min"]
+                entry["max"] = field_spec["max"]
+                entry["step"] = field_spec["step"]
+            fields.append(entry)
         activities.append({
             "slug": activity_slug,
             "label": details["label"],
@@ -2691,6 +2718,17 @@ def update_thresholds_api():
         for field_slug, raw_value in fields.items():
             field_spec = spec["fields"].get(field_slug)
             if field_spec is None:
+                continue
+            field_type = field_spec.get("type", "number")
+            if field_type == "choice":
+                allowed = {opt["value"] for opt in field_spec.get("options", [])}
+                value = str(raw_value) if raw_value is not None else ""
+                if value not in allowed:
+                    errors.setdefault(activity_slug, {})[field_slug] = (
+                        f"Must be one of: {', '.join(sorted(allowed))}."
+                    )
+                    continue
+                parsed.setdefault(activity_slug, {})[field_slug] = value
                 continue
             try:
                 if isinstance(field_spec["step"], int):
