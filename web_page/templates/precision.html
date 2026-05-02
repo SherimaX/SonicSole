@@ -376,7 +376,7 @@
   {% endif %}
 
   {% set instructions_title = "How to Train Precision" %}
-  {% set instructions_body = "Press down on the forefoot sensor to match the target force shown on the meter. Hold as close to the target as possible — the closer your current force is to the target, the better your score." %}
+  {% set instructions_body = "Press down on the selected sensor (heel by default — change it under Settings → Precision) to match the target force shown on the meter. Hold as close to the target as possible — the closer your current force is to the target, the better your score." %}
   {% include '_instructions_modal.html' %}
 
   {% include '_activity_dock.html' %}
@@ -384,6 +384,12 @@
   <script>
     let pollingInterval = null;
     let precisionActivityToggle = null;
+
+    const SENSOR_LABELS = { heel: "heel", forefoot: "forefoot" };
+
+    function sensorLabel(sensor) {
+      return SENSOR_LABELS[sensor] || "selected";
+    }
 
     function setPrecisionReadyState() {
       document.getElementById("statusBox").innerHTML = "<strong>Getting Ready</strong>";
@@ -453,6 +459,11 @@
       startPolling();
     }
 
+    function setMatchPrompt(sensor) {
+      document.getElementById("statusBox").innerText =
+        `Match the target force using your ${sensorLabel(sensor)} sensor`;
+    }
+
     function startPolling() {
       if (pollingInterval) clearInterval(pollingInterval);
       pollingInterval = setInterval(fetchTrainerStatus, 300);
@@ -474,7 +485,7 @@
           const maxForce = data.max_force || 2000;
 
           if (statusText.includes("measuring")) {
-            messageBox.innerText = "Match the target force";
+            setMatchPrompt(data.sensor);
             setMeterVisibility(true);
             renderForceMeter({
               targetPercent,
@@ -514,7 +525,7 @@
             maxForce: data.max_force || 2000,
           });
           document.getElementById("statusBox").innerHTML = `
-            Captured at 5s<br>
+            Captured at 5s (${sensorLabel(data.sensor)} sensor)<br>
             Target Force: ${Math.round(data.target_force || 0)}<br>
             Measured Force: ${Math.round(data.measured_force || 0)}<br>
             Percent Error: ${(data.error_percent || 0).toFixed(1)}%

@@ -152,7 +152,8 @@
       color: var(--text-subtle);
     }
 
-    .field input[type="number"] {
+    .field input[type="number"],
+    .field select {
       font: inherit;
       font-size: 1rem;
       padding: 8px 10px;
@@ -164,7 +165,8 @@
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .field input[type="number"]:focus {
+    .field input[type="number"]:focus,
+    .field select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(122, 28, 28, 0.18);
     }
@@ -276,11 +278,22 @@
       {% if activity.fields %}
       <div class="field-grid">
         {% for field in activity.fields %}
-        <div class="field" data-field="{{ field.slug }}">
+        <div class="field" data-field="{{ field.slug }}" data-field-type="{{ field.type }}">
           <label>
             <span>{{ field.label }}</span>
             <span class="field-default">default: {{ field.default }}</span>
           </label>
+          {% if field.type == "choice" %}
+          <select
+            name="{{ activity.slug }}__{{ field.slug }}"
+            data-default="{{ field.default }}"
+            required
+          >
+            {% for option in field.options %}
+            <option value="{{ option.value }}" {% if option.value == field.value %}selected{% endif %}>{{ option.label }}</option>
+            {% endfor %}
+          </select>
+          {% else %}
           <input
             type="number"
             name="{{ activity.slug }}__{{ field.slug }}"
@@ -291,6 +304,7 @@
             data-default="{{ field.default }}"
             required
           />
+          {% endif %}
           {% if field.help %}<p class="field-help">{{ field.help }}</p>{% endif %}
           <p class="field-error" hidden></p>
         </div>
@@ -349,15 +363,19 @@
       });
     }
 
+    function fieldControl(fieldEl) {
+      return fieldEl.querySelector("input[type='number'], select");
+    }
+
     function collectThresholds() {
       const thresholds = {};
       form.querySelectorAll(".activity-card").forEach((card) => {
         const activitySlug = card.dataset.activity;
         const fieldsForActivity = {};
         card.querySelectorAll(".field").forEach((fieldEl) => {
-          const input = fieldEl.querySelector("input[type='number']");
-          if (!input) return;
-          fieldsForActivity[fieldEl.dataset.field] = input.value;
+          const control = fieldControl(fieldEl);
+          if (!control) return;
+          fieldsForActivity[fieldEl.dataset.field] = control.value;
         });
         if (Object.keys(fieldsForActivity).length > 0) {
           thresholds[activitySlug] = fieldsForActivity;
@@ -369,11 +387,12 @@
     function applyValues(activities) {
       activities.forEach((activity) => {
         activity.fields.forEach((field) => {
-          const input = form.querySelector(
-            `.activity-card[data-activity="${activity.slug}"] .field[data-field="${field.slug}"] input`
+          const fieldEl = form.querySelector(
+            `.activity-card[data-activity="${activity.slug}"] .field[data-field="${field.slug}"]`
           );
-          if (input) {
-            input.value = field.value;
+          const control = fieldEl ? fieldControl(fieldEl) : null;
+          if (control) {
+            control.value = field.value;
           }
         });
       });
@@ -410,9 +429,11 @@
 
     resetButton.addEventListener("click", () => {
       clearFieldErrors();
-      form.querySelectorAll("input[type='number'][data-default]").forEach((input) => {
-        input.value = input.dataset.default;
-      });
+      form
+        .querySelectorAll("input[type='number'][data-default], select[data-default]")
+        .forEach((control) => {
+          control.value = control.dataset.default;
+        });
       showToast("Defaults loaded — press Save to apply.");
     });
   </script>
